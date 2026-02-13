@@ -8,8 +8,8 @@ void BW16Menu::drawIcon(float scale) {
     int y = iconCenterY;
     tft.setTextSize(2 * scale);
     tft.setTextColor(bruceConfig.priColor);
-    tft.drawCentreString("BW16", x, y - 10 * scale, 1);
-    tft.drawCentreString("5GHz", x, y + 10 * scale, 1);
+    tft.drawCentreString("BW16", x, y - 20 * scale, 1);
+    tft.drawCentreString("5GHz", x, y + 20 * scale, 1);
 }
 
 // Global static tick helper
