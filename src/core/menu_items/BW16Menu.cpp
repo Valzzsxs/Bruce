@@ -2,6 +2,7 @@
 #include <core/display.h>
 #include <core/mykeyboard.h>
 #include <core/utils.h>
+#include <core/led_control.h>
 
 void BW16Menu::drawIcon(float scale) {
     int x = iconCenterX;
@@ -22,6 +23,9 @@ static bool bw16_tick(void* ptr, bool) {
 }
 
 void BW16Menu::optionsMenu() {
+    // Disable LED effects to avoid conflict with UART (Pin 21)
+    ledEffects(false);
+
     bw16.begin();
 
     // Initial status check
@@ -51,6 +55,9 @@ void BW16Menu::optionsMenu() {
     }
 
     bw16.end();
+
+    // Restore LED effects
+    ledSetup();
 }
 
 void BW16Menu::scanNetworks() {
