@@ -4,12 +4,37 @@
 #include <core/utils.h>
 
 void BW16Menu::drawIcon(float scale) {
+    clearIconArea();
     int x = iconCenterX;
     int y = iconCenterY;
-    tft.setTextSize(2 * scale);
+    int deltaY = scale * 20;
+    int radius = scale * 6;
+
+    tft.fillCircle(x, y + deltaY, radius, bruceConfig.priColor);
+    tft.drawArc(
+        x,
+        y + deltaY,
+        deltaY + radius,
+        deltaY,
+        130,
+        230,
+        bruceConfig.priColor,
+        bruceConfig.bgColor
+    );
+    tft.drawArc(
+        x,
+        y + deltaY,
+        2 * deltaY + radius,
+        2 * deltaY,
+        130,
+        230,
+        bruceConfig.priColor,
+        bruceConfig.bgColor
+    );
+
+    tft.setTextSize(scale);
     tft.setTextColor(bruceConfig.priColor);
-    tft.drawCentreString("BW16", x, y - 20 * scale, 1);
-    tft.drawCentreString("5GHz", x, y + 20 * scale, 1);
+    tft.drawCentreString("5G", x, y + deltaY - 15 * scale, 1);
 }
 
 // Global static tick helper
