@@ -56,6 +56,15 @@ void BW16Menu::optionsMenu() {
         options = {
             {"Scan Networks", [this]() { scanNetworks(); }, false, bw16_tick, this},
             {"Show AP List", [this]() { showAPList(); }, false, bw16_tick, this},
+            {"Deauth All", [this]() {
+                bw16.deauthAll();
+                long start = millis();
+                while(millis() - start < 1000) {
+                     bw16.loop();
+                     delay(10);
+                }
+                displaySuccess("Deauth All Sent");
+            }, false, bw16_tick, this},
             {"Stop All Deauths", [this]() {
                 bw16.deauthStopAll();
                 displaySuccess("Stopped All!");
@@ -68,6 +77,10 @@ void BW16Menu::optionsMenu() {
         else status += "Checking...";
 
         status += " | APs: " + String(bw16.getResults().size());
+
+        if (bw16.getLastMessage().length() > 0) {
+            status += "\n" + bw16.getLastMessage();
+        }
 
         int ret = loopOptions(options, MENU_TYPE_REGULAR, status.c_str());
 

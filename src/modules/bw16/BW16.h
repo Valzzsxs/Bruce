@@ -26,11 +26,13 @@ public:
     void deauthStart(int index);
     void deauthStop(int index);
     void deauthStopAll();
+    void deauthAll();
     void selectSSID(int index);
     void getAPList();
     void getStatus();
 
     std::vector<BW16ScanResult> getResults() { return _scanResults; }
+    String getLastMessage() { return _lastMessage; }
     bool isScanning() { return _scanning; }
     bool isConnected() { return _connected; }
 
@@ -40,6 +42,7 @@ private:
     bool _scanning = false;
     bool _connected = false;
     String _buffer;
+    String _lastMessage;
     bool _pinsReleased = false;
 
     void parseLine(String line);
