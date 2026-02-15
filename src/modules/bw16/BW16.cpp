@@ -24,6 +24,7 @@ void BW16::begin() {
     _connected = true;
     _scanning = false;
     _scanResults.clear();
+    _lastMessage = "";
     getStatus(); // Check connection
 }
 
@@ -74,6 +75,10 @@ void BW16::deauthStopAll() {
     sendCommand("DEAUTH_STOP_ALL");
 }
 
+void BW16::deauthAll() {
+    sendCommand("DEAUTH_ALL");
+}
+
 void BW16::selectSSID(int index) {
     sendCommand("SELECT_SSID," + String(index));
 }
@@ -102,6 +107,10 @@ void BW16::parseLine(String line) {
         _scanning = false;
     } else if (resp.startsWith("SCAN_FAILED")) {
         _scanning = false;
+    } else if (resp.startsWith("DEAUTH_ALL_STARTED:COUNT=")) {
+        _lastMessage = "Deauth All Started: " + resp.substring(25);
+    } else if (resp.startsWith("ERROR:")) {
+        _lastMessage = resp.substring(6);
     } else if (resp.startsWith("AP:")) {
         // Format: AP:index|SSID|BSSID|Channel|Security|RSSI
         // Example: AP:0|MyWifi|00:11:22:33:44:55|6|3|-60
