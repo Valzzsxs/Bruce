@@ -7,34 +7,16 @@ void BW16Menu::drawIcon(float scale) {
     clearIconArea();
     int x = iconCenterX;
     int y = iconCenterY;
-    int deltaY = scale * 20;
-    int radius = scale * 6;
-
-    tft.fillCircle(x, y + deltaY, radius, bruceConfig.priColor);
-    tft.drawArc(
-        x,
-        y + deltaY,
-        deltaY + radius,
-        deltaY,
-        130,
-        230,
-        bruceConfig.priColor,
-        bruceConfig.bgColor
-    );
-    tft.drawArc(
-        x,
-        y + deltaY,
-        2 * deltaY + radius,
-        2 * deltaY,
-        130,
-        230,
-        bruceConfig.priColor,
-        bruceConfig.bgColor
-    );
-
+    
     tft.setTextSize(scale);
     tft.setTextColor(bruceConfig.priColor);
-    tft.drawCentreString("5G", x, y + deltaY - 15 * scale, 1);
+    
+    // Draw "5G" slightly higher
+    tft.drawCentreString("5G", x, y - (10 * scale), 1);
+    
+    // Draw "Hz" below it
+    tft.setTextSize(max(1.0f, scale * 0.7f)); 
+    tft.drawCentreString("Hz", x, y + (5 * scale), 1);
 }
 
 // Global static tick helper
