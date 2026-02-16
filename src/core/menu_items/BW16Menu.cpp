@@ -8,7 +8,7 @@ void BW16Menu::drawIcon(float scale) {
     int x = iconCenterX;
     int y = iconCenterY;
     
-    tft.setTextSize(scale * 3.5);
+    tft.setTextSize(scale * 7.0);
     tft.setTextColor(bruceConfig.priColor);
     
     // Draw "5G" larger and slightly higher
