@@ -8,15 +8,15 @@ void BW16Menu::drawIcon(float scale) {
     int x = iconCenterX;
     int y = iconCenterY;
 
-    tft.setTextSize(scale);
+    tft.setTextSize(scale * 1.5);
     tft.setTextColor(bruceConfig.priColor);
 
-    // Draw "5G" slightly higher
-    tft.drawCentreString("5G", x, y - (10 * scale), 1);
+    // Draw "5G" larger and slightly higher
+    tft.drawCentreString("5G", x, y - (15 * scale), 1);
 
-    // Draw "Hz" below it
-    tft.setTextSize(max(1.0f, scale * 0.7f));
-    tft.drawCentreString("Hz", x, y + (5 * scale), 1);
+    // Draw "Hz" larger below it
+    tft.setTextSize(max(1.0f, scale));
+    tft.drawCentreString("Hz", x, y + (10 * scale), 1);
 }
 
 // Global static tick helper
