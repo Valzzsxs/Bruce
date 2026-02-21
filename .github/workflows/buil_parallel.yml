@@ -18,7 +18,6 @@ jobs:
       matrix:
         board:
           - { env: "Marauder-Mini",                   family: "ESP32",}
-          - { env: "LAUNCHER_Marauder-Mini",          family: "ESP32",}
 
     steps:
       - uses: actions/checkout@v4
