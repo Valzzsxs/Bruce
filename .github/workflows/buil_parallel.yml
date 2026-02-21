@@ -18,8 +18,7 @@ jobs:
       matrix:
         board:
           - { env: "Marauder-Mini",                   family: "ESP32",}
-          - { env: "smoochiee-board",                 family: "ESP32-S3",}
-
+          - { env: "LAUNCHER_Marauder-Mini",          family: "ESP32",}
 
     steps:
       - uses: actions/checkout@v4
