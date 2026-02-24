@@ -90,6 +90,46 @@ void _setBrightness(uint8_t brightval) {
 
 void InputHandler(void) {
     static unsigned long tm = 0;
+    static unsigned long upBtnPressStart = 0;
+    static int lastSecond = 0;
+
+    // Check UP_BTN for 5s hold to power off
+    static bool countingDown = false;
+    if (digitalRead(UP_BTN) == 0) { // Active Low
+        if (upBtnPressStart == 0) {
+            upBtnPressStart = millis();
+            lastSecond = 5;
+            countingDown = false;
+        } else {
+            unsigned long duration = millis() - upBtnPressStart;
+            if (duration >= 5000) {
+                powerOff();
+            } else if (duration > 1000) {
+                int remaining = 5 - (duration / 1000);
+                if (remaining != lastSecond) {
+                    tft.setTextColor(TFT_RED, bruceConfig.bgColor);
+                    tft.setTextSize(4);
+                    tft.drawCentreString(String(remaining), tftWidth / 2, tftHeight / 2, 1);
+                    lastSecond = remaining;
+                    countingDown = true;
+                }
+            }
+        }
+    } else {
+        if (upBtnPressStart > 0 && countingDown) {
+            // Clear the countdown if button released early
+            tft.setTextColor(bruceConfig.bgColor, bruceConfig.bgColor);
+            tft.setTextSize(4);
+            tft.drawCentreString(String(lastSecond), tftWidth / 2, tftHeight / 2, 1);
+
+            // Restore defaults
+            tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+            tft.setTextSize(FM);
+        }
+        upBtnPressStart = 0;
+        countingDown = false;
+    }
+
     static bool btn_pressed = false;
     if (nxtPress || prvPress || ecPress || slPress) btn_pressed = true;
 
