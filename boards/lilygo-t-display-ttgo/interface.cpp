@@ -92,11 +92,14 @@ void InputHandler(void) {
     static unsigned long tm = 0;
     static unsigned long upBtnPressStart = 0;
     static int lastSecond = 0;
+    static bool waitForRelease = true; // Prevents immediate trigger on boot if button is held
 
     // Check UP_BTN for 5s hold to power off
     static bool countingDown = false;
     if (digitalRead(UP_BTN) == 0) { // Active Low
-        if (upBtnPressStart == 0) {
+        if (waitForRelease) {
+            // Do nothing until button is released first
+        } else if (upBtnPressStart == 0) {
             upBtnPressStart = millis();
             lastSecond = 5;
             countingDown = false;
@@ -116,6 +119,7 @@ void InputHandler(void) {
             }
         }
     } else {
+        waitForRelease = false; // Button released, now we can accept presses
         if (upBtnPressStart > 0 && countingDown) {
             // Clear the countdown if button released early
             tft.setTextColor(bruceConfig.bgColor, bruceConfig.bgColor);
@@ -156,6 +160,7 @@ void powerOff() {
     tft.fillScreen(bruceConfig.bgColor);
     digitalWrite(TFT_BL, LOW);
     tft.writecommand(0x10);
-    esp_sleep_enable_ext0_wakeup((gpio_num_t)DW_BTN, BTN_ACT);
+    esp_sleep_enable_ext0_wakeup((gpio_num_t)DW_BTN, BTN_ACT); // Wake up on Button 0 (Low)
+    esp_sleep_enable_ext1_wakeup(1ULL << UP_BTN, ESP_EXT1_WAKEUP_ALL_LOW); // Wake up on Button 35 (Low)
     esp_deep_sleep_start();
 }
