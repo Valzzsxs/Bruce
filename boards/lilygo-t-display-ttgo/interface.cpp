@@ -159,3 +159,35 @@ void powerOff() {
     esp_sleep_enable_ext0_wakeup((gpio_num_t)DW_BTN, BTN_ACT);
     esp_deep_sleep_start();
 }
+
+void _post_setup_gpio() {
+    // Check if we woke up from deep sleep via the bottom button (EXT0)
+    if (esp_sleep_get_wakeup_cause() == ESP_SLEEP_WAKEUP_EXT0) {
+        unsigned long startTime = millis();
+        int lastSecond = 5;
+
+        // Visual feedback immediately
+        tft.fillScreen(bruceConfig.bgColor);
+        tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+        tft.setTextSize(2);
+        tft.drawCentreString("Hold to Boot", tftWidth / 2, tftHeight / 2 - 20, 1);
+
+        while (millis() - startTime < 5000) {
+            // Check button release (Active Low, so HIGH means released)
+            if (digitalRead(DW_BTN) == 1) {
+                powerOff(); // Go back to sleep
+            }
+
+            int remaining = 5 - (millis() - startTime) / 1000;
+            if (remaining != lastSecond) {
+                tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+                tft.setTextSize(4);
+                tft.drawCentreString(String(remaining), tftWidth / 2, tftHeight / 2 + 10, 1);
+                lastSecond = remaining;
+            }
+            delay(10);
+        }
+        // Success
+        tft.fillScreen(bruceConfig.bgColor);
+    }
+}
