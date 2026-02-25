@@ -126,7 +126,7 @@ void InputHandler(void) {
                  upBtnHeldState = true;
              } else {
                  unsigned long elapsed = millis() - upBtnHoldStart;
-                 int remaining = 5 - (elapsed / 1000);
+                 int remaining = 3 - (elapsed / 1000);
 
                  if (remaining <= 0) {
                      powerOff();
