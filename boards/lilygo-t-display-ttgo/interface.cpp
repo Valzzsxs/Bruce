@@ -90,46 +90,6 @@ void _setBrightness(uint8_t brightval) {
 
 void InputHandler(void) {
     static unsigned long tm = 0;
-    static unsigned long upBtnPressStart = 0;
-    static int lastSecond = 0;
-
-    // Check UP_BTN for 5s hold to power off
-    static bool countingDown = false;
-    if (digitalRead(UP_BTN) == 0) { // Active Low
-        if (upBtnPressStart == 0) {
-            upBtnPressStart = millis();
-            lastSecond = 5;
-            countingDown = false;
-        } else {
-            unsigned long duration = millis() - upBtnPressStart;
-            if (duration >= 5000) {
-                powerOff();
-            } else if (duration > 1000) {
-                int remaining = 5 - (duration / 1000);
-                if (remaining != lastSecond) {
-                    tft.setTextColor(TFT_RED, bruceConfig.bgColor);
-                    tft.setTextSize(4);
-                    tft.drawCentreString(String(remaining), tftWidth / 2, tftHeight / 2, 1);
-                    lastSecond = remaining;
-                    countingDown = true;
-                }
-            }
-        }
-    } else {
-        if (upBtnPressStart > 0 && countingDown) {
-            // Clear the countdown if button released early
-            tft.setTextColor(bruceConfig.bgColor, bruceConfig.bgColor);
-            tft.setTextSize(4);
-            tft.drawCentreString(String(lastSecond), tftWidth / 2, tftHeight / 2, 1);
-
-            // Restore defaults
-            tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-            tft.setTextSize(FM);
-        }
-        upBtnPressStart = 0;
-        countingDown = false;
-    }
-
     static bool btn_pressed = false;
     if (nxtPress || prvPress || ecPress || slPress) btn_pressed = true;
 
@@ -158,36 +118,4 @@ void powerOff() {
     tft.writecommand(0x10);
     esp_sleep_enable_ext0_wakeup((gpio_num_t)DW_BTN, BTN_ACT);
     esp_deep_sleep_start();
-}
-
-void _post_setup_gpio() {
-    // Check if we woke up from deep sleep via the bottom button (EXT0)
-    if (esp_sleep_get_wakeup_cause() == ESP_SLEEP_WAKEUP_EXT0) {
-        unsigned long startTime = millis();
-        int lastSecond = 5;
-
-        // Visual feedback immediately
-        tft.fillScreen(bruceConfig.bgColor);
-        tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-        tft.setTextSize(2);
-        tft.drawCentreString("Hold to Boot", tftWidth / 2, tftHeight / 2 - 20, 1);
-
-        while (millis() - startTime < 5000) {
-            // Check button release (Active Low, so HIGH means released)
-            if (digitalRead(DW_BTN) == 1) {
-                powerOff(); // Go back to sleep
-            }
-
-            int remaining = 5 - (millis() - startTime) / 1000;
-            if (remaining != lastSecond) {
-                tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-                tft.setTextSize(4);
-                tft.drawCentreString(String(remaining), tftWidth / 2, tftHeight / 2 + 10, 1);
-                lastSecond = remaining;
-            }
-            delay(10);
-        }
-        // Success
-        tft.fillScreen(bruceConfig.bgColor);
-    }
 }
