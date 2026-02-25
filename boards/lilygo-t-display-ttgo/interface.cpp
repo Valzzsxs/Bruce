@@ -130,7 +130,7 @@ void InputHandler(void) {
 
                  if (remaining <= 0) {
                      powerOff();
-                 } else if (remaining != lastShutdownCountdown) {
+                 } else if (remaining < 5 && remaining != lastShutdownCountdown) {
                      // Draw countdown
                      tft.setTextColor(TFT_RED, bruceConfig.bgColor);
                      String msg = "OFF: " + String(remaining);
