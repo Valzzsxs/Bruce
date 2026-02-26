@@ -237,7 +237,7 @@ void boot_screen() {
     tft.drawCentreString(BRUCE_VERSION, tftWidth / 2, 25, 1);
     tft.setTextSize(FM);
     tft.drawCentreString(
-        "PREDATORY FIRMWARE", tftWidth / 2, tftHeight + 2, 1
+        "", tftWidth / 2, tftHeight + 2, 1
     ); // will draw outside the screen on non touch devices
 }
 
@@ -320,7 +320,7 @@ void boot_screen_anim() {
                 bruceConfig.priColor
             );
 #endif
-        if (check(AnyKeyPress)) // If any key or M5 key is pressed, it'll jump the boot screen
+        if (check(AnyKeyPress) && (millis() - i > 1000)) // If any key or M5 key is pressed, it'll jump the boot screen
         {
             tft.fillScreen(bruceConfig.bgColor);
             delay(10);
@@ -542,7 +542,7 @@ void loop() {
         "██   ██ ██   ██ ██    ██ ██      ██      \n"
         "██████  ██   ██  ██████   ██████ ███████ \n"
         "                                         \n"
-        "         PREDATORY FIRMWARE\n\n"
+        "         \n\n"
         "Tips: Connect to the WebUI for better experience\n"
         "      Add your network by sending: wifi add ssid password\n\n"
         "At your command:"
