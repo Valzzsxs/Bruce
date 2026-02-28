@@ -12,11 +12,23 @@ volatile bool ecPress = false;
 volatile bool slPress = false;
 static void onButtonSingleClickCb1(void *button_handle, void *usr_data) { nxtPress = true; }
 static void onButtonDoubleClickCb1(void *button_handle, void *usr_data) { slPress = true; }
-static void onButtonHoldCb1(void *button_handle, void *usr_data) { slPress = true; }
+static void onButtonHoldCb1(void *button_handle, void *usr_data) {
+    if (menuOptionType == MENU_TYPE_MAIN) {
+        powerOff();
+    } else {
+        slPress = true;
+    }
+}
 
 static void onButtonSingleClickCb2(void *button_handle, void *usr_data) { prvPress = true; }
 static void onButtonDoubleClickCb2(void *button_handle, void *usr_data) { ecPress = true; }
-static void onButtonHoldCb2(void *button_handle, void *usr_data) { ecPress = true; }
+static void onButtonHoldCb2(void *button_handle, void *usr_data) {
+    if (menuOptionType == MENU_TYPE_MAIN) {
+        powerOff();
+    } else {
+        ecPress = true;
+    }
+}
 
 Button *btn1;
 Button *btn2;
