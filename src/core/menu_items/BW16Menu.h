@@ -10,8 +10,8 @@ public:
 
     void optionsMenu(void);
     void drawIcon(float scale);
-    bool hasTheme() { return false; }
-    String themePath() { return ""; }
+    bool hasTheme() { return bruceConfig.theme.bw16; }
+    String themePath() { return bruceConfig.theme.paths.bw16; }
 
     void runLoop() { bw16.loop(); }
 
