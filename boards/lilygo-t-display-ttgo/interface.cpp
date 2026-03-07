@@ -108,6 +108,7 @@ void InputHandler(void) {
     static bool btn_pressed = false;
 
 #ifdef HAS_ENCODER
+    static unsigned long tm2 = millis();
     static int posDifference = 0;
     static int lastPos = 0;
     static bool lastSel = !BTN_ACT;
@@ -121,18 +122,26 @@ void InputHandler(void) {
 
     sel = digitalRead(ENCODER_KEY);
 
-    if (posDifference > 0) {
-        prvPress = true;
-        posDifference--;
-    }
-    if (posDifference < 0) {
-        nxtPress = true;
-        posDifference++;
+    if (posDifference != 0 || sel == BTN_ACT) {
+        if (!wakeUpScreen()) AnyKeyPress = true;
+        else return;
     }
 
-    if (sel == BTN_ACT && lastSel != BTN_ACT) {
+    if (posDifference > 0) {
+        PrevPress = true;
+        posDifference--;
+        tm2 = millis();
+    }
+    if (posDifference < 0) {
+        NextPress = true;
+        posDifference++;
+        tm2 = millis();
+    }
+
+    if (sel == BTN_ACT && lastSel != BTN_ACT && millis() - tm2 > 200) {
         posDifference = 0;
-        slPress = true;
+        SelPress = true;
+        tm = millis();
     }
     lastSel = sel;
 #endif
@@ -145,10 +154,10 @@ void InputHandler(void) {
             tm = millis();
             if (!wakeUpScreen()) AnyKeyPress = true;
             else return;
-            SelPress = slPress;
-            EscPress = ecPress;
-            NextPress = nxtPress;
-            PrevPress = prvPress;
+            if (slPress) SelPress = true;
+            if (ecPress) EscPress = true;
+            if (nxtPress) NextPress = true;
+            if (prvPress) PrevPress = true;
 
             nxtPress = false;
             prvPress = false;
