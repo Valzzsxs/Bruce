@@ -6,6 +6,12 @@
 #include <interface.h>
 #include "core/display.h"
 
+#ifdef HAS_ENCODER
+#include <RotaryEncoder.h>
+RotaryEncoder *encoder = nullptr;
+IRAM_ATTR void checkPosition() { encoder->tick(); }
+#endif
+
 volatile bool nxtPress = false;
 volatile bool prvPress = false;
 volatile bool ecPress = false;
@@ -62,6 +68,13 @@ void _setup_gpio() {
     pinMode(ADC_EN, OUTPUT);
     digitalWrite(ADC_EN, HIGH);
 
+#ifdef HAS_ENCODER
+    pinMode(ENCODER_KEY, INPUT_PULLUP);
+    encoder = new RotaryEncoder(ENCODER_INA, ENCODER_INB, RotaryEncoder::LatchMode::TWO03);
+    attachInterrupt(digitalPinToInterrupt(ENCODER_INA), checkPosition, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(ENCODER_INB), checkPosition, CHANGE);
+#endif
+
     // Start with default IR, RF and RFID Configs, replace old
     bruceConfigPins.rfModule = CC1101_SPI_MODULE;
     bruceConfigPins.rfidModule = PN532_I2C_MODULE;
@@ -93,6 +106,37 @@ void _setBrightness(uint8_t brightval) {
 void InputHandler(void) {
     static unsigned long tm = 0;
     static bool btn_pressed = false;
+
+#ifdef HAS_ENCODER
+    static int posDifference = 0;
+    static int lastPos = 0;
+    static bool lastSel = !BTN_ACT;
+    bool sel = !BTN_ACT;
+
+    int newPos = encoder->getPosition();
+    if (newPos != lastPos) {
+        posDifference += (newPos - lastPos);
+        lastPos = newPos;
+    }
+
+    sel = digitalRead(ENCODER_KEY);
+
+    if (posDifference > 0) {
+        prvPress = true;
+        posDifference--;
+    }
+    if (posDifference < 0) {
+        nxtPress = true;
+        posDifference++;
+    }
+
+    if (sel == BTN_ACT && lastSel != BTN_ACT) {
+        posDifference = 0;
+        slPress = true;
+    }
+    lastSel = sel;
+#endif
+
     if (nxtPress || prvPress || ecPress || slPress) btn_pressed = true;
 
     if (millis() - tm > 200 || LongPress) {

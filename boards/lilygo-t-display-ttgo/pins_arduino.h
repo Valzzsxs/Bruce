@@ -96,6 +96,13 @@ static const uint8_t SCL = GROVE_SCL;
 #define DW_BTN 0
 #define BTN_ACT LOW
 
+// Encoder
+#define HAS_ENCODER
+#define ENCODER_INA 25
+#define ENCODER_INB 26
+#define ENCODER_KEY 27
+#define SEL_BTN ENCODER_KEY
+
 // IR pins
 #define TXLED 2
 #define RXLED 15
