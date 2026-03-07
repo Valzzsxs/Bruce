@@ -98,9 +98,9 @@ static const uint8_t SCL = GROVE_SCL;
 
 // Encoder
 #define HAS_ENCODER
-#define ENCODER_INA 25
-#define ENCODER_INB 26
-#define ENCODER_KEY 27
+#define ENCODER_INA 17
+#define ENCODER_INB 32
+#define ENCODER_KEY 33
 #define SEL_BTN ENCODER_KEY
 
 // IR pins
