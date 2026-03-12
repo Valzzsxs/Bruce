@@ -1,0 +1,978 @@
+Processing smoochiee-board (board: smoochiee-board; platform: https://github.com/pioarduino/platform-espressif32/releases/download/55.03.36/platform-espressif32.zip; framework: arduino)
+--------------------------------------------------------------------------------
+Library Manager: Installing h2zero/NimBLE-Arduino
+Library Manager: Installing h2zero/NimBLE-Arduino
+Library Manager: Installing h2zero/NimBLE-Arduino
+Library Manager: Installing whywilson/ESP-PN532-UART
+Verbose mode can be enabled via `-v, --verbose` option
+[GZIP & EMBED INTO HEADER] - Nothing to process.
+1f7994c8ed5c769eed978510bc87130b8a949a2f3c2042ccddba35aa8032befc 1f7994c8ed5c769eed978510bc87130b8a949a2f3c2042ccddba35aa8032befc
+CONFIGURATION: https://docs.platformio.org/page/boards/espressif32/smoochiee-board.html
+PLATFORM: Espressif 32 (55.3.36) > Smoochiee Board
+HARDWARE: ESP32S3 240MHz, 320KB RAM, 16MB Flash
+DEBUG: Current (cmsis-dap) External (cmsis-dap, esp-bridge, esp-builtin, esp-prog, iot-bus-jtag, jlink, minimodule, olimex-arm-usb-ocd, olimex-arm-usb-ocd-h, olimex-arm-usb-tiny-h, olimex-jtag-tiny, tumpa)
+PACKAGES:
+ - contrib-piohome @ 3.4.4
+ - framework-arduinoespressif32 @ 3.3.6
+ - framework-arduinoespressif32-libs @ 5.5.0+sha.30aaf64524
+ - tool-esp-rom-elfs @ 2024.10.11
+ - tool-esptoolpy @ 5.1.0
+ - toolchain-xtensa-esp-elf @ 14.2.0+20251107
+LDF: Library Dependency Finder -> https://bit.ly/configure-pio-ldf
+LDF Modes: Finder ~ chain, Compatibility ~ soft
+Found 90 compatible libraries
+Scanning dependencies...
+Dependency Graph
+|-- WireGuard-ESP32 @ 0.1.5+sha.4e22d2e
+|-- IRremoteESP8266 @ 2.8.6+sha.22cd38c
+|-- Time @ 1.6.1
+|-- LibSSH-ESP32 @ 5.8.0
+|-- Adafruit BusIO @ 1.17.2-bruce.1+sha.27230c1
+|-- Adafruit PN532 @ 1.3.3-bruce.1+sha.e91d695
+|-- BER-TLV @ 0.0.0+20260312060926.sha.bd61b70
+|-- RFID_MFRC522v2 @ 2.0.6+sha.a6977df
+|-- ESP Chameleon Ultra @ 0.0.2+sha.f66f354
+|-- ESP Amiibolink @ 0.0.2+sha.fc26412
+|-- SimpleCLI @ 1.1.4+sha.b23d377
+|-- ESP PN32BLE @ 0.0.2+sha.542f121
+|-- ESP PN532 UART @ 0.0.2+sha.8021fde
+|-- ESP PN532Killer @ 0.0.7+sha.71bf110
+|-- NTPClient @ 3.2.1
+|-- ESP32Time @ 2.0.6
+|-- FFat @ 3.3.6
+|-- ArduinoJson @ 7.4.3
+|-- rc-switch @ 2.6.4+sha.2c43b93
+|-- ESP8266Audio @ 2.4.1
+|-- ESP8266SAM @ 1.1.0
+|-- TinyGPSPlus @ 1.1.0
+|-- FFT @ 0.0.1
+|-- NimBLE-Arduino @ 2.3.9
+|-- RF24 @ 1.4.11
+|-- Adafruit Si4713 Library @ 1.2.3
+|-- JPEGDecoder @ 2.0.0
+|-- SmartRC-CC1101-Driver-Lib @ 2.5.7+sha.7bba521
+|-- mquickjs @ 0.0.4+sha.60b29b8
+|-- OneWire @ 2.3.8+sha.42e045e
+|-- ESP32-PSRamFS @ 1.0.6+sha.5ace2e6
+|-- AnimatedGIF @ 2.2.0
+|-- PNGdec @ 1.1.6
+|-- ESPAsyncWebServer @ 3.10.0
+|-- FastLED @ 3.10.3
+|-- RadioLib @ 7.6.0
+|-- XPowersLib @ 0.3.0
+|-- RotaryEncoder @ 1.5.3
+|-- Wire @ 3.3.6
+|-- WiFi @ 3.3.6
+|-- BruceHAL @ 7.3.1
+|-- HTTPClient @ 3.3.6
+|-- Ethernet @ 3.3.6
+|-- Networking @ 3.3.6
+|-- SPI @ 3.3.6
+|-- FS @ 3.3.6
+|-- LittleFS @ 3.3.6
+|-- Bad_Usb_Lib
+|-- TFT_eSPI QRcode @ 1.0.0
+|-- DNSServer @ 3.3.6
+|-- WebServer @ 3.3.6
+|-- RTC
+|-- utility
+|-- AsyncTCP @ 3.4.10
+|-- ESPmDNS @ 3.3.6
+|-- PN532_SRIX
+|-- NetworkClientSecure @ 3.3.6
+|-- SPIFFS @ 3.3.6
+Building in release mode
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/IRac.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/IRrecv.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/IRsend.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/IRtext.cpp.o
+.pio/libdeps/smoochiee-board/IRremoteESP8266/src/IRrecv.cpp: In function 'void gpio_intr()':
+.pio/libdeps/smoochiee-board/IRremoteESP8266/src/IRrecv.cpp:222:10: warning: '++' expression of 'volatile'-qualified type is deprecated [-Wvolatile]
+  222 |   params.rawlen++;
+      |   ~~~~~~~^~~~~~
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/IRtimer.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/IRutils.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Airton.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Airwell.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Aiwa.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Amcor.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Argo.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Arris.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_BluestarHeavy.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Bosch.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Bose.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Carrier.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_ClimaButler.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Coolix.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Corona.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Daikin.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Delonghi.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Denon.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Dish.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Doshisha.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Ecoclim.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Electra.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_EliteScreens.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Epson.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Fujitsu.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_GICable.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Goodweather.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Gorenje.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Gree.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Haier.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Hitachi.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Inax.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_JVC.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Kelon.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Kelvinator.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_LG.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Lasertag.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Lego.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Lutron.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_MWM.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Magiquest.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Metz.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Midea.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_MilesTag2.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Mirage.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Mitsubishi.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_MitsubishiHeavy.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Multibrackets.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_NEC.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Neoclima.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Nikai.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Panasonic.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Pioneer.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_RC5_RC6.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_RCMM.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Rhoss.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Samsung.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Sanyo.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Sharp.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Sony.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Symphony.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Tcl.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Technibel.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Teco.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Teknopoint.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Toshiba.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Toto.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Transcold.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Trotec.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Truma.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Vestel.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Voltas.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Whirlpool.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Whynter.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Wowwee.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Xmp.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_York.cpp.o
+Compiling .pio/build/smoochiee-board/lib708/IRremoteESP8266/ir_Zepeal.cpp.o
+Compiling .pio/build/smoochiee-board/lib767/Time/DateStrings.cpp.o
+Compiling .pio/build/smoochiee-board/lib767/Time/Time.cpp.o
+Compiling .pio/build/smoochiee-board/lib07a/PNGdec/PNGdec.cpp.o
+Compiling .pio/build/smoochiee-board/lib548/Wire/Wire.cpp.o
+Compiling .pio/build/smoochiee-board/libb7c/SPI/SPI.cpp.o
+Compiling .pio/build/smoochiee-board/liba75/Adafruit BusIO/Adafruit_BusIO_Register.cpp.o
+Compiling .pio/build/smoochiee-board/liba75/Adafruit BusIO/Adafruit_GenericDevice.cpp.o
+Compiling .pio/build/smoochiee-board/liba75/Adafruit BusIO/Adafruit_I2CDevice.cpp.o
+Compiling .pio/build/smoochiee-board/liba75/Adafruit BusIO/Adafruit_SPIDevice.cpp.o
+Compiling .pio/build/smoochiee-board/lib4be/Adafruit PN532/Adafruit_PN532.cpp.o
+Compiling .pio/build/smoochiee-board/lib9c4/RFID_MFRC522v2/MFRC522Debug.cpp.o
+Compiling .pio/build/smoochiee-board/lib9c4/RFID_MFRC522v2/MFRC522DriverI2C.cpp.o
+Compiling .pio/build/smoochiee-board/lib9c4/RFID_MFRC522v2/MFRC522DriverSPI.cpp.o
+Compiling .pio/build/smoochiee-board/lib9c4/RFID_MFRC522v2/MFRC522Hack.cpp.o
+Compiling .pio/build/smoochiee-board/lib9c4/RFID_MFRC522v2/MFRC522v2.cpp.o
+Compiling .pio/build/smoochiee-board/libda1/NimBLE-Arduino/NimBLE2904.cpp.o
+Compiling .pio/build/smoochiee-board/libda1/NimBLE-Arduino/NimBLEAdvertisedDevice.cpp.o
+Compiling .pio/build/smoochiee-board/libda1/NimBLE-Arduino/NimBLEAdvertisementData.cpp.o
+Compiling .pio/build/smoochiee-board/libda1/NimBLE-Arduino/NimBLEAdvertising.cpp.o
+Compiling .pio/build/smoochiee-board/libda1/NimBLE-Arduino/NimBLEAttValue.cpp.o
+Compiling .pio/build/smoochiee-board/libda1/NimBLE-Arduino/NimBLECharacteristic.cpp.o
+Compiling .pio/build/smoochiee-board/libda1/NimBLE-Arduino/NimBLEClient.cpp.o
+Compiling .pio/build/smoochiee-board/libda1/NimBLE-Arduino/NimBLEDescriptor.cpp.o
+Compiling .pio/build/smoochiee-board/libda1/NimBLE-Arduino/NimBLEDevice.cpp.o
+Compiling .pio/build/smoochiee-board/libda1/NimBLE-Arduino/NimBLEExtAdvertising.cpp.o
+Compiling .pio/build/smoochiee-board/libda1/NimBLE-Arduino/NimBLEHIDDevice.cpp.o
+Compiling .pio/build/smoochiee-board/libda1/NimBLE-Arduino/NimBLEL2CAPServer.cpp.o
+Compiling .pio/build/smoochiee-board/libda1/NimBLE-Arduino/NimBLERemoteCharacteristic.cpp.o
+Compiling .pio/build/smoochiee-board/libda1/NimBLE-Arduino/NimBLERemoteDescriptor.cpp.o
+Compiling .pio/build/smoochiee-board/libda1/NimBLE-Arduino/NimBLERemoteService.cpp.o
+Compiling .pio/build/smoochiee-board/libda1/NimBLE-Arduino/NimBLERemoteValueAttribute.cpp.o
+Compiling .pio/build/smoochiee-board/libda1/NimBLE-Arduino/NimBLEScan.cpp.o
+Compiling .pio/build/smoochiee-board/libda1/NimBLE-Arduino/NimBLEServer.cpp.o
+Compiling .pio/build/smoochiee-board/libda1/NimBLE-Arduino/NimBLEService.cpp.o
+Compiling .pio/build/smoochiee-board/libe05/ESP Chameleon Ultra/chameleonUltra.cpp.o
+Compiling .pio/build/smoochiee-board/liba41/ESP Amiibolink/amiibolink.cpp.o
+Compiling .pio/build/smoochiee-board/lib993/SimpleCLI/Argument.cpp.o
+Compiling .pio/build/smoochiee-board/lib993/SimpleCLI/Command.cpp.o
+.pio/libdeps/smoochiee-board/ESP Chameleon Ultra/src/chameleonUltra.cpp: In member function 'bool ChameleonUltra::cmdEnableSlot(uint8_t, TagSenseType)':
+.pio/libdeps/smoochiee-board/ESP Chameleon Ultra/src/chameleonUltra.cpp:446:27: warning: narrowing conversion of '(((int)slot) - 1)' from 'int' to 'uint8_t' {aka 'unsigned char'} [-Wnarrowing]
+  446 |     uint8_t cmd[3] = {slot-1, freq, 0x01};
+      |                       ~~~~^~
+.pio/libdeps/smoochiee-board/ESP Chameleon Ultra/src/chameleonUltra.cpp: In member function 'bool ChameleonUltra::cmdChangeActiveSlot(uint8_t)':
+.pio/libdeps/smoochiee-board/ESP Chameleon Ultra/src/chameleonUltra.cpp:457:27: warning: narrowing conversion of '(((int)slot) - 1)' from 'int' to 'uint8_t' {aka 'unsigned char'} [-Wnarrowing]
+  457 |     uint8_t cmd[1] = {slot-1};
+      |                       ~~~~^~
+.pio/libdeps/smoochiee-board/ESP Chameleon Ultra/src/chameleonUltra.cpp: In member function 'bool ChameleonUltra::cmdChangeSlotType(uint8_t, TagType)':
+.pio/libdeps/smoochiee-board/ESP Chameleon Ultra/src/chameleonUltra.cpp:468:27: warning: narrowing conversion of '(((int)slot) - 1)' from 'int' to 'uint8_t' {aka 'unsigned char'} [-Wnarrowing]
+  468 |     uint8_t cmd[3] = {slot-1, (tagType >> 8) & 0xFF, tagType & 0xFF};
+      |                       ~~~~^~
+.pio/libdeps/smoochiee-board/ESP Chameleon Ultra/src/chameleonUltra.cpp:468:46: warning: narrowing conversion of '((((int)tagType) >> 8) & 255)' from 'int' to 'uint8_t' {aka 'unsigned char'} [-Wnarrowing]
+  468 |     uint8_t cmd[3] = {slot-1, (tagType >> 8) & 0xFF, tagType & 0xFF};
+      |                               ~~~~~~~~~~~~~~~^~~~~~
+.pio/libdeps/smoochiee-board/ESP Chameleon Ultra/src/chameleonUltra.cpp:468:62: warning: narrowing conversion of '(((int)tagType) & 255)' from 'int' to 'uint8_t' {aka 'unsigned char'} [-Wnarrowing]
+  468 |     uint8_t cmd[3] = {slot-1, (tagType >> 8) & 0xFF, tagType & 0xFF};
+      |                                                      ~~~~~~~~^~~~~~
+.pio/libdeps/smoochiee-board/ESP Chameleon Ultra/src/chameleonUltra.cpp: In member function 'bool ChameleonUltra::cmdMfEconfig(byte*, size_t, byte*, byte)':
+.pio/libdeps/smoochiee-board/ESP Chameleon Ultra/src/chameleonUltra.cpp:708:32: warning: narrowing conversion of 'length' from 'size_t' {aka 'unsigned int'} to 'uint8_t' {aka 'unsigned char'} [-Wnarrowing]
+  708 |     uint8_t cmd[length + 5] = {length};
+      |                                ^~~~~~
+Compiling .pio/build/smoochiee-board/lib993/SimpleCLI/CommandError.cpp.o
+Compiling .pio/build/smoochiee-board/lib993/SimpleCLI/SimpleCLI.cpp.o
+Compiling .pio/build/smoochiee-board/libd34/ESP PN32BLE/pn532_ble.cpp.o
+Compiling .pio/build/smoochiee-board/liba3e/ESP PN532 UART/PN532_UART.cpp.o
+Compiling .pio/build/smoochiee-board/liba77/ESP PN532Killer/PN532Killer.cpp.o
+Compiling .pio/build/smoochiee-board/lib012/NTPClient/NTPClient.cpp.o
+Compiling .pio/build/smoochiee-board/lib3f1/ESP32Time/ESP32Time.cpp.o
+Compiling .pio/build/smoochiee-board/lib5eb/FS/FS.cpp.o
+Compiling .pio/build/smoochiee-board/lib5eb/FS/vfs_api.cpp.o
+Compiling .pio/build/smoochiee-board/lib891/FFat/FFat.cpp.o
+Compiling .pio/build/smoochiee-board/lib6c3/rc-switch/RCSwitch.cpp.o
+Compiling .pio/build/smoochiee-board/lib0cd/SPIFFS/SPIFFS.cpp.o
+Compiling .pio/build/smoochiee-board/lib752/Network/NetworkClient.cpp.o
+Compiling .pio/build/smoochiee-board/lib752/Network/NetworkEvents.cpp.o
+Compiling .pio/build/smoochiee-board/lib752/Network/NetworkInterface.cpp.o
+Compiling .pio/build/smoochiee-board/lib752/Network/NetworkManager.cpp.o
+Compiling .pio/build/smoochiee-board/lib752/Network/NetworkServer.cpp.o
+Compiling .pio/build/smoochiee-board/lib752/Network/NetworkUdp.cpp.o
+Compiling .pio/build/smoochiee-board/libe1b/NetworkClientSecure/NetworkClientSecure.cpp.o
+Compiling .pio/build/smoochiee-board/libe1b/NetworkClientSecure/ssl_client.cpp.o
+Compiling .pio/build/smoochiee-board/libed6/HTTPClient/HTTPClient.cpp.o
+Compiling .pio/build/smoochiee-board/lib374/LittleFS/LittleFS.cpp.o
+Compiling .pio/build/smoochiee-board/lib907/TFT_eSPI/TFT_eSPI.cpp.o
+Compiling .pio/build/smoochiee-board/lib5de/HAL/display/ardgfx.cpp.o
+Compiling .pio/build/smoochiee-board/lib5de/HAL/display/lovyan.cpp.o
+Compiling .pio/build/smoochiee-board/lib5de/HAL/display/m5gfx.cpp.o
+Compiling .pio/build/smoochiee-board/lib5de/HAL/display/tftespi.cpp.o
+Compiling .pio/build/smoochiee-board/lib5de/HAL/io_expander/Adafruit_AW9523.cpp.o
+Compiling .pio/build/smoochiee-board/lib5de/HAL/io_expander/PCA9555.cpp.o
+Compiling .pio/build/smoochiee-board/lib5de/HAL/sd_card/SD.cpp.o
+Compiling .pio/build/smoochiee-board/lib5de/HAL/sd_card/SD_MMC.cpp.o
+Compiling .pio/build/smoochiee-board/lib5de/HAL/sd_card/sd_diskio.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioFileSourceBuffer.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioFileSourceFS.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioFileSourceFunction.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioFileSourceHTTPStream.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioFileSourceICYStream.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioFileSourceID3.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioFileSourcePROGMEM.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioFileSourceSD.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioFileSourceSPIRAMBuffer.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioFileSourceSTDIO.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioFileStream.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioGeneratorAAC.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioGeneratorFLAC.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioGeneratorMIDI.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioGeneratorMOD.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioGeneratorMP3.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioGeneratorMP3a.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioGeneratorOpus.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioGeneratorRTTTL.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioGeneratorTalkie.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioGeneratorWAV.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioLogger.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioOutputBuffer.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioOutputFilterBiquad.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioOutputFilterDecimate.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioOutputI2S.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioOutputI2SNoDAC.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioOutputMixer.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioOutputPDM.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioOutputPWM.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioOutputSPDIF.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioOutputSPIFFSWAV.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioOutputSTDIO.cpp.o
+In file included from .pio/libdeps/smoochiee-board/ESP8266Audio/src/AudioOutputPDM.h:25,
+                 from .pio/libdeps/smoochiee-board/ESP8266Audio/src/AudioOutputPDM.cpp:22:
+.pio/libdeps/smoochiee-board/ESP8266Audio/src/AudioOutputPDM.cpp: In member function 'virtual bool AudioOutputPDM::begin()':
+.pio/libdeps/smoochiee-board/ESP8266Audio/src/AudioOutputPDM.cpp:64:63: warning: narrowing conversion of '((AudioOutputPDM*)this)->AudioOutputPDM::AdjustI2SRate(((int)((AudioOutputPDM*)this)->AudioOutputPDM::AudioOutputI2S.AudioOutputI2S::AudioOutput.AudioOutput::hertz))' from 'int' to 'uint32_t' {aka 'long unsigned int'} [-Wnarrowing]
+   64 |         .clk_cfg = I2S_PDM_TX_CLK_DEFAULT_CONFIG(AdjustI2SRate(hertz)),
+      |                                                  ~~~~~~~~~~~~~^~~~~~~
+/home/jules/.platformio/packages/framework-arduinoespressif32-libs/esp32s3/include/esp_driver_i2s/include/driver/i2s_pdm.h:399:23: note: in definition of macro 'I2S_PDM_TX_CLK_DEFAULT_CONFIG'
+  399 |     .sample_rate_hz = rate, \
+      |                       ^~~~
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioOutputSerialWAV.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/AudioOutputULP.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/driver/SinglePinI2SDriver.cpp.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libflac/crc.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libflac/stream_decoder.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/aacdec.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/aactabs.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/bitstream.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/buffers.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/dct4.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/decelmnt.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/dequant.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/fft.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/filefmt.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/huffmanaac.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/hufftabs.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/imdct.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/noiseless.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/pns.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/sbr.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/sbrfft.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/sbrfreq.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/sbrhfadj.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/sbrhfgen.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/sbrhuff.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/sbrimdct.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/sbrmath.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/sbrqmf.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/sbrside.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/sbrtabs.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/stproc.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/tns.c.o
+Compiling .pio/build/smoochiee-board/libfb9/ESP8266Audio/libhelix-aac/trigtabs.c.o
+Compiling .pio/build/smoochiee-board/lib241/ESP8266SAM/ESP8266SAM.cpp.o
+Compiling .pio/build/smoochiee-board/lib4f9/TinyGPSPlus/TinyGPS++.cpp.o
+Compiling .pio/build/smoochiee-board/lib8b5/RF24/RF24.cpp.o
+Compiling .pio/build/smoochiee-board/lib5a9/Adafruit Si4713 Library/Adafruit_Si4713.cpp.o
+Compiling .pio/build/smoochiee-board/libf0c/JPEGDecoder/JPEGDecoder.cpp.o
+Compiling .pio/build/smoochiee-board/lib52c/SmartRC-CC1101-Driver-Lib/ELECHOUSE_CC1101_SRC_DRV.cpp.o
+Compiling .pio/build/smoochiee-board/lib452/OneWire/OneWire.cpp.o
+Compiling .pio/build/smoochiee-board/lib7a6/ESP32-PSRamFS/PSRamFS.cpp.o
+.pio/libdeps/smoochiee-board/OneWire/OneWire.cpp:599:22: warning: extra tokens at end of #undef directive
+  599 | #  undef noInterrupts() {portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;portENTER_CRITICAL(&mux)
+      |                      ^
+.pio/libdeps/smoochiee-board/OneWire/OneWire.cpp:600:20: warning: extra tokens at end of #undef directive
+  600 | #  undef interrupts() portEXIT_CRITICAL(&mux);}
+      |                    ^
+Compiling .pio/build/smoochiee-board/lib589/AnimatedGIF/AnimatedGIF.cpp.o
+Compiling .pio/build/smoochiee-board/libdd3/Hash/PBKDF2_HMACBuilder.cpp.o
+Compiling .pio/build/smoochiee-board/libdd3/Hash/SHA1Builder.cpp.o
+Compiling .pio/build/smoochiee-board/libafa/AsyncTCP/AsyncTCP.cpp.o
+Compiling .pio/build/smoochiee-board/lib7a5/WebServer/Parsing.cpp.o
+Compiling .pio/build/smoochiee-board/lib7a5/WebServer/WebServer.cpp.o
+Compiling .pio/build/smoochiee-board/lib7a5/WebServer/middleware/AuthenticationMiddleware.cpp.o
+Compiling .pio/build/smoochiee-board/lib7a5/WebServer/middleware/CorsMiddleware.cpp.o
+Compiling .pio/build/smoochiee-board/lib7a5/WebServer/middleware/LoggingMiddleware.cpp.o
+Compiling .pio/build/smoochiee-board/lib85e/WiFi/AP.cpp.o
+Compiling .pio/build/smoochiee-board/lib85e/WiFi/STA.cpp.o
+Compiling .pio/build/smoochiee-board/lib85e/WiFi/WiFi.cpp.o
+Compiling .pio/build/smoochiee-board/lib85e/WiFi/WiFiAP.cpp.o
+Compiling .pio/build/smoochiee-board/lib85e/WiFi/WiFiGeneric.cpp.o
+Compiling .pio/build/smoochiee-board/lib85e/WiFi/WiFiMulti.cpp.o
+Compiling .pio/build/smoochiee-board/lib85e/WiFi/WiFiSTA.cpp.o
+Compiling .pio/build/smoochiee-board/lib85e/WiFi/WiFiScan.cpp.o
+Compiling .pio/build/smoochiee-board/libb6e/ESPAsyncWebServer/AsyncEventSource.cpp.o
+Compiling .pio/build/smoochiee-board/libb6e/ESPAsyncWebServer/AsyncJson.cpp.o
+Compiling .pio/build/smoochiee-board/libb6e/ESPAsyncWebServer/AsyncWebHeader.cpp.o
+Compiling .pio/build/smoochiee-board/libb6e/ESPAsyncWebServer/AsyncWebServerRequest.cpp.o
+Compiling .pio/build/smoochiee-board/libb6e/ESPAsyncWebServer/AsyncWebSocket.cpp.o
+Compiling .pio/build/smoochiee-board/libb6e/ESPAsyncWebServer/BackPort_SHA1Builder.cpp.o
+Compiling .pio/build/smoochiee-board/libb6e/ESPAsyncWebServer/Middleware.cpp.o
+Compiling .pio/build/smoochiee-board/libb6e/ESPAsyncWebServer/WebAuthentication.cpp.o
+Compiling .pio/build/smoochiee-board/libb6e/ESPAsyncWebServer/WebHandlers.cpp.o
+Compiling .pio/build/smoochiee-board/libb6e/ESPAsyncWebServer/WebRequest.cpp.o
+Compiling .pio/build/smoochiee-board/libb6e/ESPAsyncWebServer/WebResponses.cpp.o
+Compiling .pio/build/smoochiee-board/libb6e/ESPAsyncWebServer/WebServer.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/FastLED.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/cled_controller.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/colorpalettes.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/crgb.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/fl/async.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/fl/audio_input.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/fl/blur.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/fl/colorutils.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/fl/ease.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/fl/fetch.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/fl/fft_impl.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/fl/file_system.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/fl/io.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/fl/json.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/fl/rgbw.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/fl/task.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/fl/time.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/fx/2d/blend.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/fx/2d/luminova.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/fx/2d/noisepalette.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/fx/2d/scale_up.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/fx/2d/wave.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/hsv2rgb.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/lib8tion.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/noise.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/platforms/arm/k20/clockless_objectfled.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/platforms/compile_test.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/platforms/esp/32/clockless_i2s_esp32s3.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/platforms/esp/32/i2s/i2s_esp32dev.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/platforms/esp/32/rmt_4/idf4_rmt.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/platforms/esp/32/rmt_4/idf4_rmt_impl.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/platforms/wasm/entry_point.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/platforms/wasm/fastspi_wasm.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/platforms/wasm/js_fetch.cpp.o
+In file included from .pio/libdeps/smoochiee-board/FastLED/src/third_party/yves/I2SClockLessLedDriveresp32s3/driver.h:9,
+                 from .pio/libdeps/smoochiee-board/FastLED/src/platforms/esp/32/clockless_i2s_esp32s3.cpp:20:
+.pio/libdeps/smoochiee-board/FastLED/src/third_party/yves/I2SClockLessLedDriveresp32s3/src/I2SClockLessLedDriveresp32s3.h: In member function 'void fl::I2SClocklessLedDriveresp32S3::_initled(uint8_t*, const int*, int, int)':
+.pio/libdeps/smoochiee-board/FastLED/src/third_party/yves/I2SClockLessLedDriveresp32s3/src/I2SClockLessLedDriveresp32s3.h:397:20: warning: 'esp_lcd_i80_bus_config_t::<unnamed union>::psram_trans_align' is deprecated [-Wdeprecated-declarations]
+  397 |         bus_config.psram_trans_align = LCD_DRIVER_PSRAM_DATA_ALIGNMENT;
+      |                    ^~~~~~~~~~~~~~~~~
+In file included from /home/jules/.platformio/packages/framework-arduinoespressif32-libs/esp32s3/include/esp_lcd/include/esp_lcd_panel_io.h:11,
+                 from .pio/libdeps/smoochiee-board/FastLED/src/third_party/yves/I2SClockLessLedDriveresp32s3/src/I2SClockLessLedDriveresp32s3.h:42:
+/home/jules/.platformio/packages/framework-arduinoespressif32-libs/esp32s3/include/esp_lcd/include/esp_lcd_io_i80.h:33:16: note: declared here
+   33 |         size_t psram_trans_align __attribute__((deprecated)); /*!< DMA transfer alignment for data allocated from PSRAM */
+      |                ^~~~~~~~~~~~~~~~~
+.pio/libdeps/smoochiee-board/FastLED/src/third_party/yves/I2SClockLessLedDriveresp32s3/src/I2SClockLessLedDriveresp32s3.h:397:20: warning: 'esp_lcd_i80_bus_config_t::<unnamed union>::psram_trans_align' is deprecated [-Wdeprecated-declarations]
+  397 |         bus_config.psram_trans_align = LCD_DRIVER_PSRAM_DATA_ALIGNMENT;
+      |                    ^~~~~~~~~~~~~~~~~
+/home/jules/.platformio/packages/framework-arduinoespressif32-libs/esp32s3/include/esp_lcd/include/esp_lcd_io_i80.h:33:16: note: declared here
+   33 |         size_t psram_trans_align __attribute__((deprecated)); /*!< DMA transfer alignment for data allocated from PSRAM */
+      |                ^~~~~~~~~~~~~~~~~
+.pio/libdeps/smoochiee-board/FastLED/src/third_party/yves/I2SClockLessLedDriveresp32s3/src/I2SClockLessLedDriveresp32s3.h:397:20: warning: 'esp_lcd_i80_bus_config_t::<unnamed union>::psram_trans_align' is deprecated [-Wdeprecated-declarations]
+  397 |         bus_config.psram_trans_align = LCD_DRIVER_PSRAM_DATA_ALIGNMENT;
+      |                    ^~~~~~~~~~~~~~~~~
+/home/jules/.platformio/packages/framework-arduinoespressif32-libs/esp32s3/include/esp_lcd/include/esp_lcd_io_i80.h:33:16: note: declared here
+   33 |         size_t psram_trans_align __attribute__((deprecated)); /*!< DMA transfer alignment for data allocated from PSRAM */
+      |                ^~~~~~~~~~~~~~~~~
+.pio/libdeps/smoochiee-board/FastLED/src/third_party/yves/I2SClockLessLedDriveresp32s3/src/I2SClockLessLedDriveresp32s3.h:398:20: warning: 'esp_lcd_i80_bus_config_t::sram_trans_align' is deprecated [-Wdeprecated-declarations]
+  398 |         bus_config.sram_trans_align = 4;
+      |                    ^~~~~~~~~~~~~~~~
+/home/jules/.platformio/packages/framework-arduinoespressif32-libs/esp32s3/include/esp_lcd/include/esp_lcd_io_i80.h:36:12: note: declared here
+   36 |     size_t sram_trans_align __attribute__((deprecated)); /*!< DMA transfer alignment for data allocated from SRAM */
+      |            ^~~~~~~~~~~~~~~~
+.pio/libdeps/smoochiee-board/FastLED/src/third_party/yves/I2SClockLessLedDriveresp32s3/src/I2SClockLessLedDriveresp32s3.h:398:20: warning: 'esp_lcd_i80_bus_config_t::sram_trans_align' is deprecated [-Wdeprecated-declarations]
+  398 |         bus_config.sram_trans_align = 4;
+      |                    ^~~~~~~~~~~~~~~~
+/home/jules/.platformio/packages/framework-arduinoespressif32-libs/esp32s3/include/esp_lcd/include/esp_lcd_io_i80.h:36:12: note: declared here
+   36 |     size_t sram_trans_align __attribute__((deprecated)); /*!< DMA transfer alignment for data allocated from SRAM */
+      |            ^~~~~~~~~~~~~~~~
+.pio/libdeps/smoochiee-board/FastLED/src/third_party/yves/I2SClockLessLedDriveresp32s3/src/I2SClockLessLedDriveresp32s3.h:398:20: warning: 'esp_lcd_i80_bus_config_t::sram_trans_align' is deprecated [-Wdeprecated-declarations]
+  398 |         bus_config.sram_trans_align = 4;
+      |                    ^~~~~~~~~~~~~~~~
+/home/jules/.platformio/packages/framework-arduinoespressif32-libs/esp32s3/include/esp_lcd/include/esp_lcd_io_i80.h:36:12: note: declared here
+   36 |     size_t sram_trans_align __attribute__((deprecated)); /*!< DMA transfer alignment for data allocated from SRAM */
+      |            ^~~~~~~~~~~~~~~~
+Compiling .pio/build/smoochiee-board/lib430/FastLED/power_mgt.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/sensors/digital_pin.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/sensors/pir.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/simplex.cpp.o
+Compiling .pio/build/smoochiee-board/lib430/FastLED/wiring.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/Hal.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/Module.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/hal/Arduino/ArduinoHal.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/hal/RPiPico/PicoHal.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/CC1101/CC1101.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/LLCC68/LLCC68.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/LR11x0/LR1110.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/LR11x0/LR1120.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/LR11x0/LR1121.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/LR11x0/LR11x0.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/LR11x0/LR11x0_commands.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/LR11x0/LR11x0_crypto.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/LR11x0/LR11x0_gnss.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/LR11x0/LR11x0_wifi.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/LR11x0/LR_common.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/LR2021/LR2021.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/LR2021/LR2021_cmds_chip_control.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/LR2021/LR2021_cmds_flrc.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/LR2021/LR2021_cmds_gfsk.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/LR2021/LR2021_cmds_lora.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/LR2021/LR2021_cmds_misc.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/LR2021/LR2021_cmds_ook.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/LR2021/LR2021_cmds_oqpsk.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/LR2021/LR2021_cmds_radio.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/LR2021/LR2021_cmds_ranging.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/LR2021/LR2021_config.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/RF69/RF69.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/SX123x/SX1231.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/SX123x/SX1233.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/SX126x/STM32WLx.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/SX126x/STM32WLx_Module.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/SX126x/SX1261.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/SX126x/SX1262.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/SX126x/SX1268.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/SX126x/SX126x.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/SX126x/SX126x_LR_FHSS.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/SX126x/SX126x_commands.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/SX126x/SX126x_config.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/SX127x/SX1272.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/SX127x/SX1273.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/SX127x/SX1276.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/SX127x/SX1277.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/SX127x/SX1278.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/SX127x/SX1279.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/SX127x/SX127x.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/SX128x/SX1280.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/SX128x/SX1281.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/SX128x/SX1282.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/SX128x/SX128x.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/Si443x/Si4430.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/Si443x/Si4431.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/Si443x/Si4432.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/Si443x/Si443x.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/modules/nRF24/nRF24.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/protocols/ADSB/ADSB.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/protocols/AFSK/AFSK.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/protocols/APRS/APRS.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/protocols/AX25/AX25.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/protocols/BellModem/BellModem.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/protocols/ExternalRadio/ExternalRadio.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/protocols/FSK4/FSK4.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/protocols/Hellschreiber/Hellschreiber.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/protocols/LoRaWAN/LoRaWAN.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/protocols/LoRaWAN/LoRaWANBands.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/protocols/Morse/Morse.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/protocols/Pager/Pager.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/protocols/PhysicalLayer/PhysicalLayer.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/protocols/Print/ITA2String.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/protocols/Print/Print.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/protocols/RTTY/RTTY.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/protocols/SSTV/SSTV.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/utils/CRC.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/utils/Cryptography.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/utils/FEC.cpp.o
+Compiling .pio/build/smoochiee-board/libc70/RadioLib/utils/Utils.cpp.o
+Compiling .pio/build/smoochiee-board/libc1f/XPowersLib/XPowersLibInterface.cpp.o
+Compiling .pio/build/smoochiee-board/lib8d2/RotaryEncoder/RotaryEncoder.cpp.o
+Compiling .pio/build/smoochiee-board/libca4/Ethernet/ETH.cpp.o
+Compiling .pio/build/smoochiee-board/lib24b/Bad_Usb_Lib/BleKeyboard.cpp.o
+Compiling .pio/build/smoochiee-board/lib24b/Bad_Usb_Lib/CH9329_Keyboard.cpp.o
+Compiling .pio/build/smoochiee-board/lib24b/Bad_Usb_Lib/KeyboardLayout_da_DK.cpp.o
+Compiling .pio/build/smoochiee-board/lib24b/Bad_Usb_Lib/KeyboardLayout_de_DE.cpp.o
+Compiling .pio/build/smoochiee-board/lib24b/Bad_Usb_Lib/KeyboardLayout_en_UK.cpp.o
+Compiling .pio/build/smoochiee-board/lib24b/Bad_Usb_Lib/KeyboardLayout_en_US.cpp.o
+Compiling .pio/build/smoochiee-board/lib24b/Bad_Usb_Lib/KeyboardLayout_es_ES.cpp.o
+Compiling .pio/build/smoochiee-board/lib24b/Bad_Usb_Lib/KeyboardLayout_fr_FR.cpp.o
+Compiling .pio/build/smoochiee-board/lib24b/Bad_Usb_Lib/KeyboardLayout_hu_HU.cpp.o
+Compiling .pio/build/smoochiee-board/lib24b/Bad_Usb_Lib/KeyboardLayout_it_IT.cpp.o
+Compiling .pio/build/smoochiee-board/lib24b/Bad_Usb_Lib/KeyboardLayout_pt_BR.cpp.o
+Compiling .pio/build/smoochiee-board/lib24b/Bad_Usb_Lib/KeyboardLayout_pt_PT.cpp.o
+Compiling .pio/build/smoochiee-board/lib24b/Bad_Usb_Lib/KeyboardLayout_si_SI.cpp.o
+Compiling .pio/build/smoochiee-board/lib24b/Bad_Usb_Lib/KeyboardLayout_sv_SE.cpp.o
+Compiling .pio/build/smoochiee-board/lib24b/Bad_Usb_Lib/KeyboardLayout_tr_TR.cpp.o
+Compiling .pio/build/smoochiee-board/lib24b/Bad_Usb_Lib/USBHID.cpp.o
+Compiling .pio/build/smoochiee-board/lib24b/Bad_Usb_Lib/USBHIDKeyboard.cpp.o
+Compiling .pio/build/smoochiee-board/libdb8/TFT_eSPI_QRcode/qrcode.cpp.o
+Compiling .pio/build/smoochiee-board/lib5be/AsyncUDP/AsyncUDP.cpp.o
+Compiling .pio/build/smoochiee-board/libf63/DNSServer/DNSServer.cpp.o
+Compiling .pio/build/smoochiee-board/lib838/RTC/cplus_RTC.cpp.o
+Compiling .pio/build/smoochiee-board/lib838/RTC/pcf85063_RTC.cpp.o
+Compiling .pio/build/smoochiee-board/libb7d/utility/AXP192.cpp.o
+Compiling .pio/build/smoochiee-board/libb7d/utility/Keyboard.cpp.o
+Compiling .pio/build/smoochiee-board/libb7d/utility/bq27220.cpp.o
+Compiling .pio/build/smoochiee-board/lib2d0/ESPmDNS/ESPmDNS.cpp.o
+Compiling .pio/build/smoochiee-board/lib2d7/PN532_SRIX/pn532_srix.cpp.o
+Compiling .pio/build/smoochiee-board/boards/smoochiee-board/interface.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/config.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/configPins.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/connect/esp_connection.cpp.o
+src/core/config.cpp: In member function 'void BruceConfig::validateBadUSBBLEKeyDelay()':
+src/core/config.cpp:757:27: warning: comparison is always false due to limited range of data type [-Wtype-limits]
+  757 |     if (badUSBBLEKeyDelay < 0) badUSBBLEKeyDelay = 0;
+      |         ~~~~~~~~~~~~~~~~~~^~~
+boards/smoochiee-board/interface.cpp: In function 'void _setup_gpio()':
+boards/smoochiee-board/interface.cpp:47:47: warning: format '%d' expects argument of type 'int', but argument 3 has type 'uint32_t' {aka 'long unsigned int'} [-Wformat=]
+   47 |         Serial.printf("getInputCurrentLimit: %d mA\n", PPM.getInputCurrentLimit());
+      |                                              ~^        ~~~~~~~~~~~~~~~~~~~~~~~~~~
+      |                                               |                                |
+      |                                               int                              uint32_t {aka long unsigned int}
+      |                                              %ld
+Compiling .pio/build/smoochiee-board/src/core/connect/file_sharing.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/connect/serial_commands.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/display.cpp.o
+In file included from src/core/display.cpp:1646:
+.pio/libdeps/smoochiee-board/PNGdec/src/PNGdec.h:217:9: warning: "INTELSHORT" redefined
+  217 | #define INTELSHORT(p) ((*p) + (*(p+1)<<8))
+      |         ^~~~~~~~~~
+In file included from src/core/display.h:33,
+                 from src/core/display.cpp:1:
+.pio/libdeps/smoochiee-board/AnimatedGIF/src/AnimatedGIF.h:278:9: note: this is the location of the previous definition
+  278 | #define INTELSHORT(p) (*(uint16_t *)p)
+      |         ^~~~~~~~~~
+.pio/libdeps/smoochiee-board/PNGdec/src/PNGdec.h:218:9: warning: "INTELLONG" redefined
+  218 | #define INTELLONG(p) ((*p) + (*(p+1)<<8) + (*(p+2)<<16) + (*(p+3)<<24))
+      |         ^~~~~~~~~
+.pio/libdeps/smoochiee-board/AnimatedGIF/src/AnimatedGIF.h:279:9: note: this is the location of the previous definition
+  279 | #define INTELLONG(p) (*(uint32_t *)p)
+      |         ^~~~~~~~~
+Compiling .pio/build/smoochiee-board/src/core/i2c_finder.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/led_control.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/main_menu.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/massStorage.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/menu_items/BW16Menu.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/menu_items/BleMenu.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/menu_items/ClockMenu.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/menu_items/ConfigMenu.cpp.o
+In file included from src/core/menu_items/BleMenu.cpp:5:
+src/modules/badusb_ble/ducky_typer.h:48:80: warning: converting to non-pointer type 'uint16_t' {aka 'short unsigned int'} from NULL [-Wconversion-null]
+   48 | void printTFTBadUSBBLE(String text, uint16_t color = NULL, bool newline = false);
+      |                                                                                ^
+Compiling .pio/build/smoochiee-board/src/core/menu_items/ConnectMenu.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/menu_items/EthernetMenu.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/menu_items/FMMenu.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/menu_items/FileMenu.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/menu_items/GpsMenu.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/menu_items/IRMenu.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/menu_items/LoRaMenu.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/menu_items/NRF24.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/menu_items/OthersMenu.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/menu_items/RFIDMenu.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/menu_items/RFMenu.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/menu_items/ScriptsMenu.cpp.o
+In file included from src/core/menu_items/OthersMenu.cpp:5:
+src/modules/badusb_ble/ducky_typer.h:48:80: warning: converting to non-pointer type 'uint16_t' {aka 'short unsigned int'} from NULL [-Wconversion-null]
+   48 | void printTFTBadUSBBLE(String text, uint16_t color = NULL, bool newline = false);
+      |                                                                                ^
+Compiling .pio/build/smoochiee-board/src/core/menu_items/WifiMenu.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/mifare_keys_manager.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/mykeyboard.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/net_utils.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/passwords.cpp.o
+src/core/mykeyboard.cpp: In instantiation of 'String generalKeyboard(String, int, String, char (*)[KeyboardWidth][2], bool) [with int KeyboardHeight = 4; int KeyboardWidth = 12]':
+src/core/mykeyboard.cpp:1101:74:   required from here
+ 1101 |     return generalKeyboard<qwerty_keyboard_height, qwerty_keyboard_width>(
+      |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+ 1102 |         current_text, max_size, textbox_title, qwerty_keyset, mask_input
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1103 |     );
+      |     ~
+src/core/mykeyboard.cpp:449:13: warning: variable 'longNextPress' set but not used [-Wunused-but-set-variable]
+  449 |     uint8_t longNextPress = 0;
+      |             ^~~~~~~~~~~~~
+src/core/mykeyboard.cpp:450:13: warning: variable 'longPrevPress' set but not used [-Wunused-but-set-variable]
+  450 |     uint8_t longPrevPress = 0;
+      |             ^~~~~~~~~~~~~
+src/core/mykeyboard.cpp: In instantiation of 'String generalKeyboard(String, int, String, char (*)[KeyboardWidth][2], bool) [with int KeyboardHeight = 4; int KeyboardWidth = 4]':
+src/core/mykeyboard.cpp:1109:68:   required from here
+ 1109 |     return generalKeyboard<hex_keyboard_height, hex_keyboard_width>(
+      |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+ 1110 |         current_text, max_size, textbox_title, hex_keyset, mask_input
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1111 |     );
+      |     ~
+src/core/mykeyboard.cpp:449:13: warning: variable 'longNextPress' set but not used [-Wunused-but-set-variable]
+  449 |     uint8_t longNextPress = 0;
+      |             ^~~~~~~~~~~~~
+src/core/mykeyboard.cpp:450:13: warning: variable 'longPrevPress' set but not used [-Wunused-but-set-variable]
+  450 |     uint8_t longPrevPress = 0;
+      |             ^~~~~~~~~~~~~
+src/core/mykeyboard.cpp: In instantiation of 'String generalKeyboard(String, int, String, char (*)[KeyboardWidth][2], bool) [with int KeyboardHeight = 3; int KeyboardWidth = 4]':
+src/core/mykeyboard.cpp:1117:74:   required from here
+ 1117 |     return generalKeyboard<numpad_keyboard_height, numpad_keyboard_width>(
+      |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+ 1118 |         current_text, max_size, textbox_title, numpad_keyset, mask_input
+      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1119 |     );
+      |     ~
+src/core/mykeyboard.cpp:449:13: warning: variable 'longNextPress' set but not used [-Wunused-but-set-variable]
+  449 |     uint8_t longNextPress = 0;
+      |             ^~~~~~~~~~~~~
+src/core/mykeyboard.cpp:450:13: warning: variable 'longPrevPress' set but not used [-Wunused-but-set-variable]
+  450 |     uint8_t longPrevPress = 0;
+      |             ^~~~~~~~~~~~~
+Compiling .pio/build/smoochiee-board/src/core/powerSave.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/scrollableTextArea.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/sd_functions.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/serial_commands/badusb_commands.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/serial_commands/cli.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/serial_commands/crypto_commands.cpp.o
+In file included from src/core/sd_functions.cpp:3:
+src/modules/badusb_ble/ducky_typer.h:48:80: warning: converting to non-pointer type 'uint16_t' {aka 'short unsigned int'} from NULL [-Wconversion-null]
+   48 | void printTFTBadUSBBLE(String text, uint16_t color = NULL, bool newline = false);
+      |                                                                                ^
+In file included from src/core/serial_commands/badusb_commands.cpp:4:
+src/modules/badusb_ble/ducky_typer.h:48:80: warning: converting to non-pointer type 'uint16_t' {aka 'short unsigned int'} from NULL [-Wconversion-null]
+   48 | void printTFTBadUSBBLE(String text, uint16_t color = NULL, bool newline = false);
+      |                                                                                ^
+Compiling .pio/build/smoochiee-board/src/core/serial_commands/gpio_commands.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/serial_commands/helpers.cpp.o
+In file included from src/core/serial_commands/crypto_commands.cpp:5:
+src/modules/badusb_ble/ducky_typer.h:48:80: warning: converting to non-pointer type 'uint16_t' {aka 'short unsigned int'} from NULL [-Wconversion-null]
+   48 | void printTFTBadUSBBLE(String text, uint16_t color = NULL, bool newline = false);
+      |                                                                                ^
+Compiling .pio/build/smoochiee-board/src/core/serial_commands/interpreter_commands.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/serial_commands/ir_commands.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/serial_commands/power_commands.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/serial_commands/rf_commands.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/serial_commands/screen_commands.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/serial_commands/settings_commands.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/serial_commands/sound_commands.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/serial_commands/storage_commands.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/serial_commands/util_commands.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/serial_commands/wifi_commands.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/serialcmds.cpp.o
+In file included from src/core/serial_commands/util_commands.cpp:7:
+src/modules/badusb_ble/ducky_typer.h:48:80: warning: converting to non-pointer type 'uint16_t' {aka 'short unsigned int'} from NULL [-Wconversion-null]
+   48 | void printTFTBadUSBBLE(String text, uint16_t color = NULL, bool newline = false);
+      |                                                                                ^
+Compiling .pio/build/smoochiee-board/src/core/settings.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/startup_app.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/tftLogger/tftLogger.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/theme.cpp.o
+src/core/settings.cpp: In function 'void setBadUSBBLEKeyDelayMenu()':
+src/core/settings.cpp:1379:22: warning: comparison is always true due to limited range of data type [-Wtype-limits]
+ 1379 |         if (delayVal >= 0 && delayVal <= 500) {
+      |             ~~~~~~~~~^~~~
+Compiling .pio/build/smoochiee-board/src/core/type_convertion.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/utils.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/wifi/webInterface.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/wifi/wg.cpp.o
+src/core/utils.cpp: In function 'void updateTimeStr(tm)':
+src/core/utils.cpp:99:45: warning: '%02d' directive output may be truncated writing between 2 and 11 bytes into a region of size between 0 and 9 [-Wformat-truncation=]
+   99 |             timeStr, sizeof(timeStr), "%02d:%02d:%02d %s", hour12, timeInfo.tm_min, timeInfo.tm_sec, ampm
+      |                                             ^~~~
+src/core/utils.cpp:98:17: note: 'snprintf' output between 12 and 39 bytes into a destination of size 12
+   98 |         snprintf(
+      |         ~~~~~~~~^
+   99 |             timeStr, sizeof(timeStr), "%02d:%02d:%02d %s", hour12, timeInfo.tm_min, timeInfo.tm_sec, ampm
+      |             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  100 |         );
+      |         ~
+src/core/utils.cpp: In function 'String formatTimeDecimal(uint32_t)':
+src/core/utils.cpp:271:27: warning: '%06.3f' directive writing between 6 and 314 bytes into a region of size between 4 and 7 [-Wformat-overflow=]
+  271 |     sprintf(buffer, "%02d:%06.3f", minutes, seconds);
+      |                           ^~~~~~
+src/core/utils.cpp:271:12: note: 'sprintf' output between 10 and 321 bytes into a destination of size 10
+  271 |     sprintf(buffer, "%02d:%06.3f", minutes, seconds);
+      |     ~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Compiling .pio/build/smoochiee-board/src/core/wifi/wifi_common.cpp.o
+Compiling .pio/build/smoochiee-board/src/core/wifi/wifi_mac.cpp.o
+Compiling .pio/build/smoochiee-board/src/main.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/NRF24/nrf_common.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/NRF24/nrf_jammer.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/NRF24/nrf_spectrum.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/badusb_ble/ducky_typer.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/bjs_interpreter/audio_js.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/bjs_interpreter/badusb_js.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/bjs_interpreter/device_js.cpp.o
+In file included from src/modules/badusb_ble/ducky_typer.cpp:1:
+src/modules/badusb_ble/ducky_typer.h:48:80: warning: converting to non-pointer type 'uint16_t' {aka 'short unsigned int'} from NULL [-Wconversion-null]
+   48 | void printTFTBadUSBBLE(String text, uint16_t color = NULL, bool newline = false);
+      |                                                                                ^
+src/modules/badusb_ble/ducky_typer.cpp: In function 'void key_input(fs::FS, String, HIDInterface*)':
+src/modules/badusb_ble/ducky_typer.cpp:505:46: warning: passing NULL to non-pointer argument 2 of 'void printTFTBadUSBBLE(String, uint16_t, bool)' [-Wconversion-null]
+  505 |                 } else printTFTBadUSBBLE("", NULL, true);
+      |                                              ^~~~
+src/modules/badusb_ble/ducky_typer.h:48:46: note:   declared here
+   48 | void printTFTBadUSBBLE(String text, uint16_t color = NULL, bool newline = false);
+      |                                              ^
+Compiling .pio/build/smoochiee-board/src/modules/bjs_interpreter/dialog_js.cpp.o
+In file included from src/modules/bjs_interpreter/badusb_js.cpp:3:
+src/modules/badusb_ble/ducky_typer.h:48:80: warning: converting to non-pointer type 'uint16_t' {aka 'short unsigned int'} from NULL [-Wconversion-null]
+   48 | void printTFTBadUSBBLE(String text, uint16_t color = NULL, bool newline = false);
+      |                                                                                ^
+Compiling .pio/build/smoochiee-board/src/modules/bjs_interpreter/display_js.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/bjs_interpreter/globals_js.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/bjs_interpreter/gpio_js.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/bjs_interpreter/helpers_js.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/bjs_interpreter/i2c_js.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/bjs_interpreter/interpreter.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/bjs_interpreter/ir_js.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/bjs_interpreter/keyboard_js.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/bjs_interpreter/math_js.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/bjs_interpreter/mic_js.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/bjs_interpreter/notification_js.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/bjs_interpreter/rfid_js.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/bjs_interpreter/runtime_js.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/bjs_interpreter/serial_js.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/bjs_interpreter/storage_js.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/bjs_interpreter/subghz_js.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/bjs_interpreter/wifi_js.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/ble/apple_spam.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/ble/ble_common.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/ble/ble_ninebot.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/ble/ble_spam.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/ble_api/ble_api.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/ble_api/services/BLESerialService.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/ble_api/services/BatteryService.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/bw16/BW16.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/ethernet/ARPScanner.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/ethernet/ARPSpoofer.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/ethernet/ARPoisoner.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/ethernet/DHCPStarvation.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/ethernet/ESPNetifEthernetClient.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/ethernet/EthernetHelper.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/ethernet/HostInfo.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/ethernet/MACFlooding.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/fm/fm.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/gps/gps_tracker.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/gps/wardriving.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/gps/wigle.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/ir/TV-B-Gone.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/ir/custom_ir.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/ir/ir_jammer.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/ir/ir_read.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/ir/ir_utils.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/lora/LoRaRF.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/others/audio.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/others/audio_player.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/others/clicker.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/others/ibutton.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/others/mic.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/others/qrcode_menu.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/others/timer.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/others/tururururu.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/pwnagotchi/mood.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/pwnagotchi/pwnagotchi.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/pwnagotchi/pwngrid.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/pwnagotchi/spam.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/pwnagotchi/ui.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/reverseShell/reverseShell.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/rf/emit.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/rf/record.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/rf/rf_bruteforce.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/rf/rf_jammer.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/rf/rf_listen.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/rf/rf_scan.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/rf/rf_send.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/rf/rf_spectrum.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/rf/rf_utils.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/rf/rf_waterfall.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/rf/save.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/rfid/PN532.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/rfid/PN532KillerTools.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/rfid/RFID2.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/rfid/amiibo.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/rfid/chameleon.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/rfid/emv_reader.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/rfid/pn532ble.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/rfid/rfid125.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/rfid/srix_tool.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/rfid/tag_o_matic.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/wifi/ap_info.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/wifi/clients.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/wifi/deauther.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/wifi/evil_portal.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/wifi/karma_attack.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/wifi/responder.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/wifi/sniffer.cpp.o
+src/modules/wifi/responder.cpp: In function 'void responder()':
+src/modules/wifi/responder.cpp:775:47: warning: 'NetworkClient NetworkServer::available()' is deprecated: Renamed to accept(). [-Wdeprecated-declarations]
+  775 |     WiFiClient newClient = smbServer.available();
+      |                            ~~~~~~~~~~~~~~~~~~~^~
+In file included from /home/jules/.platformio/packages/framework-arduinoespressif32/libraries/Network/src/Network.h:13,
+                 from /home/jules/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src/WiFiGeneric.h:44,
+                 from /home/jules/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src/WiFiSTA.h:30,
+                 from /home/jules/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src/WiFi.h:34,
+                 from src/modules/wifi/clients.h:4,
+                 from src/modules/wifi/responder.cpp:12:
+/home/jules/.platformio/packages/framework-arduinoespressif32/libraries/Network/src/NetworkServer.h:50:17: note: declared here
+   50 |   NetworkClient available() __attribute__((deprecated("Renamed to accept().")));
+      |                 ^~~~~~~~~
+Compiling .pio/build/smoochiee-board/src/modules/wifi/tcp_utils.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/wifi/wifi_atks.cpp.o
+Compiling .pio/build/smoochiee-board/src/modules/wifi/wifi_recover.cpp.o
+src/modules/wifi/wifi_atks.cpp: In function 'void capture_handshake(String, String, uint8_t)':
+src/modules/wifi/wifi_atks.cpp:458:10: warning: variable 'captured' set but not used [-Wunused-but-set-variable]
+  458 |     bool captured = false;
+      |          ^~~~~~~~
+src/modules/wifi/wifi_atks.cpp:532:10: warning: variable 'hasEAPOL' set but not used [-Wunused-but-set-variable]
+  532 |     bool hasEAPOL = false;
+      |          ^~~~~~~~
+src/modules/wifi/wifi_recover.cpp: In function 'bool parse_pcap_handshake(fs::FS&, const String&, HandshakeData&)':
+src/modules/wifi/wifi_recover.cpp:143:61: warning: variable 'have_m4' set but not used [-Wunused-but-set-variable]
+  143 |     bool have_m1 = false, have_m2 = false, have_m3 = false, have_m4 = false;
+      |                                                             ^~~~~~~
+Compiling .pio/build/smoochiee-board/FrameworkArduino/Esp.cpp.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/FirmwareMSC.cpp.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/FunctionalInterrupt.cpp.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/HWCDC.cpp.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/HardwareSerial.cpp.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/Print.cpp.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/Stream.cpp.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/StreamString.cpp.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/Tone.cpp.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/USB.cpp.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/USBCDC.cpp.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/USBMSC.cpp.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/WString.cpp.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/base64.cpp.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/chip-debug-report.cpp.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/esp32-hal-adc.c.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/esp32-hal-bt.c.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/esp32-hal-cpu.c.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/esp32-hal-dac.c.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/esp32-hal-gpio.c.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/esp32-hal-hosted.c.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/esp32-hal-i2c-ng.c.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/esp32-hal-i2c.c.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/esp32-hal-ledc.c.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/esp32-hal-matrix.c.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/esp32-hal-misc.c.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/esp32-hal-psram.c.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/esp32-hal-rgb-led.c.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/esp32-hal-rmt.c.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/esp32-hal-sigmadelta.c.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/esp32-hal-spi.c.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/esp32-hal-time.c.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/esp32-hal-timer.c.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/esp32-hal-tinyusb.c.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/esp32-hal-touch-ng.c.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/esp32-hal-touch.c.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/esp32-hal-uart.c.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/main.cpp.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/wiring_pulse.c.o
+Compiling .pio/build/smoochiee-board/FrameworkArduino/wiring_shift.c.o
+Archiving .pio/build/smoochiee-board/libFrameworkArduino.a
+Indexing .pio/build/smoochiee-board/libFrameworkArduino.a
+Linking .pio/build/smoochiee-board/firmware.elf
+Memory region         Used Size  Region Size  %age Used
+     iram0_0_seg:      112128 B     358144 B     31.31%
+     iram0_2_seg:     2721648 B    8388576 B     32.44%
+     dram0_0_seg:      213680 B     341760 B     62.52%
+     drom0_0_seg:     3696693 B   33554400 B     11.02%
+    rtc_iram_seg:          96 B       8152 B      1.18%
+rtc_reserved_seg:          40 B         40 B    100.00%
+    rtc_slow_seg:          36 B       7680 B      0.47%
+  extern_ram_seg:     3735520 B   33554400 B     11.13%
+                            Memory Type Usage Summary
+┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
+┃ Memory Type/Section ┃ Used [bytes] ┃ Used [%] ┃ Remain [bytes] ┃ Total [bytes] ┃
+┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━┩
+│ Flash Code          │      2721648 │          │                │               │
+│    .text            │      2721648 │          │                │               │
+│ Flash Data          │       920768 │          │                │               │
+│    .rodata          │       920480 │          │                │               │
+│    .appdesc         │          288 │          │                │               │
+│ DIRAM               │       213471 │    62.46 │         128289 │        341760 │
+│    .text            │        95539 │    27.95 │                │               │
+│    .bss             │        83368 │    24.39 │                │               │
+│    .data            │        34564 │    10.11 │                │               │
+│ IRAM                │        16384 │    100.0 │              0 │         16384 │
+│    .text            │        15356 │    93.73 │                │               │
+│    .vectors         │         1028 │     6.27 │                │               │
+│ RTC FAST            │           92 │     1.12 │           8100 │          8192 │
+│    .text            │           92 │     1.12 │                │               │
+│ RTC SLOW            │            1 │     0.01 │           7679 │          7680 │
+│    .data            │            1 │     0.01 │                │               │
+└─────────────────────┴──────────────┴──────────┴────────────────┴───────────────┘
+Total image size: 3788996 bytes (.bin may be padded larger)
+Note: The reported total sizes may be smaller than those in the technical reference manual due to reserved memory and application configuration. The total flash size available for the application is not included by default, as it cannot be reliably determined due to the presence of other data like the bootloader, partition table, and application partition size.
+Retrieving maximum program size .pio/build/smoochiee-board/firmware.elf
+Checking size .pio/build/smoochiee-board/firmware.elf
+Advanced Memory Usage is available via "PlatformIO Home > Project Inspect"
+RAM:   [====      ]  36.0% (used 117932 bytes from 327680 bytes)
+Flash: [========  ]  81.4% (used 3788615 bytes from 4653056 bytes)
+Building .pio/build/smoochiee-board/firmware.bin
+esptool v5.1.0
+Creating ESP32S3 image...
+Merged 4 ELF sections.
+Successfully created ESP32S3 image.
+_merge_bins_callback([".pio/build/smoochiee-board/firmware.bin"], [".pio/build/smoochiee-board/firmware.elf"])
+BRUCE: [================    ] 81.4% (used 0x39D160 bytes of 0x470000 of OTA partition)
+[merge_bin] Merging binaries:
+  "/home/jules/.platformio/penv/bin/python" -m platformio pkg exec -p "tool-esptoolpy" -- esptool.py --chip esp32s3 merge-bin --output "/app/Bruce-smoochiee-board.bin" 0x0 "/app/.pio/build/smoochiee-board/bootloader.bin" 0x8000 "/app/.pio/build/smoochiee-board/partitions.bin" 0x10000 "/app/.pio/build/smoochiee-board/firmware.bin"
+"/home/jules/.platformio/penv/bin/python" -m platformio pkg exec -p "tool-esptoolpy" -- esptool.py --chip esp32s3 merge-bin --output "/app/Bruce-smoochiee-board.bin" 0x0 "/app/.pio/build/smoochiee-board/bootloader.bin" 0x8000 "/app/.pio/build/smoochiee-board/partitions.bin" 0x10000 "/app/.pio/build/smoochiee-board/firmware.bin"
+Using tool-esptoolpy@5.1.0 package
+Warning: DEPRECATED: 'esptool.py' is deprecated. Please use 'esptool' instead. The '.py' suffix will be removed in a future major release.
+esptool v5.1.0
+Wrote 0x3ad160 bytes to file '/app/Bruce-smoochiee-board.bin', ready to flash to offset 0x0.
+[merge_bin] Success -> /app/Bruce-smoochiee-board.bin (3854688 bytes)
+[Final bin] Valid bin to upload
+======================== [SUCCESS] Took 466.69 seconds ========================
+
+Environment      Status    Duration
+---------------  --------  ------------
+smoochiee-board  SUCCESS   00:07:46.687
+========================= 1 succeeded in 00:07:46.687 =========================

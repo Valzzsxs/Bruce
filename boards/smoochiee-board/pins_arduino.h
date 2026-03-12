@@ -33,8 +33,15 @@ static const uint8_t SCK = 18;
 #define L_BTN 39
 #define BTN_ACT LOW
 
-#define RXLED 4
-#define TXLED 5
+// Encoder
+#define HAS_ENCODER
+#define ENCODER_INA 4
+#define ENCODER_INB 5
+#define ENCODER_KEY 0
+
+
+//#define RXLED 4
+//#define TXLED 5
 #define LED_ON HIGH
 #define LED_OFF LOW
 
