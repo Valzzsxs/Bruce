@@ -1,4 +1,10 @@
 #include "core/powerSave.h"
+#include <globals.h>
+
+// Rotary encoder
+#include <RotaryEncoder.h>
+RotaryEncoder *encoder = nullptr;
+IRAM_ATTR void checkPosition() { encoder->tick(); }
 
 /***************************************************************************************
 ** Function name: _setup_gpio()
@@ -49,6 +55,11 @@ void _setup_gpio() {
         PPM.disableOTG();
         PPM.enableCharge();
     }
+
+    pinMode(ENCODER_KEY, INPUT_PULLUP);
+    encoder = new RotaryEncoder(ENCODER_INA, ENCODER_INB, RotaryEncoder::LatchMode::TWO03);
+    attachInterrupt(digitalPinToInterrupt(ENCODER_INA), checkPosition, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(ENCODER_INB), checkPosition, CHANGE);
 }
 bool isCharging() {
     // PPM.disableBatterPowerPath();
@@ -91,34 +102,84 @@ void _setBrightness(uint8_t brightval) {
 ** Handles the variables PrevPress, NextPress, SelPress, AnyKeyPress and EscPress
 **********************************************************************/
 void InputHandler(void) {
-    static unsigned long tm = 0;
-    if (millis() - tm < 200 && !LongPress) return;
-    bool _u = digitalRead(UP_BTN);
-    bool _d = digitalRead(DW_BTN);
-    bool _l = digitalRead(L_BTN);
-    bool _r = digitalRead(R_BTN);
-    bool _s = digitalRead(SEL_BTN);
+    static unsigned long tm = millis();  // debounce for buttons
+    static unsigned long tm2 = millis(); // delay between Select and encoder (avoid missclick)
+    static int posDifference = 0;
+    static int lastPos = 0;
 
-    if (!_s || !_u || !_d || !_r || !_l) {
-        tm = millis();
+    bool _u = !BTN_ACT;
+    bool _d = !BTN_ACT;
+    bool _l = !BTN_ACT;
+    bool _r = !BTN_ACT;
+    bool _s = !BTN_ACT;
+    bool encoderSel = !BTN_ACT;
+
+    int newPos = encoder->getPosition();
+    if (newPos != lastPos) {
+        posDifference += (newPos - lastPos);
+        lastPos = newPos;
+    }
+
+    if (millis() - tm > 200 || LongPress) {
+        _u = digitalRead(UP_BTN);
+        _d = digitalRead(DW_BTN);
+        _l = digitalRead(L_BTN);
+        _r = digitalRead(R_BTN);
+        _s = digitalRead(SEL_BTN);
+        encoderSel = digitalRead(ENCODER_KEY);
+    }
+
+    if (posDifference != 0 || !_s || !_u || !_d || !_r || !_l || encoderSel == BTN_ACT) {
         if (!wakeUpScreen()) AnyKeyPress = true;
         else return;
     }
-    if (!_l) { PrevPress = true; }
-    if (!_r) { NextPress = true; }
+
+    if (posDifference > 0) {
+        PrevPress = true;
+        posDifference--;
+#ifdef HAS_ENCODER_LED
+        EncoderLedChange = -1;
+#endif
+        tm2 = millis();
+    }
+    if (posDifference < 0) {
+        NextPress = true;
+        posDifference++;
+#ifdef HAS_ENCODER_LED
+        EncoderLedChange = 1;
+#endif
+        tm2 = millis();
+    }
+
+    if ((!_s || encoderSel == BTN_ACT) && millis() - tm2 > 200) {
+        posDifference = 0;
+        SelPress = true;
+        tm = millis();
+    }
+
+    if (!_l) {
+        PrevPress = true;
+        tm = millis();
+    }
+    if (!_r) {
+        NextPress = true;
+        tm = millis();
+    }
     if (!_u) {
         UpPress = true;
         PrevPagePress = true;
+        tm = millis();
     }
     if (!_d) {
         DownPress = true;
         NextPagePress = true;
+        tm = millis();
     }
-    if (!_s) { SelPress = true; }
     if (!_l && !_r) {
         EscPress = true;
         NextPress = false;
         PrevPress = false;
+        tm = millis();
     }
 }
 
