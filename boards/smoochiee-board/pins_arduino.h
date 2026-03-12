@@ -37,7 +37,7 @@ static const uint8_t SCK = 18;
 #define HAS_ENCODER
 #define ENCODER_INA 4
 #define ENCODER_INB 5
-#define ENCODER_KEY 6
+#define ENCODER_KEY 0
 
 
 //#define RXLED 4
