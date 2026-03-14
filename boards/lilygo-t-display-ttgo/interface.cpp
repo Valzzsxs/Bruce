@@ -121,12 +121,17 @@ void InputHandler(void) {
 
     sel = digitalRead(ENCODER_KEY);
 
+    if (posDifference != 0 || sel == BTN_ACT) {
+        if (!wakeUpScreen()) AnyKeyPress = true;
+        else return;
+    }
+
     if (posDifference > 0) {
-        prvPress = true;
+        PrevPress = true;
         posDifference--;
     }
     if (posDifference < 0) {
-        nxtPress = true;
+        NextPress = true;
         posDifference++;
     }
 
@@ -145,10 +150,10 @@ void InputHandler(void) {
             tm = millis();
             if (!wakeUpScreen()) AnyKeyPress = true;
             else return;
-            SelPress = slPress;
-            EscPress = ecPress;
-            NextPress = nxtPress;
-            PrevPress = prvPress;
+            if (slPress) SelPress = true;
+            if (ecPress) EscPress = true;
+            if (nxtPress) NextPress = true;
+            if (prvPress) PrevPress = true;
 
             nxtPress = false;
             prvPress = false;
