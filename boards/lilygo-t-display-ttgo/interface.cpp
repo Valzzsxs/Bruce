@@ -70,7 +70,7 @@ void _setup_gpio() {
 
 #ifdef HAS_ENCODER
     pinMode(ENCODER_KEY, INPUT_PULLUP);
-    encoder = new RotaryEncoder(ENCODER_INA, ENCODER_INB, RotaryEncoder::LatchMode::TWO03);
+    encoder = new RotaryEncoder(ENCODER_INA, ENCODER_INB, RotaryEncoder::LatchMode::FOUR3);
     attachInterrupt(digitalPinToInterrupt(ENCODER_INA), checkPosition, CHANGE);
     attachInterrupt(digitalPinToInterrupt(ENCODER_INB), checkPosition, CHANGE);
 #endif
@@ -111,6 +111,7 @@ void InputHandler(void) {
     static int posDifference = 0;
     static int lastPos = 0;
     static bool lastSel = !BTN_ACT;
+    static unsigned long tm_enc = 0;
     bool sel = !BTN_ACT;
 
     int newPos = encoder->getPosition();
@@ -126,13 +127,17 @@ void InputHandler(void) {
         else return;
     }
 
-    if (posDifference > 0) {
-        PrevPress = true;
-        posDifference--;
-    }
-    if (posDifference < 0) {
-        NextPress = true;
-        posDifference++;
+    if (millis() - tm_enc > 50) {
+        if (posDifference > 0) {
+            PrevPress = true;
+            posDifference--;
+            tm_enc = millis();
+        }
+        else if (posDifference < 0) {
+            NextPress = true;
+            posDifference++;
+            tm_enc = millis();
+        }
     }
 
     if (sel == BTN_ACT && lastSel != BTN_ACT) {
