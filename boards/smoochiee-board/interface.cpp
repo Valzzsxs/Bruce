@@ -21,11 +21,11 @@ XPowersPPM PPM;
 
 void _setup_gpio() {
 
-    pinMode(UP_BTN, INPUT); // Sets the power btn as an INPUT
-    pinMode(SEL_BTN, INPUT);
-    pinMode(DW_BTN, INPUT);
-    pinMode(R_BTN, INPUT);
-    pinMode(L_BTN, INPUT);
+    pinMode(UP_BTN, INPUT_PULLUP); // Sets the power btn as an INPUT
+    pinMode(SEL_BTN, INPUT_PULLUP);
+    pinMode(DW_BTN, INPUT_PULLUP);
+    pinMode(R_BTN, INPUT_PULLUP);
+    pinMode(L_BTN, INPUT_PULLUP);
 
     pinMode(CC1101_SS_PIN, OUTPUT);
     pinMode(NRF24_SS_PIN, OUTPUT);
@@ -35,7 +35,7 @@ void _setup_gpio() {
     // Starts SPI instance for CC1101 and NRF24 with CS pins blocking communication at start
 
     bruceConfigPins.rfModule = CC1101_SPI_MODULE;
-    bruceConfigPins.irRx = RXLED;
+    // bruceConfigPins.irRx = RXLED; // Disabled to prevent pin conflict with ENCODER_INA (pin 4)
     Wire.setPins(GROVE_SDA, GROVE_SCL);
     // Wire.begin();
     bool pmu_ret = false;
