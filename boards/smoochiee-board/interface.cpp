@@ -162,13 +162,7 @@ void InputHandler(void) {
     }
 
     if (!_l && millis() - tm > 200) {
-        if (!_r) {
-            EscPress = true;
-            NextPress = false;
-            PrevPress = false;
-        } else {
-            PrevPress = true;
-        }
+        EscPress = true;
         tm = millis();
     } else if (!_r && millis() - tm > 200) {
         NextPress = true;
