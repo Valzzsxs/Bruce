@@ -849,6 +849,16 @@ String generalKeyboard(
             if (check(SelPress)) {
                 selection_made = true;
             } else {
+#if defined(HAS_ENCODER)
+                // When board uses an encoder and 5-buttons layout,
+                // L_BTN might be used just for going down instead of escape.
+                // Or rather, we use EscPress as DownPress. But EscPress might be consumed later?
+                // Actually we just map EscPress locally inside the loop to avoid escaping.
+                if (EscPress) {
+                    EscPress = false; // consume it so we don't back out
+                    DownPress = true; // translate to down
+                }
+#endif
                 /* Down Btn to move in X axis (to the right) */
                 if (check(NextPress)) {
                     x++;
