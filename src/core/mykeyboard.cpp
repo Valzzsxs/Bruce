@@ -895,7 +895,7 @@ String generalKeyboard(
                     redraw = true;
                 }
                 /* UP Btn to move in Y axis (Downwards) */
-                if (check(DownPress)) {
+                if (check(DownPress) || check(EscPress)) {
                     y++;
                     if (y > KeyboardHeight - 1) { y = -1; }
 
