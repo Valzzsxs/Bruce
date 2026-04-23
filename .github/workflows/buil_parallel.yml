@@ -19,9 +19,10 @@ jobs:
         board:
 #         - { env: "Marauder-Mini",                   family: "ESP32",}
 #         - { env: "lilygo-t-display-ttgo",           family: "ESP32",}
-          - { env: "smoochiee-board",                 family: "ESP32-S3",}
-          - { env: "esp32-c5",                        family: "ESP32-C5",}
-
+#         - { env: "smoochiee-board",                 family: "ESP32-S3",}
+#         - { env: "esp32-c5",                        family: "ESP32-C5",}
+          - { env: "m5stack-cardputer",               family: "ESP32-S3",}
+          
     steps:
       - uses: actions/checkout@v4
 
