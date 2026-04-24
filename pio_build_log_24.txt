@@ -1,0 +1,161 @@
+Processing m5stack-cardputer (board: m5stack-cardputer; platform: https://github.com/pioarduino/platform-espressif32/releases/download/55.03.36/platform-espressif32.zip; framework: arduino)
+--------------------------------------------------------------------------------
+Library Manager: Installing h2zero/NimBLE-Arduino
+Library Manager: Installing h2zero/NimBLE-Arduino
+Library Manager: Installing h2zero/NimBLE-Arduino
+Library Manager: Installing whywilson/ESP-PN532-UART
+Verbose mode can be enabled via `-v, --verbose` option
+[GZIP & EMBED INTO HEADER] - Nothing to process.
+1f7994c8ed5c769eed978510bc87130b8a949a2f3c2042ccddba35aa8032befc 1f7994c8ed5c769eed978510bc87130b8a949a2f3c2042ccddba35aa8032befc
+CONFIGURATION: https://docs.platformio.org/page/boards/espressif32/m5stack-cardputer.html
+PLATFORM: Espressif 32 (55.3.36) > M5Stack Cardputer
+HARDWARE: ESP32S3 240MHz, 320KB RAM, 8MB Flash
+DEBUG: Current (cmsis-dap) External (cmsis-dap, esp-bridge, esp-builtin, esp-prog, iot-bus-jtag, jlink, minimodule, olimex-arm-usb-ocd, olimex-arm-usb-ocd-h, olimex-arm-usb-tiny-h, olimex-jtag-tiny, tumpa)
+PACKAGES:
+ - contrib-piohome @ 3.4.4
+ - framework-arduinoespressif32 @ 3.3.6
+ - framework-arduinoespressif32-libs @ 5.5.0+sha.30aaf64524
+ - tool-esp-rom-elfs @ 2024.10.11
+ - tool-esptoolpy @ 5.1.0
+ - toolchain-xtensa-esp-elf @ 14.2.0+20251107
+LDF: Library Dependency Finder -> https://bit.ly/configure-pio-ldf
+LDF Modes: Finder ~ chain, Compatibility ~ soft
+Found 91 compatible libraries
+Scanning dependencies...
+Dependency Graph
+|-- WireGuard-ESP32 @ 0.1.5+sha.4e22d2e
+|-- IRremoteESP8266 @ 2.8.6+sha.22cd38c
+|-- Time @ 1.6.1
+|-- LibSSH-ESP32 @ 5.8.0
+|-- Adafruit BusIO @ 1.17.2-bruce.1+sha.27230c1
+|-- Adafruit PN532 @ 1.3.3-bruce.1+sha.e91d695
+|-- BER-TLV @ 0.0.0+20260423173054.sha.bd61b70
+|-- RFID_MFRC522v2 @ 2.0.6+sha.a6977df
+|-- ESP Chameleon Ultra @ 0.0.2+sha.f66f354
+|-- ESP Amiibolink @ 0.0.2+sha.fc26412
+|-- SimpleCLI @ 1.1.4+sha.b23d377
+|-- ESP PN32BLE @ 0.0.2+sha.542f121
+|-- ESP PN532 UART @ 0.0.2+sha.8021fde
+|-- ESP PN532Killer @ 0.0.7+sha.71bf110
+|-- NTPClient @ 3.2.1
+|-- ESP32Time @ 2.0.6
+|-- FFat @ 3.3.6
+|-- ArduinoJson @ 7.4.3
+|-- rc-switch @ 2.6.4+sha.2c43b93
+|-- ESP8266Audio @ 2.4.1
+|-- ESP8266SAM @ 1.1.0
+|-- TinyGPSPlus @ 1.1.0
+|-- FFT @ 0.0.1
+|-- NimBLE-Arduino @ 2.5.0
+|-- RF24 @ 1.4.11
+|-- Adafruit Si4713 Library @ 1.2.3
+|-- JPEGDecoder @ 2.0.0
+|-- SmartRC-CC1101-Driver-Lib @ 2.5.7+sha.7bba521
+|-- mquickjs @ 0.0.4+sha.60b29b8
+|-- OneWire @ 2.3.8+sha.42e045e
+|-- ESP32-PSRamFS @ 1.0.6+sha.5ace2e6
+|-- AnimatedGIF @ 2.2.1
+|-- PNGdec @ 1.1.6
+|-- ESPAsyncWebServer @ 3.10.3
+|-- FastLED @ 3.10.3
+|-- RadioLib @ 7.6.0
+|-- Adafruit TCA8418 @ 1.0.2
+|-- utility
+|-- Wire @ 3.3.6
+|-- WiFi @ 3.3.6
+|-- BruceHAL @ 7.3.1
+|-- HTTPClient @ 3.3.6
+|-- Ethernet @ 3.3.6
+|-- Networking @ 3.3.6
+|-- SPI @ 3.3.6
+|-- FS @ 3.3.6
+|-- LittleFS @ 3.3.6
+|-- Bad_Usb_Lib
+|-- TFT_eSPI QRcode @ 1.0.0
+|-- DNSServer @ 3.3.6
+|-- WebServer @ 3.3.6
+|-- RTC
+|-- AsyncTCP @ 3.4.10
+|-- ESPmDNS @ 3.3.6
+|-- PN532_SRIX
+|-- NetworkClientSecure @ 3.3.6
+|-- SPIFFS @ 3.3.6
+Building in release mode
+Compiling .pio/build/m5stack-cardputer/libe50/JPEGDecoder/JPEGDecoder.cpp.o
+Compiling .pio/build/m5stack-cardputer/libe50/JPEGDecoder/picojpeg.c.o
+Compiling .pio/build/m5stack-cardputer/src/core/display.cpp.o
+In file included from src/core/display.cpp:1646:
+.pio/libdeps/m5stack-cardputer/PNGdec/src/PNGdec.h:217:9: warning: "INTELSHORT" redefined
+  217 | #define INTELSHORT(p) ((*p) + (*(p+1)<<8))
+      |         ^~~~~~~~~~
+In file included from src/core/display.h:33,
+                 from src/core/display.cpp:1:
+.pio/libdeps/m5stack-cardputer/AnimatedGIF/src/AnimatedGIF.h:286:9: note: this is the location of the previous definition
+  286 | #define INTELSHORT(p) (*(uint16_t *)p)
+      |         ^~~~~~~~~~
+.pio/libdeps/m5stack-cardputer/PNGdec/src/PNGdec.h:218:9: warning: "INTELLONG" redefined
+  218 | #define INTELLONG(p) ((*p) + (*(p+1)<<8) + (*(p+2)<<16) + (*(p+3)<<24))
+      |         ^~~~~~~~~
+.pio/libdeps/m5stack-cardputer/AnimatedGIF/src/AnimatedGIF.h:287:9: note: this is the location of the previous definition
+  287 | #define INTELLONG(p) (*(uint32_t *)p)
+      |         ^~~~~~~~~
+Linking .pio/build/m5stack-cardputer/firmware.elf
+Memory region         Used Size  Region Size  %age Used
+     iram0_0_seg:      108800 B     358144 B     30.38%
+     iram0_2_seg:     2897880 B    8388576 B     34.55%
+     dram0_0_seg:      210232 B     341760 B     61.51%
+     drom0_0_seg:     4011137 B   33554400 B     11.95%
+    rtc_iram_seg:          96 B       8152 B      1.18%
+rtc_reserved_seg:          40 B         40 B    100.00%
+    rtc_slow_seg:          36 B       7680 B      0.47%
+  extern_ram_seg:     3997664 B   33554400 B     11.91%
+                            Memory Type Usage Summary
+┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
+┃ Memory Type/Section ┃ Used [bytes] ┃ Used [%] ┃ Remain [bytes] ┃ Total [bytes] ┃
+┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━┩
+│ Flash Code          │      2897880 │          │                │               │
+│    .text            │      2897880 │          │                │               │
+│ Flash Data          │      1038604 │          │                │               │
+│    .rodata          │      1038316 │          │                │               │
+│    .appdesc         │          288 │          │                │               │
+│ DIRAM               │       210091 │    61.47 │         131669 │        341760 │
+│    .text            │        92279 │     27.0 │                │               │
+│    .bss             │        83528 │    24.44 │                │               │
+│    .data            │        34284 │    10.03 │                │               │
+│ IRAM                │        16384 │    100.0 │              0 │         16384 │
+│    .text            │        15356 │    93.73 │                │               │
+│    .vectors         │         1028 │     6.27 │                │               │
+│ RTC FAST            │           92 │     1.12 │           8100 │          8192 │
+│    .text            │           92 │     1.12 │                │               │
+│ RTC SLOW            │            1 │     0.01 │           7679 │          7680 │
+│    .data            │            1 │     0.01 │                │               │
+└─────────────────────┴──────────────┴──────────┴────────────────┴───────────────┘
+Total image size: 4079524 bytes (.bin may be padded larger)
+Note: The reported total sizes may be smaller than those in the technical reference manual due to reserved memory and application configuration. The total flash size available for the application is not included by default, as it cannot be reliably determined due to the presence of other data like the bootloader, partition table, and application partition size.
+Retrieving maximum program size .pio/build/m5stack-cardputer/firmware.elf
+Checking size .pio/build/m5stack-cardputer/firmware.elf
+Advanced Memory Usage is available via "PlatformIO Home > Project Inspect"
+RAM:   [====      ]  36.0% (used 117812 bytes from 327680 bytes)
+Flash: [========  ]  79.8% (used 4079143 bytes from 5111808 bytes)
+Building .pio/build/m5stack-cardputer/firmware.bin
+esptool v5.1.0
+Creating ESP32S3 image...
+Merged 4 ELF sections.
+Successfully created ESP32S3 image.
+_merge_bins_callback([".pio/build/m5stack-cardputer/firmware.bin"], [".pio/build/m5stack-cardputer/firmware.elf"])
+BRUCE: [===============     ] 79.8% (used 0x3E4040 bytes of 0x4E0000 of OTA partition)
+[merge_bin] Merging binaries:
+  "/home/jules/.platformio/penv/bin/python" -m platformio pkg exec -p "tool-esptoolpy" -- esptool.py --chip esp32s3 merge-bin --output "/app/Bruce-m5stack-cardputer.bin" 0x0 "/app/.pio/build/m5stack-cardputer/bootloader.bin" 0x8000 "/app/.pio/build/m5stack-cardputer/partitions.bin" 0x10000 "/app/.pio/build/m5stack-cardputer/firmware.bin"
+"/home/jules/.platformio/penv/bin/python" -m platformio pkg exec -p "tool-esptoolpy" -- esptool.py --chip esp32s3 merge-bin --output "/app/Bruce-m5stack-cardputer.bin" 0x0 "/app/.pio/build/m5stack-cardputer/bootloader.bin" 0x8000 "/app/.pio/build/m5stack-cardputer/partitions.bin" 0x10000 "/app/.pio/build/m5stack-cardputer/firmware.bin"
+Using tool-esptoolpy@5.1.0 package
+Warning: DEPRECATED: 'esptool.py' is deprecated. Please use 'esptool' instead. The '.py' suffix will be removed in a future major release.
+esptool v5.1.0
+Wrote 0x3f4040 bytes to file '/app/Bruce-m5stack-cardputer.bin', ready to flash to offset 0x0.
+[merge_bin] Success -> /app/Bruce-m5stack-cardputer.bin (4145216 bytes)
+[Final bin] Valid bin to upload
+======================== [SUCCESS] Took 156.06 seconds ========================
+
+Environment        Status    Duration
+-----------------  --------  ------------
+m5stack-cardputer  SUCCESS   00:02:36.062
+========================= 1 succeeded in 00:02:36.062 =========================

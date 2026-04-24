@@ -114,7 +114,10 @@ void _post_setup_gpio() {
 
     // Try to initialize TCA8418
     Serial.printf("DEBUG: Attempting to initialize TCA8418 at address 0x%02X\n", TCA8418_I2C_ADDR);
-    UseTCA8418 = tca.begin(TCA8418_I2C_ADDR, &Wire1);
+    UseTCA8418 = false;
+    if (found_devices > 0) {
+        UseTCA8418 = tca.begin(TCA8418_I2C_ADDR, &Wire1);
+    }
 
     if (!UseTCA8418) {
         Serial.println("ADV  : Failed to initialize TCA8418!");
