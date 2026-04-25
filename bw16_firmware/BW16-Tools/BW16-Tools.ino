@@ -24,6 +24,18 @@ void LinkJammer();
 #include "wifi_structures.h"
 #include "AnchorOTA.h"
 
+#include <vector>
+#include <set>
+typedef struct {
+  String ssid;
+  String bssid_str;
+  uint8_t bssid[6];
+
+  short rssi;
+  uint channel;
+  int security_type;
+} WiFiScanResult;
+
 
 // ==========================================
 // BRUCE UART INTEGRATION - BY JULES
@@ -46,15 +58,15 @@ void sendToBruce(const char* format, ...) {
 }
 
 void sendSSIDListToBruce() {
-  sendToBruce("SCAN_RESULT:COUNT=%d", networks.size());
-  for (uint i = 0; i < networks.size(); i++) {
+  sendToBruce("SCAN_RESULT:COUNT=%d", scan_results.size());
+  for (uint i = 0; i < scan_results.size(); i++) {
     char bssid_str[18];
     snprintf(bssid_str, sizeof(bssid_str), "%02X:%02X:%02X:%02X:%02X:%02X",
-             networks[i].bssid[0], networks[i].bssid[1], networks[i].bssid[2],
-             networks[i].bssid[3], networks[i].bssid[4], networks[i].bssid[5]);
+             scan_results[i].bssid[0], scan_results[i].bssid[1], scan_results[i].bssid[2],
+             scan_results[i].bssid[3], scan_results[i].bssid[4], scan_results[i].bssid[5]);
     sendToBruce("AP:%d|%s|%s|%d|%d|%d",
-                i, networks[i].ssid.c_str(), bssid_str,
-                networks[i].channel, networks[i].security, networks[i].rssi);
+                i, scan_results[i].ssid.c_str(), bssid_str,
+                scan_results[i].channel, scan_results[i].security, scan_results[i].rssi);
   }
   sendToBruce("SCAN_COMPLETE");
 }
@@ -70,23 +82,23 @@ void handleBruceCommand(String cmd) {
   }
   else if (cmd.startsWith("SELECT_SSID")) {
     int idx = cmd.substring(cmd.indexOf(',') + 1).toInt();
-    if (idx >= 0 && idx < networks.size()) {
-      targetIndex = idx;
-      sendToBruce("SELECTED:%d|%s", idx, networks[idx].ssid.c_str());
+    if (idx >= 0 && idx < scan_results.size()) {
+      scrollindex = idx + 1; // BW16-Tools uses scrollindex (1-indexed for APs)
+      sendToBruce("SELECTED:%d|%s", idx, scan_results[idx].ssid.c_str());
     }
   }
   else if (cmd.startsWith("DEAUTH_START")) {
     int idx = cmd.substring(cmd.indexOf(',') + 1).toInt();
-    if (idx >= 0 && idx < networks.size()) {
-      attackTargetIndex = idx;
-      g_AttackMode = 1;
-      b_attackStarted = true;
+    if (idx >= 0 && idx < scan_results.size()) {
+
+      attackstate = 0;
+      deauthAttackRunning = true;
       sendToBruce("DEAUTH_STARTED:%d", idx);
     }
   }
   else if (cmd.startsWith("DEAUTH_STOP") || cmd.startsWith("DEAUTH_STOP_ALL")) {
-    b_attackStarted = false;
-    g_AttackMode = 0;
+    stopAllAttacks();
+
     sendToBruce("DEAUTH_ALL_STOPPED");
   }
   else if (cmd.startsWith("GET_AP_LIST")) {
@@ -202,10 +214,13 @@ public:
     int height() { return 64; }
 };
 
+
 class DummyU8g2 {
 public:
-    void begin(DummyDisplay&) {}
-    void setFont(const void*) {}
+    template<typename T>
+    void begin(T&) {}
+    template<typename T>
+    void setFont(T) {}
     void setFontMode(int) {}
     void setForegroundColor(int) {}
     void setCursor(int, int) {}
@@ -215,6 +230,7 @@ public:
     void print(unsigned long) {}
     int getUTF8Width(const char*) { return 10; }
 };
+
 
 extern DummyDisplay display;
 extern DummyU8g2 u8g2_for_adafruit_gfx;
@@ -325,15 +341,7 @@ void homeActionWebUI();
 void homeActionQuickCapture();
 
 // VARIABLES
-typedef struct {
-  String ssid;
-  String bssid_str;
-  uint8_t bssid[6];
 
-  short rssi;
-  uint channel;
-  int security_type;
-} WiFiScanResult;
 
 // ===== Handshake WebUI State =====
 extern bool hs_sniffer_running;
@@ -6442,7 +6450,7 @@ void setup() {
 }
 
 void initDisplay() {
-  if (!// display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+  if (false) {
     Serial.println(F("SSD1306 init failed"));
     while (true);
   }
@@ -6602,7 +6610,7 @@ void loop() {
     }
   }
 
-  if (b_attackStarted && millis() - lastBruceHeartbeat > 2000) {
+  if (deauthAttackRunning && millis() - lastBruceHeartbeat > 2000) {
       sendToBruce("DEAUTH_HEARTBEAT:ACTIVE_COUNT=1");
       lastBruceHeartbeat = millis();
   }
