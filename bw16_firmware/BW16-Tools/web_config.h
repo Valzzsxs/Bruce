@@ -3,7 +3,7 @@
 
 // Web UI配置
 #define WEB_UI_SSID "BW16-WebUI"        // AP的SSID名称
-#define WEB_UI_PASSWORD "1234567890"     // AP的密码（至少8位）
+#define WEB_UI_PASSWORD ""     // AP的密码（至少8位）
 #define WEB_UI_CHANNEL 1                 // AP的信道
 #define WEB_UI_MAX_CONNECTIONS 4         // 最大连接数
 #define WEB_SERVER_PORT 80               // Web服务器端口

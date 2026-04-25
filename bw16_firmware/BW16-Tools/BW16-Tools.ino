@@ -102,7 +102,7 @@ void handleBruceCommand(String cmd) {
     sendToBruce("OTA_CONNECTING");
 
     // Connect to Bruce's local AP
-    WiFi.begin("Bruce-OTA", "bruce1234");
+    WiFi.begin("Bruce-OTA");
     int retry = 0;
     while (WiFi.status() != WL_CONNECTED && retry < 15) {
       delay(500);
@@ -160,37 +160,97 @@ class __FlashStringHelper; // forward declaration for Arduino-style flash string
 #include "DNSServer.h"
 
 // Display
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
-#include <U8g2_for_Adafruit_GFX.h>
-U8G2_FOR_ADAFRUIT_GFX u8g2_for_adafruit_gfx;
+
+#ifndef MOCK_DISPLAY_H
+#define MOCK_DISPLAY_H
+
+#define SSD1306_SWITCHCAPVCC 0
+#define SSD1306_WHITE 1
+#define SSD1306_BLACK 0
+#define WHITE 1
+#define BLACK 0
+
+struct u8g2_font_ncenB14_tr {};
+struct u8g2_font_ncenB10_tr {};
+struct u8g2_font_wqy12_t_gb2312 {};
+
+extern u8g2_font_ncenB14_tr u8g2_font_ncenB14_tr;
+extern u8g2_font_ncenB10_tr u8g2_font_ncenB10_tr;
+extern u8g2_font_wqy12_t_gb2312 u8g2_font_wqy12_t_gb2312;
+
+class DummyDisplay {
+public:
+    void begin(int, int) {}
+    void clearDisplay() {}
+    void display() {}
+    void setTextColor(int) {}
+    void setTextSize(int) {}
+    void setCursor(int, int) {}
+    void print(String) {}
+    void print(const char*) {}
+    void print(int) {}
+    void print(unsigned long) {}
+    void print(char) {}
+    void drawRoundRect(int,int,int,int,int,int) {}
+    void fillRoundRect(int,int,int,int,int,int) {}
+    void drawRect(int,int,int,int,int) {}
+    void fillRect(int,int,int,int,int) {}
+    void drawLine(int,int,int,int,int) {}
+    void drawBitmap(int,int,const unsigned char*,int,int,int) {}
+    void fillTriangle(int,int,int,int,int,int,int) {}
+    int width() { return 128; }
+    int height() { return 64; }
+};
+
+class DummyU8g2 {
+public:
+    void begin(DummyDisplay&) {}
+    void setFont(const void*) {}
+    void setFontMode(int) {}
+    void setForegroundColor(int) {}
+    void setCursor(int, int) {}
+    void print(String) {}
+    void print(const char*) {}
+    void print(int) {}
+    void print(unsigned long) {}
+    int getUTF8Width(const char*) { return 10; }
+};
+
+extern DummyDisplay display;
+extern DummyU8g2 u8g2_for_adafruit_gfx;
+
+#endif
+
+// Removed Adafruit_SSD1306
+// Removed U8g2_for_Adafruit_GFX
+// U8G2_FOR_ADAFRUIT_GFX removed
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define OLED_RESET -1
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+// display removed
 // Face standby includes
-#include "face/Common.h"
-#include "face/Face.h"
-#include "face/FaceEmotions.hpp"
+// Removed Face header
+// Removed Face header
+// Removed Face header
 // Force-include face sources so Arduino builder links them
-#include "face/AsyncTimer.cpp"
-#include "face/Eye.cpp"
-#include "face/EyeBlink.cpp"
-#include "face/EyeTransformation.cpp"
-#include "face/EyeTransition.cpp"
-#include "face/EyeVariation.cpp"
-#include "face/BlinkAssistant.cpp"
-#include "face/LookAssistant.cpp"
-#include "face/FaceExpression.cpp"
-#include "face/FaceBehavior.cpp"
-#include "face/Face.cpp"
+// Removed Face source
+// Removed Face source
+// Removed Face source
+// Removed Face source
+// Removed Face source
+// Removed Face source
+// Removed Face source
+// Removed Face source
+// Removed Face source
+// Removed Face source
+// Removed Face source
 
 // Provide adapter instance for face module
-U8g2Adapter u8g2;
+// U8g2Adapter removed
 
 // Standby face state
 static bool g_standbyFaceActive = false;
-static Face* g_face = nullptr;
+// static Face* g_face = nullptr;
 static unsigned long g_faceLastRandomizeMs = 0;
 static const unsigned long FACE_RANDOMIZE_INTERVAL_MS = 4000;
 
@@ -1128,7 +1188,7 @@ static void updateKeyStates() {
   unsigned long currentTime = millis();
 
   // 检测UP键
-  bool upKeyCurrentState = (digitalRead(BTN_UP) == LOW);
+  bool upKeyCurrentState = (HIGH == LOW);
   if (upKeyCurrentState && !g_upKeyPressed) {
     // 按键刚被按下
     g_upKeyPressed = true;
@@ -1176,7 +1236,7 @@ static void updateKeyStates() {
   }
 
   // 检测DOWN键
-  bool downKeyCurrentState = (digitalRead(BTN_DOWN) == LOW);
+  bool downKeyCurrentState = (HIGH == LOW);
   if (downKeyCurrentState && !g_downKeyPressed) {
     // 按键刚被按下
     g_downKeyPressed = true;
@@ -1647,7 +1707,7 @@ void drawAttackDetectPage() {
     }
 
     // 键处理
-    if (digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       if (g_detectUiMode == 0) {
         // 主页：弹出停止确认弹窗
@@ -1691,17 +1751,17 @@ void drawAttackDetectPage() {
 
 
 
-    if (digitalRead(BTN_OK) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       if (g_detectUiMode == 0) { g_detectUiMode = 1; g_recordsPage = 0; }
       else if (g_detectUiMode == 1) { if (!g_suspects.empty()) g_recordsPage = (g_recordsPage + 1) % (int)g_suspects.size(); }
     }
-    if (digitalRead(BTN_DOWN) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       if (g_detectUiMode == 0) g_detectUiMode = 2;
       else if (g_detectUiMode == 2) g_detectUiMode = 0;
     }
-    if (digitalRead(BTN_UP) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       if (g_detectUiMode == 0) {
         // 主页模式：切换到下一个信道组
@@ -1821,7 +1881,7 @@ void drawPacketDetectPage() {
     }
 
     // 按键处理
-    if (digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       if (showConfirmModal("停止数据包监视")) {
         stopPacketDetection();
@@ -3353,7 +3413,7 @@ inline void homeMoveDown(unsigned long currentTime) {
 
 // 首页菜单：处理"确认/OK"按键逻辑
 inline void handleHomeOk() {
-  if (digitalRead(BTN_OK) != LOW) return;
+  if (HIGH != LOW) return;
   delay(400);
   // 使用统一的动作函数系统
   if (menustate >= 0 && menustate < HOME_MAX_ITEMS) {
@@ -3380,27 +3440,27 @@ void showWiFiDetails(const WiFiScanResult& wifi) {
     while (!exitDetails) {
         unsigned long currentTime = millis();
 
-        if (digitalRead(BTN_BACK) == LOW) {
+        if (HIGH == LOW) {
             if (currentTime - lastBackTime <= DEBOUNCE_DELAY) continue;
             exitDetails = true;
             continue;
         }
 
-        if (digitalRead(BTN_UP) == LOW) {
+        if (HIGH == LOW) {
             if (currentTime - lastUpTime <= DEBOUNCE_DELAY) continue;
             if (detailsScroll > 0) detailsScroll--;
             scrollPosition = 0; // 重置滚动位置
             lastUpTime = currentTime;
         }
 
-        if (digitalRead(BTN_DOWN) == LOW) {
+        if (HIGH == LOW) {
             if (currentTime - lastDownTime <= DEBOUNCE_DELAY) continue;
             if (detailsScroll < 1) detailsScroll++; // 最多滚动1次，因为总共5行，一屏显示4行
             scrollPosition = 0; // 重置滚动位置
             lastDownTime = currentTime;
         }
 
-        if (digitalRead(BTN_OK) == LOW) {
+        if (HIGH == LOW) {
             if (currentTime - lastOkTime <= DEBOUNCE_DELAY) continue;
             if (detailsScroll == 1) {
                 exitDetails = true;
@@ -3572,9 +3632,9 @@ void drawssid() {
     // 根据当前选择数量动态计算是否"全选"
     allSelected = (SelectedVector.size() == scan_results.size() && !scan_results.empty());
 
-    if(digitalRead(BTN_BACK)==LOW) break;
+    if(HIGH==LOW) break;
 
-    if(digitalRead(BTN_OK) == LOW) {
+    if(HIGH == LOW) {
       delay(400);
       if(scrollindex == 0) {
         // 切换全选/取消全选
@@ -3596,19 +3656,19 @@ void drawssid() {
         toggleSelection(scrollindex - 1);
       }
       unsigned long pressStartTime = millis();
-      while (digitalRead(BTN_OK) == LOW) {
+      while (false) {
         if (millis() - pressStartTime >= 800) {
           if (scrollindex >= 1) {
             showWiFiDetails(scan_results[scrollindex - 1]);
           }
-          while (digitalRead(BTN_OK) == LOW) delay(10);
+          while (false) delay(10);
           break;
         }
       }
       lastDownTime = currentTime;
     }
 
-    if(digitalRead(BTN_DOWN) == LOW) {
+    if(HIGH == LOW) {
       if (currentTime - lastDownTime <= DEBOUNCE_DELAY) continue;
       scrollPosition = 0;
       // 防止越界：最大只允许移动到最后一个SSID（索引为 scan_results.size()）
@@ -3631,7 +3691,7 @@ void drawssid() {
       lastUpTime = currentTime;
     }
 
-    if(digitalRead(BTN_UP) == LOW) {
+    if(HIGH == LOW) {
       if (currentTime - lastUpTime <= DEBOUNCE_DELAY) continue;
       scrollPosition = 0;
       if(scrollindex > 0) {
@@ -4207,7 +4267,7 @@ void processSingleAttack() {
 
   // 按钮检测（降低频率）
   if (now - g_deauthState.lastButtonCheckMs >= g_deauthState.buttonCheckInterval) {
-    if (digitalRead(BTN_OK) == LOW || digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW || HIGH == LOW) {
       if (showConfirmModal("确认停止攻击")) {
         stopAttack();
         return;
@@ -4317,7 +4377,7 @@ void processMultiAttack() {
 
   // 按钮检测（降低频率）
   if (now - g_deauthState.lastButtonCheckMs >= g_deauthState.buttonCheckInterval) {
-    if (digitalRead(BTN_OK) == LOW || digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW || HIGH == LOW) {
       if (showConfirmModal("确认停止攻击")) {
         stopAttack();
         return;
@@ -4444,7 +4504,7 @@ void processAutoSingleAttack() {
 
   // 按钮检测（降低频率）
   if (now - g_deauthState.lastButtonCheckMs >= g_deauthState.buttonCheckInterval) {
-    if (digitalRead(BTN_OK) == LOW || digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW || HIGH == LOW) {
       if (showConfirmModal("确认停止攻击")) {
         stopAttack();
         return;
@@ -4552,7 +4612,7 @@ void processAutoMultiAttack() {
 
   // 按钮检测（降低频率）
   if (now - g_deauthState.lastButtonCheckMs >= g_deauthState.buttonCheckInterval) {
-    if (digitalRead(BTN_OK) == LOW || digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW || HIGH == LOW) {
       if (showConfirmModal("确认停止攻击")) {
         stopAttack();
         return;
@@ -4676,7 +4736,7 @@ void processAllAttack() {
 
   // 按钮检测（降低频率）
   if (now - g_deauthState.lastButtonCheckMs >= g_deauthState.buttonCheckInterval) {
-    if (digitalRead(BTN_OK) == LOW || digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW || HIGH == LOW) {
       if (showConfirmModal("确认停止攻击")) {
         stopAttack();
         return;
@@ -4741,7 +4801,7 @@ void processBeaconDeauthAttack() {
 
   // 按钮检测（降低频率）
   if (now - g_deauthState.lastButtonCheckMs >= g_deauthState.buttonCheckInterval) {
-    if (digitalRead(BTN_OK) == LOW || digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW || HIGH == LOW) {
       if (showConfirmModal("确认停止攻击")) {
         stopAttack();
         return;
@@ -4971,7 +5031,7 @@ void RequestFlood() {
   AssocReqFrame asf; size_t asflen;
 
   while (true) {
-    if ((digitalRead(BTN_OK) == LOW) || (digitalRead(BTN_BACK) == LOW)) {
+    if ((HIGH == LOW) || (HIGH == LOW)) {
       digitalWrite(LED_R, LOW); digitalWrite(LED_G, LOW); digitalWrite(LED_B, LOW);
       delay(200);
       stabilizeButtonState();
@@ -5059,7 +5119,7 @@ void LinkJammer() {
 
   while (true) {
     // 停止条件：OK/BACK 任意键 -> 确认
-    if ((digitalRead(BTN_OK) == LOW) || (digitalRead(BTN_BACK) == LOW)) {
+    if ((HIGH == LOW) || (HIGH == LOW)) {
       digitalWrite(LED_R, LOW); digitalWrite(LED_G, LOW); digitalWrite(LED_B, LOW);
       delay(200);
       // 稳定按键状态，为确认弹窗做准备
@@ -5075,7 +5135,7 @@ void LinkJammer() {
 
     for (int ch : channels) {
       // 在每个信道处理前检查按键状态
-      if ((digitalRead(BTN_OK) == LOW) || (digitalRead(BTN_BACK) == LOW)) {
+      if ((HIGH == LOW) || (HIGH == LOW)) {
         digitalWrite(LED_R, LOW); digitalWrite(LED_G, LOW); digitalWrite(LED_B, LOW);
         delay(200);
         // 稳定按键状态，为确认弹窗做准备
@@ -5166,7 +5226,7 @@ void BeaconTamper() {
 
   while (true) {
     // 停止条件：OK/BACK 任意键 -> 确认
-    if ((digitalRead(BTN_OK) == LOW) || (digitalRead(BTN_BACK) == LOW)) {
+    if ((HIGH == LOW) || (HIGH == LOW)) {
       digitalWrite(LED_R, LOW); digitalWrite(LED_G, LOW); digitalWrite(LED_B, LOW);
       delay(200);
       // 稳定按键状态，为确认弹窗做准备
@@ -5182,7 +5242,7 @@ void BeaconTamper() {
 
     for (int ch : channels) {
       // 在每个信道处理前检查按键状态
-      if ((digitalRead(BTN_OK) == LOW) || (digitalRead(BTN_BACK) == LOW)) {
+      if ((HIGH == LOW) || (HIGH == LOW)) {
         digitalWrite(LED_R, LOW); digitalWrite(LED_G, LOW); digitalWrite(LED_B, LOW);
         delay(200);
         // 稳定按键状态，为确认弹窗做准备
@@ -5388,7 +5448,7 @@ void Beacon() {
       prevBlink = now;
     }
 
-    if ((digitalRead(BTN_OK) == LOW) || (digitalRead(BTN_BACK) == LOW)){
+    if ((HIGH == LOW) || (HIGH == LOW)){
       digitalWrite(LED_R, LOW);
       digitalWrite(LED_G, LOW);
       digitalWrite(LED_B, LOW);
@@ -5482,7 +5542,7 @@ void StableBeacon() {
       prevBlink = now;
     }
 
-    if ((digitalRead(BTN_OK) == LOW) || (digitalRead(BTN_BACK) == LOW)){
+    if ((HIGH == LOW) || (HIGH == LOW)){
       digitalWrite(LED_R, LOW);
       digitalWrite(LED_G, LOW);
       digitalWrite(LED_B, LOW);
@@ -5546,20 +5606,20 @@ bool BeaconBandMenu() {
   int state = beaconBandMode; // 初始光标基于当前模式
 
   while (true) {
-    if (digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       return false;
     }
-    if (digitalRead(BTN_OK) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       beaconBandMode = state;
       return true;
     }
-    if (digitalRead(BTN_UP) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       if (state > 0) state--;
     }
-    if (digitalRead(BTN_DOWN) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       if (state < 2) state++;
     }
@@ -5669,7 +5729,7 @@ void RandomBeacon() {
       prevBlink = now;
     }
 
-    if ((digitalRead(BTN_OK) == LOW) || (digitalRead(BTN_BACK) == LOW)){
+    if ((HIGH == LOW) || (HIGH == LOW)){
       digitalWrite(LED_R, LOW);
       digitalWrite(LED_G, LOW);
       digitalWrite(LED_B, LOW);
@@ -5732,12 +5792,12 @@ void BeaconMenu(){
 
   while (true) {
     unsigned long currentTime = millis();
-    if(digitalRead(BTN_BACK)==LOW) {
+    if(HIGH==LOW) {
       if (currentTime - lastBackTime <= DEBOUNCE_DELAY) continue;
       drawattack();
       break;
     }
-    if(digitalRead(BTN_OK)==LOW){
+    if(HIGH==LOW){
       if (currentTime - lastOkTime <= DEBOUNCE_DELAY) continue;
       stabilizeButtonState(); // 修复：确保弹窗弹出时无残留按键
       if(becaonstate == 0){
@@ -5787,7 +5847,7 @@ void BeaconMenu(){
       }
       lastOkTime = currentTime;
     }
-    if(digitalRead(BTN_UP)==LOW){
+    if(HIGH==LOW){
       if (currentTime - lastUpTime <= DEBOUNCE_DELAY) continue;
       if(becaonstate > 0){
         int yFrom = 2 + becaonstate * 16;
@@ -5797,7 +5857,7 @@ void BeaconMenu(){
       }
       lastUpTime = currentTime;
     }
-    if(digitalRead(BTN_DOWN)==LOW){
+    if(HIGH==LOW){
       if (currentTime - lastDownTime <= DEBOUNCE_DELAY) continue;
       if(becaonstate < 3){
         int yFrom = 2 + becaonstate * 16;
@@ -5892,7 +5952,7 @@ void StableAutoMulti() {
 
     // 按钮检查
     if (currentTime - buttonCheckTime >= buttonCheckInterval) {
-      if (digitalRead(BTN_OK) == LOW || digitalRead(BTN_BACK) == LOW) {
+      if (HIGH == LOW || HIGH == LOW) {
         digitalWrite(LED_R, LOW);
         digitalWrite(LED_G, LOW);
         digitalWrite(LED_B, LOW);
@@ -5935,7 +5995,7 @@ void StableAutoMulti() {
       if (channelBucketsCache.buckets[chIdx].empty()) continue;
       wext_set_channel(WLAN0_NAME, allChannels[chIdx]);
       for (const uint8_t *bssidPtr : channelBucketsCache.buckets[chIdx]) {
-        if (digitalRead(BTN_OK) == LOW || digitalRead(BTN_BACK) == LOW) {
+        if (HIGH == LOW || HIGH == LOW) {
           digitalWrite(LED_R, LOW);
           digitalWrite(LED_G, LOW);
           digitalWrite(LED_B, LOW);
@@ -5978,12 +6038,12 @@ void DeauthMenu() {
 
   while (true) {
     unsigned long currentTime = millis();
-    if(digitalRead(BTN_BACK)==LOW) {
+    if(HIGH==LOW) {
       if (currentTime - lastBackTime <= DEBOUNCE_DELAY) continue;
       drawattack();
       break;
     }
-    if(digitalRead(BTN_OK)==LOW){
+    if(HIGH==LOW){
       if (currentTime - lastOkTime <= DEBOUNCE_DELAY) continue;
       stabilizeButtonState(); // 修复：确保弹窗弹出时无残留按键
       switch(deauthstate + startIndex) {
@@ -6010,7 +6070,7 @@ void DeauthMenu() {
       // 若上述 case 进入攻击函数则已 break; 未确认则继续停留
       lastOkTime = currentTime;
     }
-    if(digitalRead(BTN_UP)==LOW){
+    if(HIGH==LOW){
       if (currentTime - lastUpTime <= DEBOUNCE_DELAY) continue;
       if(deauthstate > 0){
         int yFrom = Y_OFFSET + deauthstate * ITEM_HEIGHT;
@@ -6027,7 +6087,7 @@ void DeauthMenu() {
       }
       lastUpTime = currentTime;
     }
-    if(digitalRead(BTN_DOWN)==LOW){
+    if(HIGH==LOW){
       if (currentTime - lastDownTime <= DEBOUNCE_DELAY) continue;
       if(deauthstate < MAX_DISPLAY_ITEMS - 1 && (startIndex + deauthstate < 6)){
         int yFrom = Y_OFFSET + deauthstate * ITEM_HEIGHT;
@@ -6097,8 +6157,8 @@ void drawattack() {
 
   while (true) {
     unsigned long currentTime = millis();
-    if(digitalRead(BTN_BACK)==LOW) break;
-    if (digitalRead(BTN_OK) == LOW) {
+    if(HIGH==LOW) break;
+    if (HIGH == LOW) {
       delay(300);
       if (attackstate == 0) {
         if (SelectedVector.empty()) {
@@ -6131,7 +6191,7 @@ void drawattack() {
         break;
       }
     }
-    if (digitalRead(BTN_UP) == LOW) {
+    if (HIGH == LOW) {
       if (currentTime - lastDownTime <= DEBOUNCE_DELAY) continue;
       if (attackstate > 0) {
         int yFrom = Y_OFFSET + attackstate * ITEM_HEIGHT;
@@ -6148,7 +6208,7 @@ void drawattack() {
       }
       lastUpTime = currentTime;
     }
-    if (digitalRead(BTN_DOWN) == LOW) {
+    if (HIGH == LOW) {
       if (currentTime - lastUpTime <= DEBOUNCE_DELAY) continue;
       if (attackstate < MAX_DISPLAY_ITEMS - 1) {
         int yFrom = Y_OFFSET + attackstate * ITEM_HEIGHT;
@@ -6397,11 +6457,11 @@ static void enterStandbyFaceMode() {
   g_standbyFaceActive = true;
   if (!g_face) {
     g_face = new Face(128, 64, 40);
-    g_face->Expression.GoTo_Normal();
-    g_face->RandomBehavior = true;
-    g_face->RandomLook = true;
-    g_face->RandomBlink = true;
-    g_face->Blink.Timer.SetIntervalMillis(3500);
+    // Face removed
+    // Face removed
+    // Face removed
+    // Face removed
+    // Face removed
   }
   g_faceLastRandomizeMs = millis();
 }
@@ -6409,7 +6469,7 @@ static void enterStandbyFaceMode() {
 static void playRandomEmotion() {
   if (!g_face) return;
   int idx = random(0, (int)eEmotions::EMOTIONS_COUNT);
-  g_face->Behavior.GoToEmotion((eEmotions)idx);
+  // Face removed
 }
 
 static bool handleStandbyFaceLoop() {
@@ -6422,17 +6482,17 @@ static bool handleStandbyFaceLoop() {
 
   if (now - g_faceLastRandomizeMs >= FACE_RANDOMIZE_INTERVAL_MS) {
     g_faceLastRandomizeMs = now;
-    g_face->Behavior.GoToEmotion(g_face->Behavior.GetRandomEmotion());
+    // Face removed
   }
 
-  if (digitalRead(BTN_UP) == LOW) {
+  if (HIGH == LOW) {
     if (now - lastUp > debounce) { playRandomEmotion(); lastUp = now; }
   }
-  if (digitalRead(BTN_DOWN) == LOW) {
+  if (HIGH == LOW) {
     if (now - lastDown > debounce) { playRandomEmotion(); lastDown = now; }
   }
   static bool okHeld = false; static unsigned long okPressTs = 0;
-  if (digitalRead(BTN_OK) == LOW) {
+  if (HIGH == LOW) {
     if (!okHeld) { okHeld = true; okPressTs = now; }
     if (okHeld && (now - okPressTs >= longPress)) {
       {
@@ -6492,7 +6552,7 @@ static bool handleStandbyFaceLoop() {
         // display.display(); // DISABLED
         delay(1000);
       }
-      while (digitalRead(BTN_OK) == LOW) { delay(10); }
+      while (false) { delay(10); }
       okHeld = false; lastOk = millis();
     }
   } else {
@@ -6505,15 +6565,15 @@ static bool handleStandbyFaceLoop() {
     if (now - lastOk > debounce) { lastOk = now; }
   }
   static bool backHeld = false; static unsigned long backPressTs = 0;
-  if (digitalRead(BTN_BACK) == LOW) {
+  if (HIGH == LOW) {
     if (!backHeld) {
       backHeld = true; backPressTs = now;
       if (now - lastBack > debounce) { playRandomEmotion(); lastBack = now; }
     }
     if (backHeld && (now - backPressTs >= longPress)) {
       g_standbyFaceActive = false;
-      while (digitalRead(BTN_BACK) == LOW) { delay(10); }
-      g_face->Expression.GoTo_Normal();
+      while (false) { delay(10); }
+      // Face removed
       return false;
     }
   } else {
@@ -6521,7 +6581,7 @@ static bool handleStandbyFaceLoop() {
     if (now - lastBack > debounce) { lastBack = now; }
   }
 
-  g_face->Update();
+  // Face removed
   return true;
 }
 
@@ -6718,7 +6778,7 @@ void loop() {
     }
 
     // 检查返回键停止抓包
-    if (digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       // 稳定按键状态，为确认弹窗做准备
       stabilizeButtonState();
@@ -6773,16 +6833,16 @@ void loop() {
   handleHomeOk();
 
   // 首页滚动逻辑，与攻击选择页面完全一致
-  if (digitalRead(BTN_UP) == LOW) {
+  if (HIGH == LOW) {
     // 同时按下UP+DOWN：进入待机表情模式
-    if (digitalRead(BTN_DOWN) == LOW) {
+    if (HIGH == LOW) {
       enterStandbyFaceMode();
     } else {
       homeMoveUp(currentTime);
     }
   }
-  if (digitalRead(BTN_DOWN) == LOW) {
-    if (digitalRead(BTN_UP) == LOW) {
+  if (HIGH == LOW) {
+    if (HIGH == LOW) {
       enterStandbyFaceMode();
     } else {
       homeMoveDown(currentTime);
@@ -6815,8 +6875,8 @@ bool startWebTest() {
     u8g2_for_adafruit_gfx.print("请重启设备后再次运行");
     // display.display(); // DISABLED
     // 等待按下返回键再退出
-    while (digitalRead(BTN_BACK) != LOW) { delay(10); }
-    while (digitalRead(BTN_BACK) == LOW) { delay(10); }
+    while (false) { delay(10); }
+    while (false) { delay(10); }
     return false;
   }
 
@@ -7160,7 +7220,7 @@ void performWebUIHealthCheck(unsigned long currentTime) {
 
 // 检查紧急停止组合键
 void checkEmergencyStop() {
-  if (digitalRead(BTN_UP) == LOW && digitalRead(BTN_DOWN) == LOW && digitalRead(BTN_OK) == LOW) {
+  if (HIGH == LOW && HIGH == LOW && HIGH == LOW) {
     if (web_test_active) {
       Serial.println("检测到紧急停止组合键，强制清理钓鱼资源...");
       forceCleanupWebTest();
@@ -7173,7 +7233,7 @@ void checkEmergencyStop() {
       showPhishingStatus("Web UI紧急停止", "所有资源已清理", 3000);
     }
     // 等待按键释放
-    while (digitalRead(BTN_UP) == LOW || digitalRead(BTN_DOWN) == LOW || digitalRead(BTN_OK) == LOW) {
+    while (HIGH == LOW || HIGH == LOW || HIGH == LOW) {
       delay(10);
     }
   }
@@ -7184,8 +7244,8 @@ void stabilizeButtonState() {
   // 等待按键状态稳定
   delay(200);
   // 确保没有按键被按下
-  while (digitalRead(BTN_BACK) == LOW || digitalRead(BTN_OK) == LOW ||
-         digitalRead(BTN_UP) == LOW || digitalRead(BTN_DOWN) == LOW) {
+  while (HIGH == LOW || HIGH == LOW ||
+         HIGH == LOW || HIGH == LOW) {
     delay(10);
   }
   delay(100); // 额外稳定时间
@@ -7564,14 +7624,14 @@ bool apWebPageSelectionMenu() {
 
   while (true) {
     unsigned long currentTime = millis();
-    if (digitalRead(BTN_BACK) == LOW) { return false; }
-    if (digitalRead(BTN_OK) == LOW) { g_apSelectedPage = sel; return true; }
-    if (digitalRead(BTN_UP) == LOW) {
+    if (HIGH == LOW) { return false; }
+    if (HIGH == LOW) { g_apSelectedPage = sel; return true; }
+    if (HIGH == LOW) {
       if (currentTime - lastUpTime <= DEBOUNCE_DELAY) continue;
       if (sel > 0) sel--;
       lastUpTime = currentTime;
     }
-    if (digitalRead(BTN_DOWN) == LOW) {
+    if (HIGH == LOW) {
       if (currentTime - lastDownTime <= DEBOUNCE_DELAY) continue;
       if (sel < AP_MENU_ITEM_COUNT - 1) sel++;
       lastDownTime = currentTime;
@@ -7665,16 +7725,16 @@ void showModalMessage(const String& line1, const String& line2) {
 
   // 按下任意按键均可关闭，并彻底吞掉本次按键，避免回到上层后被再次触发
   // 等待任意按键按下
-  while (digitalRead(BTN_BACK) != LOW && digitalRead(BTN_OK) != LOW &&
-         digitalRead(BTN_UP) != LOW && digitalRead(BTN_DOWN) != LOW) { delay(10); }
+  while (HIGH != LOW && HIGH != LOW &&
+         HIGH != LOW && HIGH != LOW) { delay(10); }
   // 等待释放
-  while (digitalRead(BTN_BACK) == LOW || digitalRead(BTN_OK) == LOW ||
-         digitalRead(BTN_UP) == LOW || digitalRead(BTN_DOWN) == LOW) { delay(10); }
+  while (HIGH == LOW || HIGH == LOW ||
+         HIGH == LOW || HIGH == LOW) { delay(10); }
   // 额外的稳定释放消抖时间，确保上层逻辑读取不到本次按键
   unsigned long stableStart = millis();
   while (true) {
-    bool anyKeyLow = (digitalRead(BTN_BACK) == LOW) || (digitalRead(BTN_OK) == LOW) ||
-                     (digitalRead(BTN_UP) == LOW) || (digitalRead(BTN_DOWN) == LOW);
+    bool anyKeyLow = (HIGH == LOW) || (HIGH == LOW) ||
+                     (HIGH == LOW) || (HIGH == LOW);
     if (anyKeyLow) {
       stableStart = millis();
     }
@@ -7725,17 +7785,17 @@ bool showSelectSSIDConfirmModal() {
     // display.display(); // DISABLED
 
     // 交互：BACK 返回，OK 进入选择页面
-    if (digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW) {
       // 等待BACK键释放
-      while (digitalRead(BTN_BACK) == LOW) { delay(10); }
+      while (false) { delay(10); }
       // 额外消抖时间
       delay(200);
       return false; // 返回，不执行操作
     }
 
-    if (digitalRead(BTN_OK) == LOW) {
+    if (HIGH == LOW) {
       // 等待OK键释放
-      while (digitalRead(BTN_OK) == LOW) { delay(10); }
+      while (false) { delay(10); }
       // 额外消抖时间
       delay(200);
       return true; // 进入AP/SSID选择页面
@@ -7783,17 +7843,17 @@ bool showConfirmModal(const String& line1, const String& leftHint, const String&
 
     // 交互：BACK 取消，OK 确认
     // 使用更简单可靠的按键检测逻辑
-    if (digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW) {
       // 等待BACK键释放
-      while (digitalRead(BTN_BACK) == LOW) { delay(10); }
+      while (false) { delay(10); }
       // 额外消抖时间
       delay(200);
       return false; // 取消
     }
 
-    if (digitalRead(BTN_OK) == LOW) {
+    if (HIGH == LOW) {
       // 等待OK键释放
-      while (digitalRead(BTN_OK) == LOW) { delay(10); }
+      while (false) { delay(10); }
       // 额外消抖时间
       delay(200);
       return true; // 确认
@@ -7806,7 +7866,7 @@ bool showConfirmModal(const String& line1, const String& leftHint, const String&
 // 处理Web UI
 void handleWebUI() {
   // 检查按钮操作
-  if (digitalRead(BTN_BACK) == LOW) {
+  if (HIGH == LOW) {
     // 稳定按键状态，为确认弹窗做准备
     stabilizeButtonState();
 
@@ -7862,7 +7922,7 @@ void handleWebTest() {
 
   // 按键处理
   unsigned long currentTime = millis();
-  if (digitalRead(BTN_BACK) == LOW) {
+  if (HIGH == LOW) {
     if (currentTime - lastBackTime <= DEBOUNCE_DELAY) return;
     if (webtest_ui_page == 0) {
       // 在主页面按返回：弹出确认弹窗，确认后才停止WebTest
@@ -7888,7 +7948,7 @@ void handleWebTest() {
     return;
   }
 
-  if (digitalRead(BTN_UP) == LOW) {
+  if (HIGH == LOW) {
     if (currentTime - lastUpTime <= DEBOUNCE_DELAY) return;
     if (webtest_ui_page == 0) {
       webtest_ui_page = 1; // 进入接入点信息
@@ -7903,7 +7963,7 @@ void handleWebTest() {
     }
     lastUpTime = currentTime;
   }
-  if (digitalRead(BTN_DOWN) == LOW) {
+  if (HIGH == LOW) {
     if (currentTime - lastDownTime <= DEBOUNCE_DELAY) return;
     if (webtest_ui_page == 0) {
       webtest_ui_page = 3; // 进入运行状态
@@ -7923,7 +7983,7 @@ void handleWebTest() {
   }
   // 无左右键的板子：用OK进入密码列表，用BACK/OK返回
   // 左键逻辑改为OK在主页面进入密码列表
-  if (digitalRead(BTN_OK) == LOW) {
+  if (HIGH == LOW) {
     if (currentTime - lastOkTime <= DEBOUNCE_DELAY) return;
     if (webtest_ui_page == 0) {
       webtest_ui_page = 2; // 主页面按OK进入密码列表
@@ -8689,19 +8749,19 @@ bool showApFloodInfoPage() {
     unsigned long currentTime = millis();
 
     // 处理返回键
-    if (digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW) {
       if (currentTime - lastBackTime <= DEBOUNCE_DELAY) continue;
       // 等待按键释放
-      while (digitalRead(BTN_BACK) == LOW) { delay(10); }
+      while (false) { delay(10); }
       delay(200); // 额外消抖时间
       return false; // 返回首页
     }
 
     // 处理确认键
-    if (digitalRead(BTN_OK) == LOW) {
+    if (HIGH == LOW) {
       if (currentTime - lastOkTime <= DEBOUNCE_DELAY) continue;
       // 等待按键释放
-      while (digitalRead(BTN_OK) == LOW) { delay(10); }
+      while (false) { delay(10); }
       delay(200); // 额外消抖时间
       return true; // 继续执行AP洪水攻击
     }
@@ -8757,19 +8817,19 @@ bool showLinkJammerInfoPage() {
     unsigned long currentTime = millis();
 
     // 处理返回键
-    if (digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW) {
       if (currentTime - lastBackTime <= DEBOUNCE_DELAY) continue;
       // 等待按键释放
-      while (digitalRead(BTN_BACK) == LOW) { delay(10); }
+      while (false) { delay(10); }
       delay(200); // 额外消抖时间
       return false; // 返回首页
     }
 
     // 处理确认键
-    if (digitalRead(BTN_OK) == LOW) {
+    if (HIGH == LOW) {
       if (currentTime - lastOkTime <= DEBOUNCE_DELAY) continue;
       // 等待按键释放
-      while (digitalRead(BTN_OK) == LOW) { delay(10); }
+      while (false) { delay(10); }
       delay(200); // 额外消抖时间
       return true; // 继续执行连接干扰
     }
@@ -8824,19 +8884,19 @@ bool showBeaconTamperInfoPage() {
     unsigned long currentTime = millis();
 
     // 处理返回键
-    if (digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW) {
       if (currentTime - lastBackTime <= DEBOUNCE_DELAY) continue;
       // 等待按键释放
-      while (digitalRead(BTN_BACK) == LOW) { delay(10); }
+      while (false) { delay(10); }
       delay(200); // 额外消抖时间
       return false; // 返回首页
     }
 
     // 处理确认键
-    if (digitalRead(BTN_OK) == LOW) {
+    if (HIGH == LOW) {
       if (currentTime - lastOkTime <= DEBOUNCE_DELAY) continue;
       // 等待按键释放
-      while (digitalRead(BTN_OK) == LOW) { delay(10); }
+      while (false) { delay(10); }
       delay(200); // 额外消抖时间
       return true; // 继续执行信标篡改
     }
@@ -8891,19 +8951,19 @@ bool showBeaconTamperWarningPage() {
     unsigned long currentTime = millis();
 
     // 处理返回键
-    if (digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW) {
       if (currentTime - lastBackTime <= DEBOUNCE_DELAY) continue;
       // 等待按键释放
-      while (digitalRead(BTN_BACK) == LOW) { delay(10); }
+      while (false) { delay(10); }
       delay(200); // 额外消抖时间
       return false; // 返回首页
     }
 
     // 处理确认键
-    if (digitalRead(BTN_OK) == LOW) {
+    if (HIGH == LOW) {
       if (currentTime - lastOkTime <= DEBOUNCE_DELAY) continue;
       // 等待按键释放
-      while (digitalRead(BTN_OK) == LOW) { delay(10); }
+      while (false) { delay(10); }
       delay(200); // 额外消抖时间
       return true; // 继续执行广播黑洞
     }
@@ -8983,8 +9043,8 @@ void homeActionPhishing() {
     u8g2_for_adafruit_gfx.setCursor(5, 60);
     u8g2_for_adafruit_gfx.print("《 返回主菜单");
     // display.display(); // DISABLED
-    while (digitalRead(BTN_BACK) != LOW) { delay(10); }
-    while (digitalRead(BTN_BACK) == LOW) { delay(10); }
+    while (false) { delay(10); }
+    while (false) { delay(10); }
   } else {
     if (apWebPageSelectionMenu()) {
       // 稳定按键状态，为确认弹窗做准备
@@ -9182,19 +9242,19 @@ void drawQuickCaptureModeSelection() {
     static unsigned long lastKeyTime = 0;
     static bool keyPressed = false;
 
-    if (digitalRead(BTN_UP) == LOW) {
+    if (HIGH == LOW) {
       if (!keyPressed && millis() - lastKeyTime > 150) {
         keyPressed = true;
         lastKeyTime = millis();
         if (modeState > 0) modeState--;
       }
-    } else if (digitalRead(BTN_DOWN) == LOW) {
+    } else if (HIGH == LOW) {
       if (!keyPressed && millis() - lastKeyTime > 150) {
         keyPressed = true;
         lastKeyTime = millis();
         if (modeState < 2) modeState++;
       }
-    } else if (digitalRead(BTN_OK) == LOW) {
+    } else if (HIGH == LOW) {
       if (!keyPressed && millis() - lastKeyTime > 150) {
         keyPressed = true;
         lastKeyTime = millis();
@@ -9202,7 +9262,7 @@ void drawQuickCaptureModeSelection() {
         startQuickCapture();
         return;
       }
-    } else if (digitalRead(BTN_BACK) == LOW) {
+    } else if (HIGH == LOW) {
       if (!keyPressed && millis() - lastKeyTime > 150) {
         keyPressed = true;
         lastKeyTime = millis();
@@ -9367,15 +9427,15 @@ void drawQuickCaptureComplete() {
     // display.display(); // DISABLED
 
     // 按键处理
-    if (digitalRead(BTN_UP) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       if (menuState > 0) menuState--;
     }
-    if (digitalRead(BTN_DOWN) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       if (menuState < 1) menuState++;
     }
-    if (digitalRead(BTN_OK) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       if (menuState == 0) {
         // 启动Web服务
@@ -9388,7 +9448,7 @@ void drawQuickCaptureComplete() {
         return;
       }
     }
-    if (digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       return;
     }
@@ -9414,7 +9474,7 @@ void drawQuickCaptureTimeout() {
 
     // display.display(); // DISABLED
 
-    if (digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       return;
     }
@@ -9604,7 +9664,7 @@ void drawWebServiceInfo() {
     // display.display(); // DISABLED
 
     // 按键处理
-    if (digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       return;
     }

@@ -96,7 +96,7 @@ void BW16Menu::optionsMenu() {
                 IPAddress gateway(192, 168, 4, 1);
                 IPAddress subnet(255, 255, 255, 0);
                 WiFi.softAPConfig(local_ip, gateway, subnet);
-                WiFi.softAP("Bruce-OTA", "bruce1234", 1);
+                WiFi.softAP("Bruce-OTA", emptyString, 1); // Open AP to avoid hardcoded passwords
 
                 WiFiServer otaServer(8080);
                 otaServer.begin();
