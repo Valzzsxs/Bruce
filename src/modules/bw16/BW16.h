@@ -31,6 +31,17 @@ public:
     void getAPList();
     void getStatus();
 
+    // New advanced features
+    void authFlood(int index);
+    void karmaAttack();
+    void setMAC(String mac);
+    void startIDS();
+    void stopIDS();
+    void hiddenDecloaker();
+    void bleSpam(String name);
+    void bleScan();
+    void otaUpdate();
+
     std::vector<BW16ScanResult> getResults() { return _scanResults; }
     String getLastMessage() { return _lastMessage; }
     bool isScanning() { return _scanning; }
