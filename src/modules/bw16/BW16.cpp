@@ -92,6 +92,42 @@ void BW16::getStatus() {
     sendCommand("GET_STATUS");
 }
 
+void BW16::authFlood(int index) {
+    sendCommand("AUTH_FLOOD," + String(index));
+}
+
+void BW16::karmaAttack() {
+    sendCommand("KARMA_START");
+}
+
+void BW16::setMAC(String mac) {
+    sendCommand("SET_MAC," + mac);
+}
+
+void BW16::startIDS() {
+    sendCommand("IDS_START");
+}
+
+void BW16::stopIDS() {
+    sendCommand("IDS_STOP");
+}
+
+void BW16::hiddenDecloaker() {
+    sendCommand("DECLOAK_START");
+}
+
+void BW16::bleSpam(String name) {
+    sendCommand("BLE_SPAM," + name);
+}
+
+void BW16::bleScan() {
+    sendCommand("BLE_SCAN");
+}
+
+void BW16::otaUpdate() {
+    sendCommand("OTA_START");
+}
+
 void BW16::parseLine(String line) {
     line.trim();
     if (line.length() == 0) return;

@@ -38,6 +38,41 @@ void BW16Menu::optionsMenu() {
         options = {
             {"Scan Networks", [this]() { scanNetworks(); }, false, bw16_tick, this},
             {"Show AP List", [this]() { showAPList(); }, false, bw16_tick, this},
+            {"Wifi Analyzer", [this]() {
+                displaySuccess("Feature WIP");
+                delay(500);
+            }, false, bw16_tick, this},
+            {"Hidden SSID Decloaker", [this]() {
+                bw16.hiddenDecloaker();
+                displaySuccess("Decloaking...");
+                delay(500);
+            }, false, bw16_tick, this},
+            {"Deauth Detection (IDS)", [this]() {
+                bw16.startIDS();
+                displaySuccess("IDS Started");
+                delay(500);
+            }, false, bw16_tick, this},
+            {"BLE Tools", [this]() {
+                while(1) {
+                    std::vector<Option> bleOptions = {
+                        {"BLE Spam", [this]() {
+                            String name = keyboard("Rickroll", 20, "Spam Name:");
+                            if(name.length() > 0) {
+                                bw16.bleSpam(name);
+                                displaySuccess("BLE Spamming");
+                                delay(500);
+                            }
+                        }, false, bw16_tick, this},
+                        {"BLE Scan", [this]() {
+                            bw16.bleScan();
+                            displaySuccess("Scanning BLE");
+                            delay(500);
+                        }, false, bw16_tick, this}
+                    };
+                    int ret = loopOptions(bleOptions, MENU_TYPE_REGULAR, "BLE Tools");
+                    if (ret == -1) break;
+                }
+            }, false, bw16_tick, this},
             {"Deauth All", [this]() {
                 bw16.deauthAll();
                 long start = millis();
@@ -47,10 +82,52 @@ void BW16Menu::optionsMenu() {
                 }
                 displaySuccess("Deauth All Sent");
             }, false, bw16_tick, this},
-            {"Stop All Deauths", [this]() {
+            {"Stop All Attacks", [this]() {
                 bw16.deauthStopAll();
+                bw16.stopIDS();
                 displaySuccess("Stopped All!");
                 delay(1000);
+            }, false, bw16_tick, this},
+            {"BW16 OTA Update", [this]() {
+                bw16.otaUpdate();
+                displaySuccess("OTA Mode");
+                delay(500);
+            }, false, bw16_tick, this},
+            {"Settings", [this]() {
+                while(1) {
+                    std::vector<Option> settingOptions = {
+                        {"Change UART RX Pin", [this]() {
+                            String pin = num_keyboard(String(bruceConfigPins.uart_bus.rx), 2, "RX Pin");
+                            if(pin.length() > 0) {
+                                bw16.end();
+                                bruceConfigPins.uart_bus.rx = (gpio_num_t)pin.toInt();
+                                displaySuccess("RX Updated");
+                                delay(500);
+                                bw16.begin();
+                            }
+                        }, false, bw16_tick, this},
+                        {"Change UART TX Pin", [this]() {
+                            String pin = num_keyboard(String(bruceConfigPins.uart_bus.tx), 2, "TX Pin");
+                            if(pin.length() > 0) {
+                                bw16.end();
+                                bruceConfigPins.uart_bus.tx = (gpio_num_t)pin.toInt();
+                                displaySuccess("TX Updated");
+                                delay(500);
+                                bw16.begin();
+                            }
+                        }, false, bw16_tick, this},
+                        {"MAC Spoofing", [this]() {
+                            String mac = keyboard("", 17, "New MAC (XX:XX...)");
+                            if(mac.length() > 0) {
+                                bw16.setMAC(mac);
+                                displaySuccess("MAC Spoofed");
+                                delay(500);
+                            }
+                        }, false, bw16_tick, this}
+                    };
+                    int ret = loopOptions(settingOptions, MENU_TYPE_REGULAR, "Settings");
+                    if (ret == -1) break;
+                }
             }, false, bw16_tick, this},
         };
 
