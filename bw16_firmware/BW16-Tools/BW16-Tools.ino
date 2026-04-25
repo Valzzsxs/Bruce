@@ -22,6 +22,8 @@
 void LinkJammer();
 #include "wifi_util.h"
 #include "wifi_structures.h"
+#include "AnchorOTA.h"
+
 
 // ==========================================
 // BRUCE UART INTEGRATION - BY JULES
@@ -94,6 +96,32 @@ void handleBruceCommand(String cmd) {
     int rc = wifi_set_promisc(RTW_PROMISC_ENABLE, promiscDetectCallback, 1);
     bruceIdsActive = true;
     sendToBruce("IDS_STARTED (rc=%d)", rc);
+  }
+
+  else if (cmd.startsWith("OTA_START")) {
+    sendToBruce("OTA_CONNECTING");
+
+    // Connect to Bruce's local AP
+    WiFi.begin("Bruce-OTA", "bruce1234");
+    int retry = 0;
+    while (WiFi.status() != WL_CONNECTED && retry < 15) {
+      delay(500);
+      retry++;
+    }
+
+    if (WiFi.status() == WL_CONNECTED) {
+      sendToBruce("OTA_DOWNLOADING");
+      // Bruce is always 192.168.4.1 in AP mode, port 8080
+      IPAddress serverIP(192,168,4,1);
+      int ret = OTA.beginCloud(serverIP, 8080, true);
+
+      if (ret < 0) {
+        sendToBruce("OTA_FAILED:%d", ret);
+        WiFi.disconnect();
+      }
+    } else {
+      sendToBruce("OTA_WIFI_FAIL");
+    }
   }
   else if (cmd.startsWith("IDS_STOP")) {
     wifi_set_promisc(RTW_PROMISC_DISABLE, nullptr, 0);

@@ -2,6 +2,9 @@
 #include <core/display.h>
 #include <core/mykeyboard.h>
 #include <core/utils.h>
+#include <WiFiClient.h>
+#include <WiFiServer.h>
+#include <WiFi.h>
 
 void BW16Menu::drawIcon(float scale) {
     clearIconArea();
@@ -43,8 +46,7 @@ void BW16Menu::optionsMenu() {
                 delay(500);
             }, false, bw16_tick, this},
             {"Hidden SSID Decloaker", [this]() {
-                bw16.hiddenDecloaker();
-                displaySuccess("Decloaking...");
+                displaySuccess("Feature WIP");
                 delay(500);
             }, false, bw16_tick, this},
             {"Deauth Detection (IDS)", [this]() {
@@ -53,25 +55,8 @@ void BW16Menu::optionsMenu() {
                 delay(500);
             }, false, bw16_tick, this},
             {"BLE Tools", [this]() {
-                while(1) {
-                    std::vector<Option> bleOptions = {
-                        {"BLE Spam", [this]() {
-                            String name = keyboard("Rickroll", 20, "Spam Name:");
-                            if(name.length() > 0) {
-                                bw16.bleSpam(name);
-                                displaySuccess("BLE Spamming");
-                                delay(500);
-                            }
-                        }, false, bw16_tick, this},
-                        {"BLE Scan", [this]() {
-                            bw16.bleScan();
-                            displaySuccess("Scanning BLE");
-                            delay(500);
-                        }, false, bw16_tick, this}
-                    };
-                    int ret = loopOptions(bleOptions, MENU_TYPE_REGULAR, "BLE Tools");
-                    if (ret == -1) break;
-                }
+                displaySuccess("Feature WIP");
+                delay(500);
             }, false, bw16_tick, this},
             {"Deauth All", [this]() {
                 bw16.deauthAll();
@@ -89,9 +74,127 @@ void BW16Menu::optionsMenu() {
                 delay(1000);
             }, false, bw16_tick, this},
             {"BW16 OTA Update", [this]() {
+                // Find and select the BW16 binary from the SD Card
+                String filename = "/bw16_firmware.bin";
+                if (!SD.exists(filename)) {
+                    displayError("Missing /bw16_firmware.bin");
+                    delay(1000);
+                    return;
+                }
+
+                File fwFile = SD.open(filename, FILE_READ);
+                if (!fwFile) {
+                    displayError("Failed to open file");
+                    delay(1000);
+                    return;
+                }
+
+                // Disconnect existing WiFi
+                WiFi.disconnect(true);
+                WiFi.mode(WIFI_AP);
+                IPAddress local_ip(192, 168, 4, 1);
+                IPAddress gateway(192, 168, 4, 1);
+                IPAddress subnet(255, 255, 255, 0);
+                WiFi.softAPConfig(local_ip, gateway, subnet);
+                WiFi.softAP("Bruce-OTA", "bruce1234", 1);
+
+                WiFiServer otaServer(8080);
+                otaServer.begin();
+
+                // Tell BW16 to start OTA
                 bw16.otaUpdate();
-                displaySuccess("OTA Mode");
-                delay(500);
+
+                long startTime = millis();
+                bool clientConnected = false;
+                WiFiClient otaClient;
+
+                // Simple blocking wait for client with timeout
+                drawMainBorderWithTitle("Waiting for BW16...");
+                tft.drawCentreString("Connecting to OTA AP", tftWidth/2, tftHeight/2 - 20, 1);
+
+                while (millis() - startTime < 30000) { // 30 sec timeout
+                    bw16.loop();
+                    WiFiClient newClient = otaServer.accept();
+                    if (newClient) {
+                        otaClient = newClient;
+                        clientConnected = true;
+                        break;
+                    }
+                    if (check(EscPress)) {
+                        break;
+                    }
+                    delay(10);
+                }
+
+                if (!clientConnected) {
+                    displayError("BW16 failed to connect");
+                    delay(1500);
+                } else {
+                    drawMainBorderWithTitle("Flashing BW16...");
+                    tft.drawCentreString("Sending firmware...", tftWidth/2, tftHeight/2 - 20, 1);
+
+                    // Serve the file
+                    size_t fileSize = fwFile.size();
+                    size_t sentBytes = 0;
+                    uint8_t buffer[1024];
+
+                    // Compute AnchorOTA checksum (simple summation of bytes)
+                    uint32_t imageChecksum = 0;
+                    while (fwFile.available()) {
+                        imageChecksum += fwFile.read();
+                    }
+                    fwFile.seek(0); // Reset position
+
+                    // AnchorOTA Header Format: 12 bytes
+                    // [0-3]: checksum (little endian)
+                    // [4-7]: padding / not used? actually AnchorOTA only reads first 4 for checksum, last 4 for len.
+                    // Let's check AnchorOTA.cpp:
+                    // checksum = fileInfo[3-i] (bytes 0,1,2,3 are checksum, little endian)
+                    // length = fileInfo[11-i] (bytes 8,9,10,11 are length, little endian)
+
+                    uint8_t header[12] = {0};
+                    header[0] = imageChecksum & 0xFF;
+                    header[1] = (imageChecksum >> 8) & 0xFF;
+                    header[2] = (imageChecksum >> 16) & 0xFF;
+                    header[3] = (imageChecksum >> 24) & 0xFF;
+                    // Bytes 4-7 are unused padding
+                    header[8] = fileSize & 0xFF;
+                    header[9] = (fileSize >> 8) & 0xFF;
+                    header[10] = (fileSize >> 16) & 0xFF;
+                    header[11] = (fileSize >> 24) & 0xFF;
+
+                    otaClient.write(header, 12);
+
+                    while (fwFile.available() && otaClient.connected()) {
+                        size_t bytesRead = fwFile.read(buffer, sizeof(buffer));
+                        otaClient.write(buffer, bytesRead);
+                        sentBytes += bytesRead;
+
+                        // Progress bar
+                        float progress = (float)sentBytes / fileSize;
+                        int barWidth = tftWidth - 40;
+                        int barX = 20;
+                        int barY = tftHeight/2 + 20;
+
+                        tft.drawRect(barX, barY, barWidth, 10, bruceConfig.priColor);
+                        tft.fillRect(barX + 2, barY + 2, (barWidth-4) * progress, 6, bruceConfig.secColor);
+                        delay(1);
+                    }
+
+                    otaClient.clear();
+                    otaClient.stop();
+
+                    if (sentBytes == fileSize) {
+                        displaySuccess("OTA Flash Complete!");
+                    } else {
+                        displayError("OTA Flash Incomplete");
+                    }
+                    delay(2000);
+                }
+
+                fwFile.close();
+                otaServer.end();
+                WiFi.softAPdisconnect(true);
             }, false, bw16_tick, this},
             {"Settings", [this]() {
                 while(1) {
@@ -117,12 +220,8 @@ void BW16Menu::optionsMenu() {
                             }
                         }, false, bw16_tick, this},
                         {"MAC Spoofing", [this]() {
-                            String mac = keyboard("", 17, "New MAC (XX:XX...)");
-                            if(mac.length() > 0) {
-                                bw16.setMAC(mac);
-                                displaySuccess("MAC Spoofed");
-                                delay(500);
-                            }
+                            displaySuccess("Feature WIP");
+                            delay(500);
                         }, false, bw16_tick, this}
                     };
                     int ret = loopOptions(settingOptions, MENU_TYPE_REGULAR, "Settings");
