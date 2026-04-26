@@ -1,3 +1,4 @@
+#include "mock_display.h"
 #include "wifi_cust_tx.h"
 
 /*
