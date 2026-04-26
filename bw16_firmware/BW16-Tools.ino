@@ -1,3 +1,4 @@
+#include <vector>
 
 // Bruce UART integration
 #define BRUCE_CMD_PREFIX "BRUCE:"
@@ -72,11 +73,11 @@ class __FlashStringHelper; // forward declaration for Arduino-style flash string
 
 
 
-U8G2_FOR_ADAFRUIT_GFX u8g2_for_adafruit_gfx;
+
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define OLED_RESET -1
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
 
 
 U8g2Adapter u8g2;
@@ -88,7 +89,7 @@ const int ANIM_STEPS = 6;       // （）
 const int ANIM_DELAY_MS = 0;    // （Select）
 // SelectLength（）：，SSID
 const int SELECT_MOVE_TOTAL_MS = 60;
-// FrameFreq：Frame display.display（）
+// FrameFreq：Frame //display（）
 const int DISPLAY_FLUSH_EVERY_FRAMES = 2;
 // Start（Short）
 const int TITLE_FRAMES = 20;     // Add（Start<1s）
@@ -285,6 +286,15 @@ static inline bool is5GChannel(int ch) {
 bool BeaconBandMenu();
 void StableBeacon();
 int current_channel = 1;
+typedef struct {
+  String ssid;
+  String bssid_str;
+  uint8_t bssid[6];
+  short rssi;
+  uint8_t channel;
+  int security;
+} WiFiScanResult;
+
 std::vector<WiFiScanResult> scan_results;
 std::vector<int> SelectedVector;
 // SelectStatus： scan_results ，0 Medium / 1 Medium（ O(1) ）
@@ -883,8 +893,8 @@ static void stopPacketDetection() {
   g_previewSwitchPending = false;
 
   // RestoreDefaultFontSettingsMedium
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+  //.setFontMode(1);
+  //.setForegroundColor(SSD1306_WHITE);
 
   Serial.println("[PacketDetect] Packet detection stopped and resources cleaned up");
 }
@@ -1113,7 +1123,7 @@ static void updateKeyStates() {
 }
 
 /**
- * @brief Draw a dashed line on the OLED display.
+ * @brief Draw a dashed line on the OLED //
  * @param x1 Start x
  * @param y1 Start y
  * @param x2 End x
@@ -1132,7 +1142,7 @@ static void drawDashedLine(int x1, int y1, int x2, int y2, int dashLength = 2) {
     if (nextI > steps) nextI = steps;
     int endX = x1 + (x2 - x1) * nextI / steps;
     int endY = y1 + (y2 - y1) * nextI / steps;
-    display.drawLine(x, y, endX, endY, SSD1306_WHITE);
+    //drawLine(x, y, endX, endY, SSD1306_WHITE);
   }
 }
 
@@ -1147,7 +1157,7 @@ static void drawPacketChart() {
   int chartHeight = 40;
 
   // ChartBorder
-  display.drawRect(chartX, chartY, chartWidth, chartHeight, SSD1306_WHITE);
+  //drawRect(chartX, chartY, chartWidth, chartHeight, SSD1306_WHITE);
 
   // HistoryDataMediumLarge
   unsigned long maxPackets = 1;
@@ -1184,7 +1194,7 @@ static void drawPacketChart() {
       //
       int x = chartX + 1 + i * pointWidth;
       int y = chartY + chartHeight - 1 - barHeight;
-      display.fillRect(x, y, pointWidth - 1, barHeight, SSD1306_WHITE);
+      //fillRect(x, y, pointWidth - 1, barHeight, SSD1306_WHITE);
     }
   }
 
@@ -1386,9 +1396,9 @@ void drawAttackDetectPage() {
 
     if (now - g_attackDetectLastDrawMs >= drawInterval) {
       g_attackDetectLastDrawMs = now;
-      display.clearDisplay();
-      u8g2_for_adafruit_gfx.setFontMode(1);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+      //clearDisplay();
+      //.setFontMode(1);
+      //.setForegroundColor(SSD1306_WHITE);
 
       int total = 0;
       const uint8_t* channels = getCurrentChannelGroup(total);
@@ -1396,21 +1406,21 @@ void drawAttackDetectPage() {
 
       if (g_detectUiMode == 0) {
         // （Align drawWebTestMain ：y=12,28,44,60）
-        const char* t1 = "[AttackFrameDetectMedium]"; int w1 = u8g2_for_adafruit_gfx.getUTF8Width(t1); int x1 = (display.width()-w1)/2; if (x1<0) x1=0;
-        u8g2_for_adafruit_gfx.setCursor(x1, 12); u8g2_for_adafruit_gfx.print(t1);
-        String t2 = String("ListenChannel：") + String(curCh) + "/" + getCurrentChannelGroupShortName(); int w2 = u8g2_for_adafruit_gfx.getUTF8Width(t2.c_str()); int x2=(display.width()-w2)/2; if(x2<0)x2=0;
-        u8g2_for_adafruit_gfx.setCursor(x2, 28); u8g2_for_adafruit_gfx.print(t2);
-        const char* t3 = "ViewLog"; int w3 = u8g2_for_adafruit_gfx.getUTF8Width(t3);
+        const char* t1 = "[AttackFrameDetectMedium]"; int w1 = //.getUTF8Width(t1); int x1 = (//width()-w1)/2; if (x1<0) x1=0;
+        //.setCursor(x1, 12); //.print(t1);
+        String t2 = String("ListenChannel：") + String(curCh) + "/" + getCurrentChannelGroupShortName(); int w2 = //.getUTF8Width(t2.c_str()); int x2=(//width()-w2)/2; if(x2<0)x2=0;
+        //.setCursor(x2, 28); //.print(t2);
+        const char* t3 = "ViewLog"; int w3 = //.getUTF8Width(t3);
         // +Width，Center
         int arrowWidth = 0; // Width
         int spacing = 5; // Spacing
         int totalWidth = w3 + spacing + arrowWidth;
-        int x3 = (display.width() - totalWidth) / 2; if(x3<0) x3=0;
-        u8g2_for_adafruit_gfx.setCursor(x3, 44); u8g2_for_adafruit_gfx.print(t3);
+        int x3 = (//width() - totalWidth) / 2; if(x3<0) x3=0;
+        //.setCursor(x3, 44); //.print(t3);
         // （CenterAlign，）
         int arrowY = 44 - 8; // y=44，MediumMedium，Height10px，4
         int arrowX = x3 + w3 + spacing; //
-        display.fillTriangle(arrowX, arrowY, arrowX, arrowY+6, arrowX+6, arrowY+3, SSD1306_WHITE);
+        //fillTriangle(arrowX, arrowY, arrowX, arrowY+6, arrowX+6, arrowY+3, SSD1306_WHITE);
 
         // "ViewLog"RadiusBorder：
         // ：
@@ -1442,21 +1452,21 @@ void drawAttackDetectPage() {
             int rect_w = w3 + pad_x * 2 + 2;
             int rect_h = text_height + pad_y * 2;
             int r = 3; // Radius
-            display.drawRoundRect(rect_x, rect_y, rect_w, rect_h, r, SSD1306_WHITE);
+            //drawRoundRect(rect_x, rect_y, rect_w, rect_h, r, SSD1306_WHITE);
           }
         }
-        const char* t4 = "↓ ListenStats ↓"; int w4 = u8g2_for_adafruit_gfx.getUTF8Width(t4); int x4=(display.width()-w4)/2; if(x4<0)x4=0;
-        u8g2_for_adafruit_gfx.setCursor(x4, 60); u8g2_for_adafruit_gfx.print(t4);
+        const char* t4 = "↓ ListenStats ↓"; int w4 = //.getUTF8Width(t4); int x4=(//width()-w4)/2; if(x4<0)x4=0;
+        //.setCursor(x4, 60); //.print(t4);
 
 
       } else if (g_detectUiMode == 1) {
         // LogList（：Titley=12，y=28/44/60）
-        u8g2_for_adafruit_gfx.setCursor(2, 12); u8g2_for_adafruit_gfx.print("《 Back");
+        //.setCursor(2, 12); //.print("《 Back");
         int pages = (int)g_suspects.size(); if (pages==0) pages=1;
         String mid = String(g_recordsPage + 1) + "/" + String(pages);
-        int wm = u8g2_for_adafruit_gfx.getUTF8Width(mid.c_str()); int xm=(display.width()-wm)/2; if(xm<0)xm=0;
-        u8g2_for_adafruit_gfx.setCursor(xm, 12); u8g2_for_adafruit_gfx.print(mid);
-        int wr = u8g2_for_adafruit_gfx.getUTF8Width(" 》"); u8g2_for_adafruit_gfx.setCursor(display.width()-wr-2, 12); u8g2_for_adafruit_gfx.print(" 》");
+        int wm = //.getUTF8Width(mid.c_str()); int xm=(//width()-wm)/2; if(xm<0)xm=0;
+        //.setCursor(xm, 12); //.print(mid);
+        int wr = //.getUTF8Width(" 》"); //.setCursor(//width()-wr-2, 12); //.print(" 》");
         if (!g_suspects.empty()) {
           int idx = g_recordsPage % (int)g_suspects.size();
           // SSID  MAC Center y=28（Length）
@@ -1465,9 +1475,9 @@ void drawAttackDetectPage() {
           String label = String(macBuf);
           for (size_t i=0;i<scan_results.size();i++){ bool eq=true; for(int k=0;k<6;k++) if (scan_results[i].bssid[k]!=g_suspects[idx].bssid[k]) {eq=false;break;} if(eq){ label=scan_results[i].ssid; break; } }
           static int scrollX = 0; static unsigned long lastScrollMs = 0; const int scrollDelay = 120; // ms
-          int textW = u8g2_for_adafruit_gfx.getUTF8Width(label.c_str());
-          if (textW <= display.width()-2) {
-            int xl=(display.width()-textW)/2; if(xl<0) xl=0; u8g2_for_adafruit_gfx.setCursor(xl, 28); u8g2_for_adafruit_gfx.print(label);
+          int textW = //.getUTF8Width(label.c_str());
+          if (textW <= //width()-2) {
+            int xl=(//width()-textW)/2; if(xl<0) xl=0; //.setCursor(xl, 28); //.print(label);
             scrollX = 0; //
           } else {
             if (millis() - lastScrollMs > (unsigned)scrollDelay) { scrollX = (scrollX + 2) % (textW + 16); lastScrollMs = millis(); }
@@ -1475,32 +1485,32 @@ void drawAttackDetectPage() {
             int startX = scrollX;
             // ：WidthPrint（UTF8，）
             // Text startX
-            u8g2_for_adafruit_gfx.setCursor(2 - startX, 28); u8g2_for_adafruit_gfx.print(label);
+            //.setCursor(2 - startX, 28); //.print(label);
             // Empty+Text
-            u8g2_for_adafruit_gfx.setCursor(2 - startX + textW + 16, 28); u8g2_for_adafruit_gfx.print(label);
+            //.setCursor(2 - startX + textW + 16, 28); //.print(label);
           }
           // Deauth/Disassoc Align y=44/60
           String s2 = String("Deauth: ") + String(g_suspects[idx].deauthCount);
           String s3 = String("Disassoc: ") + String(g_suspects[idx].disassocCount);
-          u8g2_for_adafruit_gfx.setCursor(2, 44); u8g2_for_adafruit_gfx.print(s2);
-          u8g2_for_adafruit_gfx.setCursor(2, 60); u8g2_for_adafruit_gfx.print(s3);
+          //.setCursor(2, 44); //.print(s2);
+          //.setCursor(2, 60); //.print(s3);
         } else {
-          const char* empt = "Log"; int we=u8g2_for_adafruit_gfx.getUTF8Width(empt); int xe=(display.width()-we)/2; if(xe<0) xe=0;
-          u8g2_for_adafruit_gfx.setCursor(xe, 36); u8g2_for_adafruit_gfx.print(empt);
+          const char* empt = "Log"; int we=//.getUTF8Width(empt); int xe=(//width()-we)/2; if(xe<0) xe=0;
+          //.setCursor(xe, 36); //.print(empt);
         }
       } else {
         // Stats（ y=12,28,44,60）
-        const char* backUp = "↑ Back ↑"; int wb=u8g2_for_adafruit_gfx.getUTF8Width(backUp); int xb=(display.width()-wb)/2; if(xb<0) xb=0;
-        u8g2_for_adafruit_gfx.setCursor(xb, 12); u8g2_for_adafruit_gfx.print(backUp);
+        const char* backUp = "↑ Back ↑"; int wb=//.getUTF8Width(backUp); int xb=(//width()-wb)/2; if(xb<0) xb=0;
+        //.setCursor(xb, 12); //.print(backUp);
         String s2 = String("Deauth: ") + String(g_totalDeauth);
         String s3 = String("Disassoc: ") + String(g_totalDisassoc);
         String s4 = String("Total: ") + String(g_totalDeauth + g_totalDisassoc);
-        int w2=u8g2_for_adafruit_gfx.getUTF8Width(s2.c_str()); int x2=(display.width()-w2)/2; if(x2<0)x2=0;
-        int w3=u8g2_for_adafruit_gfx.getUTF8Width(s3.c_str()); int x3s=(display.width()-w3)/2; if(x3s<0)x3s=0;
-        int w4=u8g2_for_adafruit_gfx.getUTF8Width(s4.c_str()); int x4s=(display.width()-w4)/2; if(x4s<0)x4s=0;
-        u8g2_for_adafruit_gfx.setCursor(x2, 28); u8g2_for_adafruit_gfx.print(s2);
-        u8g2_for_adafruit_gfx.setCursor(x3s, 44); u8g2_for_adafruit_gfx.print(s3);
-        u8g2_for_adafruit_gfx.setCursor(x4s, 60); u8g2_for_adafruit_gfx.print(s4);
+        int w2=//.getUTF8Width(s2.c_str()); int x2=(//width()-w2)/2; if(x2<0)x2=0;
+        int w3=//.getUTF8Width(s3.c_str()); int x3s=(//width()-w3)/2; if(x3s<0)x3s=0;
+        int w4=//.getUTF8Width(s4.c_str()); int x4s=(//width()-w4)/2; if(x4s<0)x4s=0;
+        //.setCursor(x2, 28); //.print(s2);
+        //.setCursor(x3s, 44); //.print(s3);
+        //.setCursor(x4s, 60); //.print(s4);
       }
 
       // Cancel，Log
@@ -1531,7 +1541,7 @@ void drawAttackDetectPage() {
       // Back（）
       // "Back"Title
 
-      display.display();
+      ////);
     }
 
     //
@@ -1661,9 +1671,9 @@ void drawPacketDetectPage() {
       }
 
       //
-      display.clearDisplay();
-      u8g2_for_adafruit_gfx.setFontMode(1);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+      //clearDisplay();
+      //.setFontMode(1);
+      //.setForegroundColor(SSD1306_WHITE);
 
       // UpdateStatus
       unsigned long currentTime = millis();
@@ -1675,17 +1685,17 @@ void drawPacketDetectPage() {
 
       // （）
       if (g_showDownIndicator) {
-        u8g2_for_adafruit_gfx.setCursor(2, 10);
-        u8g2_for_adafruit_gfx.print("[↓]");
+        //.setCursor(2, 10);
+        //.print("[↓]");
       } else if (g_showUpIndicator) {
-        u8g2_for_adafruit_gfx.setCursor(2, 10);
-        u8g2_for_adafruit_gfx.print("[↑]");
+        //.setCursor(2, 10);
+        //.print("[↑]");
       }
 
       // ManageFrame（）
       if (g_showMgmtFrameIndicator) {
-        u8g2_for_adafruit_gfx.setCursor(110, 10);
-        u8g2_for_adafruit_gfx.print("[*]");
+        //.setCursor(110, 10);
+        //.print("[*]");
       }
 
       // Channel（SmallFont）
@@ -1696,16 +1706,16 @@ void drawPacketDetectPage() {
       }
       channelInfo += " " + getChannelBand(displayChannel);
       // UsageDefaultFontMedium
-      int w1 = u8g2_for_adafruit_gfx.getUTF8Width(channelInfo.c_str());
-      int x1 = (display.width() - w1) / 2;
+      int w1 = //.getUTF8Width(channelInfo.c_str());
+      int x1 = (//width() - w1) / 2;
       if (x1 < 0) x1 = 0;
-      u8g2_for_adafruit_gfx.setCursor(x1, 10);
-      u8g2_for_adafruit_gfx.print(channelInfo);
+      //.setCursor(x1, 10);
+      //.print(channelInfo);
 
       // StatsChart（AddHeightDeletepacketsStatsSpace）
       drawPacketChart();
 
-      display.display();
+      ////);
     }
 
     //
@@ -1743,17 +1753,17 @@ static int g_apSkipRelIndex = -1;   // Medium（Medium）
 
 // ：APSelectMenu
 static void drawApMenuBase_NoFlush() {
-  display.clearDisplay();
-  display.setTextSize(1);
+  //clearDisplay();
+  //setTextSize(1);
   // Title：Select
   const char* title = "[SelectPhishing]";
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+  //.setFontMode(1);
+  //.setForegroundColor(SSD1306_WHITE);
   {
-    int w = u8g2_for_adafruit_gfx.getUTF8Width(title);
-    int x = (display.width() - w) / 2;
-    u8g2_for_adafruit_gfx.setCursor(x, 12);
-    u8g2_for_adafruit_gfx.print(title);
+    int w = //.getUTF8Width(title);
+    int x = (//width() - w) / 2;
+    //.setCursor(x, 12);
+    //.print(title);
   }
   const int BASE_Y = 20; // SelectY
   for (int i = 0; i < AP_MENU_ITEM_COUNT; i++) {
@@ -1761,10 +1771,10 @@ static void drawApMenuBase_NoFlush() {
     int rectY = BASE_Y + i * HOME_ITEM_HEIGHT;
     int textY = rectY + 12; //
     if (i != g_apSkipRelIndex) {
-      u8g2_for_adafruit_gfx.setFontMode(1);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-      u8g2_for_adafruit_gfx.setCursor(6, textY);
-      u8g2_for_adafruit_gfx.print(g_apMenuItems[menuIndex]);
+      //.setFontMode(1);
+      //.setForegroundColor(SSD1306_WHITE);
+      //.setCursor(6, textY);
+      //.print(g_apMenuItems[menuIndex]);
     }
     drawRightChevron(rectY, HOME_RECT_HEIGHT, false);
   }
@@ -2068,7 +2078,7 @@ const unsigned long DEBOUNCE_DELAY = 150;
 // IMAGES
 static const unsigned char PROGMEM image_wifi_not_connected__copy__bits[] = { 0x21, 0xf0, 0x00, 0x16, 0x0c, 0x00, 0x08, 0x03, 0x00, 0x25, 0xf0, 0x80, 0x42, 0x0c, 0x40, 0x89, 0x02, 0x20, 0x10, 0xa1, 0x00, 0x23, 0x58, 0x80, 0x04, 0x24, 0x00, 0x08, 0x52, 0x00, 0x01, 0xa8, 0x00, 0x02, 0x04, 0x00, 0x00, 0x42, 0x00, 0x00, 0xa1, 0x00, 0x00, 0x40, 0x80, 0x00, 0x00, 0x00 };
 
-rtw_result_t scanResultHandler(rtw_scan_handler_result_t *scan_result) {
+int scanResultHandler(rtw_scan_handler_result_t *scan_result) {
   rtw_scan_result_t *record;
   if (scan_result->scan_complete == 0) {
     record = &scan_result->ap_details;
@@ -2115,17 +2125,17 @@ int scanNetworks() {
 // ScanFlowUI：TitleCenter+NewSSID
 static void performScanWithUI(const char* title, unsigned long timeoutMs, int maxResults) {
   while (true) {
-    display.clearDisplay();
-    display.setTextColor(SSD1306_WHITE);
-    display.setTextSize(1);
+    //clearDisplay();
+    //setTextColor(SSD1306_WHITE);
+    //setTextSize(1);
 
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    int titleW = u8g2_for_adafruit_gfx.getUTF8Width(title);
-    int titleX = (display.width() - titleW) / 2;
-    u8g2_for_adafruit_gfx.setCursor(titleX, 24);
-    u8g2_for_adafruit_gfx.print(title);
-    display.display();
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
+    int titleW = //.getUTF8Width(title);
+    int titleX = (//width() - titleW) / 2;
+    //.setCursor(titleX, 24);
+    //.print(title);
+    ////);
 
     scan_results.clear();
     SelectedVector.clear();
@@ -2141,20 +2151,20 @@ static void performScanWithUI(const char* title, unsigned long timeoutMs, int ma
         unsigned long nowMs = millis();
         if (nowMs - lastAnimMs >= animIntervalMs) {
           lastAnimMs = nowMs;
-          display.clearDisplay();
-          u8g2_for_adafruit_gfx.setFontMode(1);
-          u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-          int tW = u8g2_for_adafruit_gfx.getUTF8Width(title);
-          int tX = (display.width() - tW) / 2;
-          u8g2_for_adafruit_gfx.setCursor(tX, 24);
-          u8g2_for_adafruit_gfx.print(title);
+          //clearDisplay();
+          //.setFontMode(1);
+          //.setForegroundColor(SSD1306_WHITE);
+          int tW = //.getUTF8Width(title);
+          int tX = (//width() - tW) / 2;
+          //.setCursor(tX, 24);
+          //.print(title);
           const char* animText = frames[frameIndex & 1];
-          int aW = u8g2_for_adafruit_gfx.getUTF8Width(animText);
-          int aX = (display.width() - aW) / 2;
+          int aW = //.getUTF8Width(animText);
+          int aX = (//width() - aW) / 2;
           if (aX < 0) aX = 0;
-          u8g2_for_adafruit_gfx.setCursor(aX, 48);
-          u8g2_for_adafruit_gfx.print(animText);
-          display.display();
+          //.setCursor(aX, 48);
+          //.print(animText);
+          ////);
           frameIndex++;
         }
         delay(10);
@@ -2169,12 +2179,12 @@ static void performScanWithUI(const char* title, unsigned long timeoutMs, int ma
     }
 
     Serial.println("ScanDone");
-    display.clearDisplay();
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(5, 25);
-    u8g2_for_adafruit_gfx.print("Done");
-    display.display();
+    //clearDisplay();
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
+    //.setCursor(5, 25);
+    //.print("Done");
+    ////);
     delay(300);
     menustate = 0;
     homeState = 0;
@@ -2228,10 +2238,10 @@ bool containsChinese(const String& str) {
 
 String utf8TruncateToWidth(const String& input, int maxPixelWidth) {
   String out = input;
-  if (u8g2_for_adafruit_gfx.getUTF8Width(out.c_str()) <= maxPixelWidth) return out;
-  int ellipsisWidth = u8g2_for_adafruit_gfx.getUTF8Width("...");
+  if (//.getUTF8Width(out.c_str()) <= maxPixelWidth) return out;
+  int ellipsisWidth = //.getUTF8Width("...");
   // Trim until text + ellipsis fits
-  while (out.length() > 0 && (u8g2_for_adafruit_gfx.getUTF8Width(out.c_str()) + ellipsisWidth) > maxPixelWidth) {
+  while (out.length() > 0 && (//.getUTF8Width(out.c_str()) + ellipsisWidth) > maxPixelWidth) {
     out.remove(out.length() - 1);
     // ensure we don't cut in the middle of a UTF-8 multibyte char
     while (out.length() > 0) {
@@ -2249,9 +2259,9 @@ String utf8TruncateToWidth(const String& input, int maxPixelWidth) {
 
 // Width（Height）
 String utf8ClipToWidthNoEllipsis(const String& input, int maxPixelWidth) {
-  if (u8g2_for_adafruit_gfx.getUTF8Width(input.c_str()) <= maxPixelWidth) return input;
+  if (//.getUTF8Width(input.c_str()) <= maxPixelWidth) return input;
   String out = input;
-  while (out.length() > 0 && u8g2_for_adafruit_gfx.getUTF8Width(out.c_str()) > maxPixelWidth) {
+  while (out.length() > 0 && //.getUTF8Width(out.c_str()) > maxPixelWidth) {
     out.remove(out.length() - 1);
     while (out.length() > 0) {
       uint8_t last = (uint8_t)out[out.length() - 1];
@@ -2279,30 +2289,30 @@ static inline int advanceUtf8Index(const String& s, int start) {
 
 // ===== UI Helpers: rounded highlight, chevron =====
 void drawRightChevron(int y, int lineHeight, bool isSelected) {
-  int x = display.width() - UI_RIGHT_GUTTER - 8; //
+  int x = //width() - UI_RIGHT_GUTTER - 8; //
   int ymid = y + lineHeight / 2;
   int color = isSelected ? SSD1306_BLACK : SSD1306_WHITE;
-  display.fillTriangle(x, ymid - 3, x, ymid + 3, x + 4, ymid, color);
+  //fillTriangle(x, ymid - 3, x, ymid + 3, x + 4, ymid, color);
 }
 
 void drawRoundedHighlight(int y, int height) {
-  int width = display.width() - UI_RIGHT_GUTTER; //
+  int width = //width() - UI_RIGHT_GUTTER; //
   int radius = 2; // SmallRadius
-  display.fillRoundRect(0, y, width, height, radius, SSD1306_WHITE);
+  //fillRoundRect(0, y, width, height, radius, SSD1306_WHITE);
 }
 
 // ===== OLED single-line helpers =====
 // CleanCenterText，
 static inline void oledDrawCenteredLine(const char* text, int baselineY) {
-  display.fillRect(0, baselineY - 9, display.width(), 12, SSD1306_BLACK);
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-  int w = u8g2_for_adafruit_gfx.getUTF8Width(text);
-  int x = (display.width() - w) / 2;
+  //fillRect(0, baselineY - 9, //width(), 12, SSD1306_BLACK);
+  //.setFontMode(1);
+  //.setForegroundColor(SSD1306_WHITE);
+  int w = //.getUTF8Width(text);
+  int x = (//width() - w) / 2;
   if (x < 0) x = 0;
-  u8g2_for_adafruit_gfx.setCursor(x, baselineY);
-  u8g2_for_adafruit_gfx.print(text);
-  display.display();
+  //.setCursor(x, baselineY);
+  //.print(text);
+  ////);
 }
 
 // ；Backtrue
@@ -2320,13 +2330,13 @@ void drawHomeScrollbar(int startIndex) {
   // All，
   if (HOME_MAX_ITEMS <= HOME_PAGE_SIZE) return;
 
-  int barX = display.width() - UI_RIGHT_GUTTER + 1; //
+  int barX = //width() - UI_RIGHT_GUTTER + 1; //
   int barWidth = UI_RIGHT_GUTTER - 2; // 1px
   int trackY = HOME_Y_OFFSET;
   int trackH = HOME_ITEM_HEIGHT * HOME_PAGE_SIZE;
 
   // （）
-  display.drawRoundRect(barX, trackY, barWidth, trackH, 2, SSD1306_WHITE);
+  //drawRoundRect(barX, trackY, barWidth, trackH, 2, SSD1306_WHITE);
 
   // SliderHeight
   float pageRatio = (float)HOME_PAGE_SIZE / (float)HOME_MAX_ITEMS;
@@ -2337,19 +2347,19 @@ void drawHomeScrollbar(int startIndex) {
   int thumbY = trackY + (int)((trackH - thumbH) * posRatio + 0.5f);
 
   // Slider
-  display.fillRoundRect(barX + 1, thumbY, barWidth - 2, thumbH, 2, SSD1306_WHITE);
+  //fillRoundRect(barX + 1, thumbY, barWidth - 2, thumbH, 2, SSD1306_WHITE);
 }
 
 // ：
 void drawHomeScrollbarFraction(float startIndexF) {
   if (HOME_MAX_ITEMS <= HOME_PAGE_SIZE) return;
 
-  int barX = display.width() - UI_RIGHT_GUTTER + 1;
+  int barX = //width() - UI_RIGHT_GUTTER + 1;
   int barWidth = UI_RIGHT_GUTTER - 2;
   int trackY = HOME_Y_OFFSET;
   int trackH = HOME_ITEM_HEIGHT * HOME_PAGE_SIZE;
 
-  display.drawRoundRect(barX, trackY, barWidth, trackH, 2, SSD1306_WHITE);
+  //drawRoundRect(barX, trackY, barWidth, trackH, 2, SSD1306_WHITE);
 
   float pageRatio = (float)HOME_PAGE_SIZE / (float)HOME_MAX_ITEMS;
   int computedThumb = (int)(trackH * pageRatio);
@@ -2361,7 +2371,7 @@ void drawHomeScrollbarFraction(float startIndexF) {
   if (posRatio > 1.0f) posRatio = 1.0f;
   int thumbY = trackY + (int)((trackH - thumbH) * posRatio + 0.5f);
 
-  display.fillRoundRect(barX + 1, thumbY, barWidth - 2, thumbH, 2, SSD1306_WHITE);
+  //fillRoundRect(barX + 1, thumbY, barWidth - 2, thumbH, 2, SSD1306_WHITE);
 }
 
 //
@@ -2374,36 +2384,36 @@ void drawHomeScrollbarFraction(float startIndexF) {
 
 // ===== WebTest OLED Pages (defined after globals to fix forward references) =====
 void drawWebTestMain() {
-  display.clearDisplay();
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+  //clearDisplay();
+  //.setFontMode(1);
+  //.setForegroundColor(SSD1306_WHITE);
 
   //
   const char* line1_text = "↑ Info ↑";
-  int w1 = u8g2_for_adafruit_gfx.getUTF8Width(line1_text);
-  int x1_center = (display.width() - w1) / 2;
-  u8g2_for_adafruit_gfx.setCursor(x1_center, 12);
-  u8g2_for_adafruit_gfx.print(line1_text);
+  int w1 = //.getUTF8Width(line1_text);
+  int x1_center = (//width() - w1) / 2;
+  //.setCursor(x1_center, 12);
+  //.print(line1_text);
 
 
   //
-  u8g2_for_adafruit_gfx.setCursor(15, 28);
-  u8g2_for_adafruit_gfx.print("StopPhishingBack");
+  //.setCursor(15, 28);
+  //.print("StopPhishingBack");
   int left_arrow2_x = 5;
   int arrow2_y = 22;
   //
-  display.fillTriangle(left_arrow2_x + 4, arrow2_y - 3, left_arrow2_x + 4, arrow2_y + 3, left_arrow2_x - 2, arrow2_y, SSD1306_WHITE);
+  //fillTriangle(left_arrow2_x + 4, arrow2_y - 3, left_arrow2_x + 4, arrow2_y + 3, left_arrow2_x - 2, arrow2_y, SSD1306_WHITE);
 
   //
   const char* line3_text = "ViewRecvPassword";
-  int w3 = u8g2_for_adafruit_gfx.getUTF8Width(line3_text);
-  int x3_right = display.width() - w3 - 15;
-  u8g2_for_adafruit_gfx.setCursor(x3_right, 44);
-  u8g2_for_adafruit_gfx.print(line3_text);
-  int right_arrow3_x = display.width() - 5;
+  int w3 = //.getUTF8Width(line3_text);
+  int x3_right = //width() - w3 - 15;
+  //.setCursor(x3_right, 44);
+  //.print(line3_text);
+  int right_arrow3_x = //width() - 5;
   int arrow3_y = 38;
   //
-  display.fillTriangle(right_arrow3_x - 4, arrow3_y - 3, right_arrow3_x - 4, arrow3_y + 3, right_arrow3_x + 2, arrow3_y, SSD1306_WHITE);
+  //fillTriangle(right_arrow3_x - 4, arrow3_y - 3, right_arrow3_x - 4, arrow3_y + 3, right_arrow3_x + 2, arrow3_y, SSD1306_WHITE);
   // "ViewRecvPassword"RadiusBorder：
   // ：
   // - Password
@@ -2434,69 +2444,69 @@ void drawWebTestMain() {
       int rect_w = w3 + pad_x * 2 + 2;
       int rect_h = text_height + pad_y * 2;
       int r = 3; // Radius
-      display.drawRoundRect(rect_x, rect_y, rect_w, rect_h, r, SSD1306_WHITE);
+      //drawRoundRect(rect_x, rect_y, rect_w, rect_h, r, SSD1306_WHITE);
     }
   }
 
   //
   const char* line4_text = "↓ RunStatus ↓";
-  int w4 = u8g2_for_adafruit_gfx.getUTF8Width(line4_text);
-  int x4_center = (display.width() - w4) / 2;
-  u8g2_for_adafruit_gfx.setCursor(x4_center, 60);
-  u8g2_for_adafruit_gfx.print(line4_text);
+  int w4 = //.getUTF8Width(line4_text);
+  int x4_center = (//width() - w4) / 2;
+  //.setCursor(x4_center, 60);
+  //.print(line4_text);
 
-  display.display();
+  ////);
 }
 
 void drawWebTestInfo() {
-  display.clearDisplay();
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+  //clearDisplay();
+  //.setFontMode(1);
+  //.setForegroundColor(SSD1306_WHITE);
   const char* title = "[Info]";
-  int w = u8g2_for_adafruit_gfx.getUTF8Width(title);
-  int x = (display.width() - w) / 2;
-  u8g2_for_adafruit_gfx.setCursor(x, 12);
-  u8g2_for_adafruit_gfx.print(title);
+  int w = //.getUTF8Width(title);
+  int x = (//width() - w) / 2;
+  //.setCursor(x, 12);
+  //.print(title);
   String line2 = web_test_ssid_dynamic;
-  w = u8g2_for_adafruit_gfx.getUTF8Width(line2.c_str());
-  x = (display.width() - w) / 2;
-  u8g2_for_adafruit_gfx.setCursor(x, 28);
-  u8g2_for_adafruit_gfx.print(line2);
+  w = //.getUTF8Width(line2.c_str());
+  x = (//width() - w) / 2;
+  //.setCursor(x, 28);
+  //.print(line2);
   String band = (is24GChannel(web_test_channel_dynamic) ? "2.4" : (is5GChannel(web_test_channel_dynamic) ? "5G" : "?"));
   String line3 = String(": ") + band + String("|Channel: ") + String(web_test_channel_dynamic);
-  w = u8g2_for_adafruit_gfx.getUTF8Width(line3.c_str());
-  x = (display.width() - w) / 2;
-  u8g2_for_adafruit_gfx.setCursor(x, 44);
-  u8g2_for_adafruit_gfx.print(line3);
+  w = //.getUTF8Width(line3.c_str());
+  x = (//width() - w) / 2;
+  //.setCursor(x, 44);
+  //.print(line3);
   const char* hint = "↓ Back ↓";
-  w = u8g2_for_adafruit_gfx.getUTF8Width(hint);
-  x = (display.width() - w) / 2;
-  u8g2_for_adafruit_gfx.setCursor(x, 60);
-  u8g2_for_adafruit_gfx.print(hint);
-  display.display();
+  w = //.getUTF8Width(hint);
+  x = (//width() - w) / 2;
+  //.setCursor(x, 60);
+  //.print(hint);
+  ////);
 }
 
 void drawWebTestPasswords() {
-  display.clearDisplay();
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-  u8g2_for_adafruit_gfx.setCursor(5, 12);
-  u8g2_for_adafruit_gfx.print("< Back");
+  //clearDisplay();
+  //.setFontMode(1);
+  //.setForegroundColor(SSD1306_WHITE);
+  //.setCursor(5, 12);
+  //.print("< Back");
   const char* title = "[PasswordList]";
-  int w = u8g2_for_adafruit_gfx.getUTF8Width(title);
-  int x = display.width() - w - 2;
-  u8g2_for_adafruit_gfx.setCursor(x, 12);
-  u8g2_for_adafruit_gfx.print(title);
+  int w = //.getUTF8Width(title);
+  int x = //width() - w - 2;
+  //.setCursor(x, 12);
+  //.print(title);
   const int startY = 28;
   const int lineH = 14;
   const int scrollbarWidth = 3; // Width
   int y = startY;
   if (web_test_submitted_texts.empty()) {
     const char* emptyMsg = "RecvPassword";
-    w = u8g2_for_adafruit_gfx.getUTF8Width(emptyMsg);
-    x = (display.width() - w) / 2;
-    u8g2_for_adafruit_gfx.setCursor(x, 40);
-    u8g2_for_adafruit_gfx.print(emptyMsg);
+    w = //.getUTF8Width(emptyMsg);
+    x = (//width() - w) / 2;
+    //.setCursor(x, 40);
+    //.print(emptyMsg);
   } else {
     int totalItems = (int)web_test_submitted_texts.size();
     if (webtest_password_scroll < 0) webtest_password_scroll = 0;
@@ -2507,8 +2517,8 @@ void drawWebTestPasswords() {
       String remaining = txt;
       bool firstLineOfEntry = true;
       while (remaining.length() > 0 && usedLines < 3) {
-        int widthAvail = display.width() - 6 - (scrollbarWidth + 1); // 1Spacing
-        int tw = u8g2_for_adafruit_gfx.getUTF8Width(remaining.c_str());
+        int widthAvail = //width() - 6 - (scrollbarWidth + 1); // 1Spacing
+        int tw = //.getUTF8Width(remaining.c_str());
         String seg = remaining;
         if (tw > widthAvail) {
           int approx = (remaining.length() * widthAvail) / tw;
@@ -2524,8 +2534,8 @@ void drawWebTestPasswords() {
           line = String("> ") + line;
           firstLineOfEntry = false;
         }
-        u8g2_for_adafruit_gfx.setCursor(2, y);
-        u8g2_for_adafruit_gfx.print(line);
+        //.setCursor(2, y);
+        //.print(line);
         y += lineH;
         usedLines++;
       }
@@ -2533,16 +2543,16 @@ void drawWebTestPasswords() {
     // （）
     // totalItems
     if (totalItems > 1) {
-      int trackX = display.width() - scrollbarWidth;
+      int trackX = //width() - scrollbarWidth;
       int trackY = startY; // Align
       int trackH = 3 * lineH; //
       // Height
-      if (trackY + trackH > display.height()) {
-        trackH = display.height() - trackY;
+      if (trackY + trackH > //height()) {
+        trackH = //height() - trackY;
       }
       if (trackH < 6) trackH = 6; // SmallHeight
       // （Packet）
-      display.drawLine(trackX, trackY, trackX, trackY + trackH - 1, SSD1306_WHITE);
+      //drawLine(trackX, trackY, trackX, trackY + trackH - 1, SSD1306_WHITE);
       // HeightSmall6px，
       int thumbH = (trackH * 1) / std::max(totalItems, 3); // Large1
       if (thumbH < 6) thumbH = 6;
@@ -2550,53 +2560,53 @@ void drawWebTestPasswords() {
       float posRatio = (float)webtest_password_scroll / (float)(totalItems - 1);
       int thumbY = trackY + (int)((trackH - thumbH) * posRatio + 0.5f);
       // （）
-      display.fillRect(trackX, thumbY, scrollbarWidth, thumbH, SSD1306_WHITE);
+      //fillRect(trackX, thumbY, scrollbarWidth, thumbH, SSD1306_WHITE);
     }
   }
-  display.display();
+  ////);
 }
 
 void drawWebTestStatus() {
-  display.clearDisplay();
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+  //clearDisplay();
+  //.setFontMode(1);
+  //.setForegroundColor(SSD1306_WHITE);
   {
     const char* t = "↑ Back ↑";
-    int w = u8g2_for_adafruit_gfx.getUTF8Width(t);
-    int x = (display.width() - w) / 2;
-    u8g2_for_adafruit_gfx.setCursor(x, 12);
-    u8g2_for_adafruit_gfx.print(t);
+    int w = //.getUTF8Width(t);
+    int x = (//width() - w) / 2;
+    //.setCursor(x, 12);
+    //.print(t);
   }
   // bool apRunning = web_test_active; // unused
   String l2 = String("SendDeauthFrame");
   {
-    int w = u8g2_for_adafruit_gfx.getUTF8Width(l2.c_str());
-    int x = (display.width() - w) / 2;
-    u8g2_for_adafruit_gfx.setCursor(x, 28);
-    u8g2_for_adafruit_gfx.print(l2);
+    int w = //.getUTF8Width(l2.c_str());
+    int x = (//width() - w) / 2;
+    //.setCursor(x, 28);
+    //.print(l2);
   }
   String l3 = String("WebService: ") + (web_server_active ? "RunMedium" : "Run");
   {
-    int w = u8g2_for_adafruit_gfx.getUTF8Width(l3.c_str());
-    int x = (display.width() - w) / 2;
-    u8g2_for_adafruit_gfx.setCursor(x, 44);
-    u8g2_for_adafruit_gfx.print(l3);
+    int w = //.getUTF8Width(l3.c_str());
+    int x = (//width() - w) / 2;
+    //.setCursor(x, 44);
+    //.print(l3);
   }
   String l4 = String("DNSServer: ") + (dns_server_active ? "RunMedium" : "Run");
   {
-    int w = u8g2_for_adafruit_gfx.getUTF8Width(l4.c_str());
-    int x = (display.width() - w) / 2;
-    u8g2_for_adafruit_gfx.setCursor(x, 60);
-    u8g2_for_adafruit_gfx.print(l4);
+    int w = //.getUTF8Width(l4.c_str());
+    int x = (//width() - w) / 2;
+    //.setCursor(x, 60);
+    //.print(l4);
   }
-  display.display();
+  ////);
 }
 
 // Pagination（Height）- Attack
 static int g_homeBaseStartIndex = 0;
 void drawHomeMenuBasePaged(int startIndex) {
-  display.clearDisplay();
-  display.setTextSize(1);
+  //clearDisplay();
+  //setTextSize(1);
   // Proj
   int currentPageItems = (HOME_PAGE_SIZE < (HOME_MAX_ITEMS - startIndex)) ? HOME_PAGE_SIZE : (HOME_MAX_ITEMS - startIndex);
   for (int i = 0; i < currentPageItems; i++) {
@@ -2604,21 +2614,21 @@ void drawHomeMenuBasePaged(int startIndex) {
     if (menuIndex >= HOME_MAX_ITEMS) break;
     int rectY = HOME_Y_OFFSET + i * HOME_ITEM_HEIGHT;
     int textY = rectY + 12; //
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(5, textY);
-    u8g2_for_adafruit_gfx.print(g_homeMenuItems[menuIndex].label);
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
+    //.setCursor(5, textY);
+    //.print(g_homeMenuItems[menuIndex].label);
     // UsageAttack
     drawRightChevron(rectY, HOME_RECT_HEIGHT, false);
   }
   //
   drawHomeScrollbar(startIndex);
-  display.display();
+  ////);
 }
 // Version：FrameMedium
 void drawHomeMenuBasePaged_NoFlush(int startIndex) {
-  display.clearDisplay();
-  display.setTextSize(1);
+  //clearDisplay();
+  //setTextSize(1);
   // Proj
   int currentPageItems = (HOME_PAGE_SIZE < (HOME_MAX_ITEMS - startIndex)) ? HOME_PAGE_SIZE : (HOME_MAX_ITEMS - startIndex);
   for (int i = 0; i < currentPageItems; i++) {
@@ -2629,11 +2639,11 @@ void drawHomeMenuBasePaged_NoFlush(int startIndex) {
 
     // Tag
     String label = g_homeMenuItems[menuIndex].label;
-    int maxTextWidth = display.width() - UI_RIGHT_GUTTER - 15;
-    int labelWidth = u8g2_for_adafruit_gfx.getUTF8Width(label.c_str());
+    int maxTextWidth = //width() - UI_RIGHT_GUTTER - 15;
+    int labelWidth = //.getUTF8Width(label.c_str());
     if (labelWidth > maxTextWidth) {
       while (label.length() > 0 &&
-             u8g2_for_adafruit_gfx.getUTF8Width(label.c_str()) > maxTextWidth - 20) {
+             //.getUTF8Width(label.c_str()) > maxTextWidth - 20) {
         label.remove(label.length() - 1);
         while (label.length() > 0 && ((uint8_t)label[label.length()-1] & 0xC0) == 0x80) {
           label.remove(label.length() - 1);
@@ -2642,10 +2652,10 @@ void drawHomeMenuBasePaged_NoFlush(int startIndex) {
       label += "..";
     }
 
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(5, textY);
-    u8g2_for_adafruit_gfx.print(label);
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
+    //.setCursor(5, textY);
+    //.print(label);
     drawRightChevron(rectY, HOME_RECT_HEIGHT, false);
   }
   // （Version）
@@ -2655,7 +2665,7 @@ void drawHomeMenuBasePagedShim() { drawHomeMenuBasePaged_NoFlush(g_homeBaseStart
 
 // ：y（）。/，。
 static inline void drawHomePageWithOffset_NoFlush(int startIndex, int yOffset) {
-  display.setTextSize(1);
+  //setTextSize(1);
   // Proj
   int currentPageItems = (HOME_PAGE_SIZE < (HOME_MAX_ITEMS - startIndex)) ? HOME_PAGE_SIZE : (HOME_MAX_ITEMS - startIndex);
   for (int i = 0; i < currentPageItems; i++) {
@@ -2664,15 +2674,15 @@ static inline void drawHomePageWithOffset_NoFlush(int startIndex, int yOffset) {
     int rectY = HOME_Y_OFFSET + i * HOME_ITEM_HEIGHT + yOffset;
     int textY = rectY + 13; // 2px：+11+13
     // ，
-    if (rectY > display.height() || rectY + HOME_RECT_HEIGHT < 0) continue;
+    if (rectY > //height() || rectY + HOME_RECT_HEIGHT < 0) continue;
 
     // Tag
     String label = g_homeMenuItems[menuIndex].label;
-    int maxTextWidth = display.width() - UI_RIGHT_GUTTER - 15;
-    int labelWidth = u8g2_for_adafruit_gfx.getUTF8Width(label.c_str());
+    int maxTextWidth = //width() - UI_RIGHT_GUTTER - 15;
+    int labelWidth = //.getUTF8Width(label.c_str());
     if (labelWidth > maxTextWidth) {
       while (label.length() > 0 &&
-             u8g2_for_adafruit_gfx.getUTF8Width(label.c_str()) > maxTextWidth - 20) {
+             //.getUTF8Width(label.c_str()) > maxTextWidth - 20) {
         label.remove(label.length() - 1);
         while (label.length() > 0 && ((uint8_t)label[label.length()-1] & 0xC0) == 0x80) {
           label.remove(label.length() - 1);
@@ -2681,10 +2691,10 @@ static inline void drawHomePageWithOffset_NoFlush(int startIndex, int yOffset) {
       label += "..";
     }
 
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(5, textY);
-    u8g2_for_adafruit_gfx.print(label);
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
+    //.setCursor(5, textY);
+    //.print(label);
     drawRightChevron(rectY, HOME_RECT_HEIGHT, false);
   }
 }
@@ -2706,7 +2716,7 @@ static inline void animateHomePageFlip(int fromStartIndex, int toStartIndex) {
     int fromYOffset = (dir > 0) ? -offset : offset;
     int toYOffset = (dir > 0) ? (HOME_ITEM_HEIGHT - offset) : -(HOME_ITEM_HEIGHT - offset);
 
-    display.clearDisplay();
+    //clearDisplay();
     // （）
     if (dir > 0) {
       // ：，
@@ -2724,7 +2734,7 @@ static inline void animateHomePageFlip(int fromStartIndex, int toStartIndex) {
     drawHomeScrollbarFraction(startIndexF);
 
     if ((s % DISPLAY_FLUSH_EVERY_FRAMES) == 0 || s == ANIM_STEPS) {
-      display.display();
+      ////);
     }
     if (delayPerStepMs > 0) {
       while ((long)(millis() - nextStepDeadline) < 0) {
@@ -2752,18 +2762,18 @@ static inline void animateSelectionGeneric(
   void (*drawBaseNoFlush)()
 ) {
   const int delayPerStepMs = SELECT_MOVE_TOTAL_MS / ANIM_STEPS;
-  const int width = useFullWidth ? display.width() : (display.width() - UI_RIGHT_GUTTER);
+  const int width = useFullWidth ? //width() : (//width() - UI_RIGHT_GUTTER);
   unsigned long startMs = millis();
   unsigned long nextStepDeadline = startMs + delayPerStepMs;
   for (int s = 1; s <= ANIM_STEPS; s++) {
     int y = yFrom + ((yTo - yFrom) * s) / ANIM_STEPS;
     drawBaseNoFlush();
-    display.drawRoundRect(0, y, width, rectHeight, cornerRadius, SSD1306_WHITE);
+    //drawRoundRect(0, y, width, rectHeight, cornerRadius, SSD1306_WHITE);
     if (doubleOutline) {
-      display.drawRoundRect(1, y + 1, width - 2, rectHeight - 2, cornerRadius, SSD1306_WHITE);
+      //drawRoundRect(1, y + 1, width - 2, rectHeight - 2, cornerRadius, SSD1306_WHITE);
     }
     if ((s % DISPLAY_FLUSH_EVERY_FRAMES) == 0 || s == ANIM_STEPS) {
-      display.display();
+      ////);
     }
     // WaitFrameTime
     if (delayPerStepMs > 0) {
@@ -2778,8 +2788,8 @@ static inline void animateSelectionGeneric(
 
 // ：AttackMenu（Height）
 void drawAttackMenuBase() {
-  display.clearDisplay();
-  display.setTextSize(1);
+  //clearDisplay();
+  //setTextSize(1);
   const char* menuItems[] = {
     "DeauthCertifyAttack",
     "SendBeaconFrameAttack",
@@ -2788,18 +2798,18 @@ void drawAttackMenuBase() {
   };
   for (int i = 0; i < 4; i++) {
     int yPos = 2 + i * 16;
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-    u8g2_for_adafruit_gfx.print(menuItems[i]);
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
+    //.setCursor(5, yPos+10);
+    //.print(menuItems[i]);
     drawRightChevron(yPos-2, 14, false);
   }
 }
 
 // Version：Frame
 void drawAttackMenuBase_NoFlush() {
-  display.clearDisplay();
-  display.setTextSize(1);
+  //clearDisplay();
+  //setTextSize(1);
   const char* menuItems[] = {
     "DeauthCertifyAttack",
     "SendBeaconFrameAttack",
@@ -2808,47 +2818,47 @@ void drawAttackMenuBase_NoFlush() {
   };
   for (int i = 0; i < 4; i++) {
     int yPos = 2 + i * 16;
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-    u8g2_for_adafruit_gfx.print(menuItems[i]);
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
+    //.setCursor(5, yPos+10);
+    //.print(menuItems[i]);
     drawRightChevron(yPos-2, 14, false);
   }
 }
 // ：BeaconMenu（Height）
 void drawBeaconMenuBase() {
-  display.clearDisplay();
-  display.setTextSize(1);
+  //clearDisplay();
+  //setTextSize(1);
   const char* menuItems[] = {"BeaconAttack", "CloneAP()", "CloneAP()", "《 Back 》"};
   for (int i = 0; i < 4; i++) {
     int yPos = 2 + i * 16;
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-    u8g2_for_adafruit_gfx.print(menuItems[i]);
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
+    //.setCursor(5, yPos+10);
+    //.print(menuItems[i]);
     drawRightChevron(yPos-2, 14, false);
   }
-  display.display();
+  ////);
 }
 
 // Version：Frame
 void drawBeaconMenuBase_NoFlush() {
-  display.clearDisplay();
-  display.setTextSize(1);
+  //clearDisplay();
+  //setTextSize(1);
   const char* menuItems[] = {"BeaconAttack", "CloneAP()", "CloneAP()", "《 Back 》"};
   for (int i = 0; i < 4; i++) {
     int yPos = 2 + i * 16;
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-    u8g2_for_adafruit_gfx.print(menuItems[i]);
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
+    //.setCursor(5, yPos+10);
+    //.print(menuItems[i]);
     drawRightChevron(yPos-2, 14, false);
   }
 }
 // ：DeauthMenu（Height）
 void drawDeauthMenuBase(int startIndex) {
-  display.clearDisplay();
-  display.setTextSize(1);
+  //clearDisplay();
+  //setTextSize(1);
   const char* menuItems[] = {
     "Attack",
     "Attack",
@@ -2862,18 +2872,18 @@ void drawDeauthMenuBase(int startIndex) {
     int menuIndex = startIndex + i;
     if (menuIndex >= 6) break;
     int yPos = 2 + i * 16;
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-    u8g2_for_adafruit_gfx.print(menuItems[menuIndex]);
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
+    //.setCursor(5, yPos+10);
+    //.print(menuItems[menuIndex]);
     drawRightChevron(yPos-2, 14, false);
   }
-  display.display();
+  ////);
 }
 // Version：Frame
 void drawDeauthMenuBase_NoFlush(int startIndex) {
-  display.clearDisplay();
-  display.setTextSize(1);
+  //clearDisplay();
+  //setTextSize(1);
   const char* menuItems[] = {
     "Attack",
     "Attack",
@@ -2887,10 +2897,10 @@ void drawDeauthMenuBase_NoFlush(int startIndex) {
     int menuIndex = startIndex + i;
     if (menuIndex >= 6) break;
     int yPos = 2 + i * 16;
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-    u8g2_for_adafruit_gfx.print(menuItems[menuIndex]);
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
+    //.setCursor(5, yPos+10);
+    //.print(menuItems[menuIndex]);
     drawRightChevron(yPos-2, 14, false);
   }
 }
@@ -2970,20 +2980,20 @@ void drawSsidPageBase(int startIndex) {
   const int STAR_GAP = 20;
 
   bool allSelected = (SelectedVector.size() == scan_results.size() && !scan_results.empty());
-  display.clearDisplay();
-  display.setTextSize(1);
+  //clearDisplay();
+  //setTextSize(1);
   for (int i = 0; i < MAX_DISPLAY_ITEMS && i <= (int)scan_results.size(); i++) {
     int displayIndex = startIndex + i;
     if (displayIndex > (int)scan_results.size()) break;
     if (displayIndex == 0) {
       int yPos = i * ITEM_HEIGHT + Y_OFFSET;
-      u8g2_for_adafruit_gfx.setFontMode(1);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+      //.setFontMode(1);
+      //.setForegroundColor(SSD1306_WHITE);
       const char* label = allSelected ? "> Cancel <" : ">  <";
-      int w = u8g2_for_adafruit_gfx.getUTF8Width(label);
-      int x = (display.width() - w) / 2;
-      u8g2_for_adafruit_gfx.setCursor(x, yPos + BASELINE_CHINESE_OFFSET);
-      u8g2_for_adafruit_gfx.print(label);
+      int w = //.getUTF8Width(label);
+      int x = (//width() - w) / 2;
+      //.setCursor(x, yPos + BASELINE_CHINESE_OFFSET);
+      //.print(label);
       continue;
     }
     int wifiIndex = displayIndex - 1;
@@ -3002,28 +3012,28 @@ void drawSsidPageBase(int startIndex) {
     bool isSelected = isIndexSelected(wifiIndex);
     bool showIndicator = isSelected;
     if (showIndicator) {
-      display.setCursor(3, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
-      display.setTextColor(SSD1306_WHITE);
-      display.print("[*]");
+      //setCursor(3, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
+      //setTextColor(SSD1306_WHITE);
+      //print("[*]");
     }
     int textX = TEXT_LEFT + (isSelected ? STAR_GAP : 0);
     String clipped = utf8TruncateToWidth(ssid, SSID_RIGHT_LIMIT_X - textX);
     if (containsChinese(ssid)) {
-      u8g2_for_adafruit_gfx.setFontMode(1);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+      //.setFontMode(1);
+      //.setForegroundColor(SSD1306_WHITE);
       int textY = i * ITEM_HEIGHT + BASELINE_CHINESE_OFFSET + Y_OFFSET;
-      u8g2_for_adafruit_gfx.setCursor(textX, textY);
-      u8g2_for_adafruit_gfx.print(clipped);
+      //.setCursor(textX, textY);
+      //.print(clipped);
     } else {
-      display.setCursor(textX, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
-      display.setTextColor(SSD1306_WHITE);
-      display.print(clipped);
+      //setCursor(textX, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
+      //setTextColor(SSD1306_WHITE);
+      //print(clipped);
     }
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(110, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
-    display.print(scan_results[wifiIndex].channel >= 36 ? "5G" : "24");
+    //setTextColor(SSD1306_WHITE);
+    //setCursor(110, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
+    //print(scan_results[wifiIndex].channel >= 36 ? "5G" : "24");
   }
-  display.display();
+  ////);
 }
 // Version：Frame
 void drawSsidPageBase_NoFlush(int startIndex) {
@@ -3037,20 +3047,20 @@ void drawSsidPageBase_NoFlush(int startIndex) {
   const int STAR_GAP = 20;
 
   bool allSelected = (SelectedVector.size() == scan_results.size() && !scan_results.empty());
-  display.clearDisplay();
-  display.setTextSize(1);
+  //clearDisplay();
+  //setTextSize(1);
   for (int i = 0; i < MAX_DISPLAY_ITEMS && i <= (int)scan_results.size(); i++) {
     int displayIndex = startIndex + i;
     if (displayIndex > (int)scan_results.size()) break;
     if (displayIndex == 0) {
       int yPos = i * ITEM_HEIGHT + Y_OFFSET;
-      u8g2_for_adafruit_gfx.setFontMode(1);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+      //.setFontMode(1);
+      //.setForegroundColor(SSD1306_WHITE);
       const char* label = allSelected ? "> Cancel <" : ">  <";
-      int w = u8g2_for_adafruit_gfx.getUTF8Width(label);
-      int x = (display.width() - w) / 2;
-      u8g2_for_adafruit_gfx.setCursor(x, yPos + BASELINE_CHINESE_OFFSET);
-      u8g2_for_adafruit_gfx.print(label);
+      int w = //.getUTF8Width(label);
+      int x = (//width() - w) / 2;
+      //.setCursor(x, yPos + BASELINE_CHINESE_OFFSET);
+      //.print(label);
       continue;
     }
     int wifiIndex = displayIndex - 1;
@@ -3069,26 +3079,26 @@ void drawSsidPageBase_NoFlush(int startIndex) {
     bool isSelected = isIndexSelected(wifiIndex);
     bool showIndicator = isSelected;
     if (showIndicator) {
-      display.setCursor(3, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
-      display.setTextColor(SSD1306_WHITE);
-      display.print("[*]");
+      //setCursor(3, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
+      //setTextColor(SSD1306_WHITE);
+      //print("[*]");
     }
     int textX = TEXT_LEFT + (isSelected ? STAR_GAP : 0);
     String clipped = utf8TruncateToWidth(ssid, SSID_RIGHT_LIMIT_X - textX);
     if (containsChinese(ssid)) {
-      u8g2_for_adafruit_gfx.setFontMode(1);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+      //.setFontMode(1);
+      //.setForegroundColor(SSD1306_WHITE);
       int textY = i * ITEM_HEIGHT + BASELINE_CHINESE_OFFSET + Y_OFFSET;
-      u8g2_for_adafruit_gfx.setCursor(textX, textY);
-      u8g2_for_adafruit_gfx.print(clipped);
+      //.setCursor(textX, textY);
+      //.print(clipped);
     } else {
-      display.setCursor(textX, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
-      display.setTextColor(SSD1306_WHITE);
-      display.print(clipped);
+      //setCursor(textX, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
+      //setTextColor(SSD1306_WHITE);
+      //print(clipped);
     }
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(110, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
-    display.print(scan_results[wifiIndex].channel >= 36 ? "5G" : "24");
+    //setTextColor(SSD1306_WHITE);
+    //setCursor(110, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
+    //print(scan_results[wifiIndex].channel >= 36 ? "5G" : "24");
   }
 }
 
@@ -3142,8 +3152,8 @@ void drawHomeMenu() {
     g_skipNextSelectAnim = false;
   }
 
-  display.clearDisplay();
-  display.setTextSize(1);
+  //clearDisplay();
+  //setTextSize(1);
   // Proj
   int currentPageItems = (HOME_PAGE_SIZE < (HOME_MAX_ITEMS - startIndex)) ? HOME_PAGE_SIZE : (HOME_MAX_ITEMS - startIndex);
   for (int i = 0; i < currentPageItems; i++) {
@@ -3155,13 +3165,13 @@ void drawHomeMenu() {
 
     // Tag，Select
     String label = g_homeMenuItems[menuIndex].label;
-    int maxTextWidth = display.width() - UI_RIGHT_GUTTER - 15; //
-    int labelWidth = u8g2_for_adafruit_gfx.getUTF8Width(label.c_str());
+    int maxTextWidth = //width() - UI_RIGHT_GUTTER - 15; //
+    int labelWidth = //.getUTF8Width(label.c_str());
 
     if (labelWidth > maxTextWidth) {
       // UTF-8Security
       while (label.length() > 0 &&
-             u8g2_for_adafruit_gfx.getUTF8Width(label.c_str()) > maxTextWidth - 20) {
+             //.getUTF8Width(label.c_str()) > maxTextWidth - 20) {
         // （UTF-8Security）
         label.remove(label.length() - 1);
         // UTF-8
@@ -3174,23 +3184,23 @@ void drawHomeMenu() {
 
     if (isSel) {
       // UsageAttackHeight（）
-      display.fillRoundRect(0, rectY, display.width() - UI_RIGHT_GUTTER, HOME_RECT_HEIGHT, 4, SSD1306_WHITE);
-      u8g2_for_adafruit_gfx.setFontMode(1);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_BLACK);
-      u8g2_for_adafruit_gfx.setCursor(5, textY + 1);
-      u8g2_for_adafruit_gfx.print(label);
+      //fillRoundRect(0, rectY, //width() - UI_RIGHT_GUTTER, HOME_RECT_HEIGHT, 4, SSD1306_WHITE);
+      //.setFontMode(1);
+      //.setForegroundColor(SSD1306_BLACK);
+      //.setCursor(5, textY + 1);
+      //.print(label);
     } else {
-      u8g2_for_adafruit_gfx.setFontMode(1);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-      u8g2_for_adafruit_gfx.setCursor(5, textY + 1);
-      u8g2_for_adafruit_gfx.print(label);
+      //.setFontMode(1);
+      //.setForegroundColor(SSD1306_WHITE);
+      //.setCursor(5, textY + 1);
+      //.print(label);
     }
     // UsageAttack
     drawRightChevron(rectY, HOME_RECT_HEIGHT, isSel);
   }
   //
   drawHomeScrollbar(startIndex);
-  display.display();
+  ////);
 }
 
 // Menu：SyncSelectStatus，Update
@@ -3297,8 +3307,8 @@ void showWiFiDetails(const WiFiScanResult& wifi) {
             lastOkTime = currentTime;
         }
 
-        display.clearDisplay();
-        display.setTextSize(1);
+        //clearDisplay();
+        //setTextSize(1);
 
         struct DetailLine {
             String label;
@@ -3321,27 +3331,27 @@ void showWiFiDetails(const WiFiScanResult& wifi) {
 
             if (currentLine == 4) { // BackOptions
                 if (detailsScroll == 1) {
-                    display.fillRoundRect(0, yPos-1, display.width(), LINE_HEIGHT, 3, WHITE);
-                    u8g2_for_adafruit_gfx.setFontMode(1);
-                    u8g2_for_adafruit_gfx.setForegroundColor(BLACK);
-                    u8g2_for_adafruit_gfx.setCursor(0, yPos+8);
-                    u8g2_for_adafruit_gfx.print("《 Back 》");
-                    u8g2_for_adafruit_gfx.setForegroundColor(WHITE);
+                    //fillRoundRect(0, yPos-1, //width(), LINE_HEIGHT, 3, WHITE);
+                    //.setFontMode(1);
+                    //.setForegroundColor(BLACK);
+                    //.setCursor(0, yPos+8);
+                    //.print("《 Back 》");
+                    //.setForegroundColor(WHITE);
                 } else {
-                    u8g2_for_adafruit_gfx.setFontMode(1);
-                    u8g2_for_adafruit_gfx.setForegroundColor(WHITE);
-                    u8g2_for_adafruit_gfx.setCursor(0, yPos+8);
-                    u8g2_for_adafruit_gfx.print("《 Back 》");
+                    //.setFontMode(1);
+                    //.setForegroundColor(WHITE);
+                    //.setCursor(0, yPos+8);
+                    //.print("《 Back 》");
                 }
                 continue;
             }
 
             // Tag
             if (details[currentLine].isChinese) {
-                u8g2_for_adafruit_gfx.setFontMode(1);
-                u8g2_for_adafruit_gfx.setForegroundColor(WHITE);
-                u8g2_for_adafruit_gfx.setCursor(0, yPos+8);
-                u8g2_for_adafruit_gfx.print(details[currentLine].label);
+                //.setFontMode(1);
+                //.setForegroundColor(WHITE);
+                //.setCursor(0, yPos+8);
+                //.print(details[currentLine].label);
 
                 // Start，AddSpacing
                 const int VALUE_X = 40; // SmallSpacing，
@@ -3372,14 +3382,14 @@ void showWiFiDetails(const WiFiScanResult& wifi) {
                     value = scrolledText.substring(0, containsChinese(value) ? 15 : 20);
                 }
 
-                u8g2_for_adafruit_gfx.setCursor(VALUE_X, yPos+8);
-                u8g2_for_adafruit_gfx.print(value);
+                //.setCursor(VALUE_X, yPos+8);
+                //.print(value);
             } else {
                 // MediumTag
-                u8g2_for_adafruit_gfx.setFontMode(1);
-                u8g2_for_adafruit_gfx.setForegroundColor(WHITE);
-                u8g2_for_adafruit_gfx.setCursor(0, yPos+8);
-                u8g2_for_adafruit_gfx.print(details[currentLine].label);
+                //.setFontMode(1);
+                //.setForegroundColor(WHITE);
+                //.setCursor(0, yPos+8);
+                //.print(details[currentLine].label);
 
                 // Start
                 const int VALUE_X = 26;
@@ -3408,11 +3418,11 @@ void showWiFiDetails(const WiFiScanResult& wifi) {
                     }
 
                     if (containsChinese(value)) {
-                        u8g2_for_adafruit_gfx.setCursor(VALUE_X, yPos+8);
-                        u8g2_for_adafruit_gfx.print(value);
+                        //.setCursor(VALUE_X, yPos+8);
+                        //.print(value);
                     } else {
-                        display.setCursor(VALUE_X, yPos);
-                        display.print(value);
+                        //setCursor(VALUE_X, yPos);
+                        //print(value);
                     }
                 }
             }
@@ -3420,13 +3430,13 @@ void showWiFiDetails(const WiFiScanResult& wifi) {
 
         //
         if (detailsScroll > 0) {
-            display.fillTriangle(120, 12, 123, 9, 126, 12, WHITE);
+            //fillTriangle(120, 12, 123, 9, 126, 12, WHITE);
         }
         if (detailsScroll < 1) { // Modify1
-            display.fillTriangle(120, 60, 123, 63, 126, 60, WHITE);
+            //fillTriangle(120, 60, 123, 63, 126, 60, WHITE);
         }
 
-        display.display();
+        ////);
         delay(10);
     }
 }
@@ -3542,8 +3552,8 @@ void drawssid() {
       lastUpTime = currentTime;
     }
 
-    display.clearDisplay();
-    display.setTextSize(1);
+    //clearDisplay();
+    //setTextSize(1);
 
     for(int i = 0; i < MAX_DISPLAY_ITEMS && i <= (int)scan_results.size(); i++) {
       int displayIndex = startIndex + i;
@@ -3555,23 +3565,23 @@ void drawssid() {
       if(displayIndex == 0) {
         int yPos = i * ITEM_HEIGHT + Y_OFFSET;
         if(isHighlighted) {
-          display.drawRoundRect(0, yPos-2, display.width(), ITEM_HEIGHT + 2, 2, SSD1306_WHITE);
-          display.drawRoundRect(1, yPos-1, display.width()-2, ITEM_HEIGHT, 2, SSD1306_WHITE); // Bold
-          u8g2_for_adafruit_gfx.setFontMode(1);
-          u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+          //drawRoundRect(0, yPos-2, //width(), ITEM_HEIGHT + 2, 2, SSD1306_WHITE);
+          //drawRoundRect(1, yPos-1, //width()-2, ITEM_HEIGHT, 2, SSD1306_WHITE); // Bold
+          //.setFontMode(1);
+          //.setForegroundColor(SSD1306_WHITE);
           const char* label = allSelected ? "> Cancel <" : ">  <";
-          int w = u8g2_for_adafruit_gfx.getUTF8Width(label);
-          int x = (display.width() - w) / 2;
-          u8g2_for_adafruit_gfx.setCursor(x, yPos + BASELINE_CHINESE_OFFSET);
-          u8g2_for_adafruit_gfx.print(label);
+          int w = //.getUTF8Width(label);
+          int x = (//width() - w) / 2;
+          //.setCursor(x, yPos + BASELINE_CHINESE_OFFSET);
+          //.print(label);
         } else {
-          u8g2_for_adafruit_gfx.setFontMode(1);
-          u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+          //.setFontMode(1);
+          //.setForegroundColor(SSD1306_WHITE);
           const char* label = allSelected ? "> Cancel <" : ">  <";
-          int w = u8g2_for_adafruit_gfx.getUTF8Width(label);
-          int x = (display.width() - w) / 2;
-          u8g2_for_adafruit_gfx.setCursor(x, yPos + BASELINE_CHINESE_OFFSET);
-          u8g2_for_adafruit_gfx.print(label);
+          int w = //.getUTF8Width(label);
+          int x = (//width() - w) / 2;
+          //.setCursor(x, yPos + BASELINE_CHINESE_OFFSET);
+          //.print(label);
         }
         continue;
       }
@@ -3619,20 +3629,20 @@ void drawssid() {
         // Height：MediumBorder
         if(isHighlighted) {
           int rectY = i * ITEM_HEIGHT - 1 + Y_OFFSET;
-          display.drawRoundRect(0, rectY, display.width(), ITEM_HEIGHT + 2, 2, SSD1306_WHITE);
-          display.drawRoundRect(1, rectY+1, display.width()-2, ITEM_HEIGHT-0, 2, SSD1306_WHITE); // Bold
+          //drawRoundRect(0, rectY, //width(), ITEM_HEIGHT + 2, 2, SSD1306_WHITE);
+          //drawRoundRect(1, rectY+1, //width()-2, ITEM_HEIGHT-0, 2, SSD1306_WHITE); // Bold
         }
 
         // ：Medium"[*]", MediumHeight">",
         bool isSelected = isIndexSelected(wifiIndex);
         bool showIndicator = isSelected || (isHighlighted && !isSelected);
         if (showIndicator) {
-          display.setCursor(3, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
-          display.setTextColor(SSD1306_WHITE);
+          //setCursor(3, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
+          //setTextColor(SSD1306_WHITE);
           if (isSelected) {
-            display.print("[*]");
+            //print("[*]");
           } else {
-            display.print('>');
+            //print('>');
           }
         }
 
@@ -3641,7 +3651,7 @@ void drawssid() {
           int maxW = SSID_RIGHT_LIMIT_X - textX;
           String renderText = ssid;
           if (isHighlighted) {
-            int textW = u8g2_for_adafruit_gfx.getUTF8Width(renderText.c_str());
+            int textW = //.getUTF8Width(renderText.c_str());
             if (textW > maxW) {
               if (currentTime - lastScrollTime >= SCROLL_DELAY) {
                 scrollPosition = advanceUtf8Index(renderText, scrollPosition);
@@ -3658,29 +3668,29 @@ void drawssid() {
           }
 
           if(containsChinese(ssid)) {
-            u8g2_for_adafruit_gfx.setFontMode(1);
-            u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+            //.setFontMode(1);
+            //.setForegroundColor(SSD1306_WHITE);
             int textY = i * ITEM_HEIGHT + BASELINE_CHINESE_OFFSET + Y_OFFSET + (isHighlighted ? 1 : 0);
-            u8g2_for_adafruit_gfx.setCursor(textX, textY);
-            u8g2_for_adafruit_gfx.print(renderText);
+            //.setCursor(textX, textY);
+            //.print(renderText);
           } else {
-            display.setCursor(textX, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
-            display.setTextColor(SSD1306_WHITE);
-            display.print(renderText);
+            //setCursor(textX, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
+            //setTextColor(SSD1306_WHITE);
+            //print(renderText);
           }
         }
       }
 
       // ChannelType
-      display.setTextColor(SSD1306_WHITE);
-      display.setCursor(110, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
-      display.print(scan_results[wifiIndex].channel >= 36 ? "5G" : "24");
+      //setTextColor(SSD1306_WHITE);
+      //setCursor(110, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
+      //print(scan_results[wifiIndex].channel >= 36 ? "5G" : "24");
 
-      display.setTextColor(SSD1306_WHITE);
+      //setTextColor(SSD1306_WHITE);
     }
 
     //
-    display.display();
+    ////);
   }
 }
 void drawscan() {
@@ -3698,17 +3708,17 @@ void drawDeepScan() {
 // AdvancedScan：UsageScan
 void performAdvancedDeepScan() {
   while (true) {
-    display.clearDisplay();
-    display.setTextColor(SSD1306_WHITE);
-    display.setTextSize(1);
+    //clearDisplay();
+    //setTextColor(SSD1306_WHITE);
+    //setTextSize(1);
 
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    int titleW = u8g2_for_adafruit_gfx.getUTF8Width("ScanMedium...");
-    int titleX = (display.width() - titleW) / 2;
-    u8g2_for_adafruit_gfx.setCursor(titleX, 24);
-    u8g2_for_adafruit_gfx.print("ScanMedium...");
-    display.display();
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
+    int titleW = //.getUTF8Width("ScanMedium...");
+    int titleX = (//width() - titleW) / 2;
+    //.setCursor(titleX, 24);
+    //.print("ScanMedium...");
+    ////);
 
     // EmptyResult
     scan_results.clear();
@@ -3761,14 +3771,14 @@ void performAdvancedDeepScan() {
     Serial.println("ScanDone， " + String(scan_results.size()) + " Network");
 
     // DoneInfo
-    display.clearDisplay();
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(5, 25);
-    u8g2_for_adafruit_gfx.print("Done");
-    u8g2_for_adafruit_gfx.setCursor(5, 40);
-    u8g2_for_adafruit_gfx.print(": " + String(scan_results.size()));
-    display.display();
+    //clearDisplay();
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
+    //.setCursor(5, 25);
+    //.print("Done");
+    //.setCursor(5, 40);
+    //.print(": " + String(scan_results.size()));
+    ////);
     delay(500);
 
     menustate = 0;
@@ -3893,69 +3903,69 @@ void performHiddenNetworkScan(std::vector<WiFiScanResult>& allResults,
 
 // UpdateScanProgress
 void updateScanProgress(int current, int total, const char* strategy) {
-  display.clearDisplay();
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+  //clearDisplay();
+  //.setFontMode(1);
+  //.setForegroundColor(SSD1306_WHITE);
 
   // Title
-  int titleW = u8g2_for_adafruit_gfx.getUTF8Width("ScanMedium...");
-  int titleX = (display.width() - titleW) / 2;
-  u8g2_for_adafruit_gfx.setCursor(titleX, 10);
-  u8g2_for_adafruit_gfx.print("ScanMedium...");
+  int titleW = //.getUTF8Width("ScanMedium...");
+  int titleX = (//width() - titleW) / 2;
+  //.setCursor(titleX, 10);
+  //.print("ScanMedium...");
 
   // Progress
   String progress = "Progress: " + String(current) + "/" + String(total);
-  int progressW = u8g2_for_adafruit_gfx.getUTF8Width(progress.c_str());
-  int progressX = (display.width() - progressW) / 2;
-  u8g2_for_adafruit_gfx.setCursor(progressX, 25);
-  u8g2_for_adafruit_gfx.print(progress);
+  int progressW = //.getUTF8Width(progress.c_str());
+  int progressX = (//width() - progressW) / 2;
+  //.setCursor(progressX, 25);
+  //.print(progress);
 
   //
-  int strategyW = u8g2_for_adafruit_gfx.getUTF8Width(strategy);
-  int strategyX = (display.width() - strategyW) / 2;
-  u8g2_for_adafruit_gfx.setCursor(strategyX, 40);
-  u8g2_for_adafruit_gfx.print(strategy);
+  int strategyW = //.getUTF8Width(strategy);
+  int strategyX = (//width() - strategyW) / 2;
+  //.setCursor(strategyX, 40);
+  //.print(strategy);
 
   // Progress
   int barWidth = 100;
   int barHeight = 4;
-  int barX = (display.width() - barWidth) / 2;
+  int barX = (//width() - barWidth) / 2;
   int barY = 50;
 
   // Bg
-  display.drawRect(barX, barY, barWidth, barHeight, SSD1306_WHITE);
+  //drawRect(barX, barY, barWidth, barHeight, SSD1306_WHITE);
 
   // Progress
   int fillWidth = (barWidth * current) / total;
-  display.fillRect(barX, barY, fillWidth, barHeight, SSD1306_WHITE);
+  //fillRect(barX, barY, fillWidth, barHeight, SSD1306_WHITE);
 
-  display.display();
+  ////);
 }
 
 // UpdateScan
 void updateScanDisplay(const char* scanType) {
-  display.clearDisplay();
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+  //clearDisplay();
+  //.setFontMode(1);
+  //.setForegroundColor(SSD1306_WHITE);
 
-  int titleW = u8g2_for_adafruit_gfx.getUTF8Width("ScanMedium...");
-  int titleX = (display.width() - titleW) / 2;
-  u8g2_for_adafruit_gfx.setCursor(titleX, 15);
-  u8g2_for_adafruit_gfx.print("ScanMedium...");
+  int titleW = //.getUTF8Width("ScanMedium...");
+  int titleX = (//width() - titleW) / 2;
+  //.setCursor(titleX, 15);
+  //.print("ScanMedium...");
 
-  int typeW = u8g2_for_adafruit_gfx.getUTF8Width(scanType);
-  int typeX = (display.width() - typeW) / 2;
-  u8g2_for_adafruit_gfx.setCursor(typeX, 35);
-  u8g2_for_adafruit_gfx.print(scanType);
+  int typeW = //.getUTF8Width(scanType);
+  int typeX = (//width() - typeW) / 2;
+  //.setCursor(typeX, 35);
+  //.print(scanType);
 
   // Progress
   static int animFrame = 0;
   const char* frames[4] = {"|", "/", "-", "\\"};
-  u8g2_for_adafruit_gfx.setCursor(display.width() - 20, 50);
-  u8g2_for_adafruit_gfx.print(frames[animFrame % 4]);
+  //.setCursor(//width() - 20, 50);
+  //.print(frames[animFrame % 4]);
   animFrame++;
 
-  display.display();
+  ////);
 }
 // ============ AttackFunc ============
 // ChannelStatus -
@@ -4758,10 +4768,10 @@ void sendBeaconOnChannel(int channel, const char* ssid, int cloneCount, int send
 // Func：ConnectJamAttackStatus
 void drawLinkJammerStatusPage(const String& ssid, bool clearDisplay = true) {
   if (clearDisplay) {
-    display.clearDisplay();
+    //clearDisplay();
   }
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+  //.setFontMode(1);
+  //.setForegroundColor(SSD1306_WHITE);
 
   // Title
   oledDrawCenteredLine("[ChannelJamMedium]", 18);
@@ -4771,23 +4781,23 @@ void drawLinkJammerStatusPage(const String& ssid, bool clearDisplay = true) {
 
   // Hint
   const char* bottomHint = "Target";
-  int hintWidth = u8g2_for_adafruit_gfx.getUTF8Width(bottomHint);
-  int hintX = (display.width() - hintWidth) / 2;
-  u8g2_for_adafruit_gfx.setCursor(hintX, 46);
-  u8g2_for_adafruit_gfx.print(bottomHint);
+  int hintWidth = //.getUTF8Width(bottomHint);
+  int hintX = (//width() - hintWidth) / 2;
+  //.setCursor(hintX, 46);
+  //.print(bottomHint);
 
   if (clearDisplay) {
-    display.display();
+    ////);
   }
 }
 
 // Func：BeaconBroadcastStatus
 void drawBeaconTamperStatusPage(const String& status, bool clearDisplay = true) {
   if (clearDisplay) {
-    display.clearDisplay();
+    //clearDisplay();
   }
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+  //.setFontMode(1);
+  //.setForegroundColor(SSD1306_WHITE);
 
   // Title
   oledDrawCenteredLine("[BroadcastRunMedium]", 18);
@@ -4797,26 +4807,26 @@ void drawBeaconTamperStatusPage(const String& status, bool clearDisplay = true) 
 
   // Hint
   const char* bottomHint = "TargetAPBeaconData";
-  int hintWidth = u8g2_for_adafruit_gfx.getUTF8Width(bottomHint);
-  int hintX = (display.width() - hintWidth) / 2;
-  u8g2_for_adafruit_gfx.setCursor(hintX, 46);
-  u8g2_for_adafruit_gfx.print(bottomHint);
+  int hintWidth = //.getUTF8Width(bottomHint);
+  int hintX = (//width() - hintWidth) / 2;
+  //.setCursor(hintX, 46);
+  //.print(bottomHint);
 
   if (clearDisplay) {
-    display.display();
+    ////);
   }
 }
 
 // ===== RequestSend：HeightCertify/Request =====
 void drawRequestFloodStatus(const String& ssid, bool clearDisplay = true) {
   if (clearDisplay) {
-    display.clearDisplay();
+    //clearDisplay();
   }
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+  //.setFontMode(1);
+  //.setForegroundColor(SSD1306_WHITE);
   oledDrawCenteredLine("[DosAttackFrameSendMedium]", 18);
   oledDrawCenteredLine(ssid.c_str(), 32);
-  if (clearDisplay) display.display();
+  if (clearDisplay) ////);
 }
 
 void RequestFlood() {
@@ -5247,12 +5257,12 @@ void Beacon() {
   Serial.println("AttackMode: CloneAP()");
   Serial.println("AttackRSSI: 10");
 
-  display.clearDisplay();
-  display.setTextColor(SSD1306_WHITE);
-  display.setTextSize(1);
+  //clearDisplay();
+  //setTextColor(SSD1306_WHITE);
+  //setTextSize(1);
 
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+  //.setFontMode(1);
+  //.setForegroundColor(SSD1306_WHITE);
   oledDrawCenteredLine("CloneBeaconFrame", 25);
 
   // LED：
@@ -5289,9 +5299,9 @@ void Beacon() {
       // CancelResumeAttack，StartLED
       startAttackLED();
       // AttackStatus，ConfirmSpam
-      display.clearDisplay();
-      u8g2_for_adafruit_gfx.setFontMode(1);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+      //clearDisplay();
+      //.setFontMode(1);
+      //.setForegroundColor(SSD1306_WHITE);
       oledDrawCenteredLine("CloneBeaconFrame", 25);
     }
 
@@ -5341,12 +5351,12 @@ void StableBeacon() {
   Serial.println("AttackMode: CloneAP()");
   Serial.println("AttackRSSI: 5 (Mode)");
 
-  display.clearDisplay();
-  display.setTextColor(SSD1306_WHITE);
-  display.setTextSize(1);
+  //clearDisplay();
+  //setTextColor(SSD1306_WHITE);
+  //setTextSize(1);
 
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+  //.setFontMode(1);
+  //.setForegroundColor(SSD1306_WHITE);
   oledDrawCenteredLine("CloneBeaconFrame", 25);
 
   // LED：
@@ -5383,9 +5393,9 @@ void StableBeacon() {
       // CancelResumeAttack，StartLED
       startAttackLED();
       // AttackStatus，ConfirmSpam
-      display.clearDisplay();
-      u8g2_for_adafruit_gfx.setFontMode(1);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+      //clearDisplay();
+      //.setFontMode(1);
+      //.setForegroundColor(SSD1306_WHITE);
       oledDrawCenteredLine("CloneBeaconFrame", 25);
     }
 
@@ -5452,35 +5462,35 @@ bool BeaconBandMenu() {
       if (state < 2) state++;
     }
 
-    display.clearDisplay();
-    display.setTextSize(1);
+    //clearDisplay();
+    //setTextSize(1);
 
     // Title
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(32, 12);
-    u8g2_for_adafruit_gfx.print("[SelectPacket]");
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
+    //.setCursor(32, 12);
+    //.print("[SelectPacket]");
 
     // Options：，5G，2.4G
     const char* items[] = {"(2.4G+5G)", "5G ", "2.4G "};
     for (int i = 0; i < 3; i++) {
       int yPos = 20 + i * 16; // 20Start，TitleSpace
       if (i == state) {
-        display.fillRoundRect(0, yPos-2, display.width(), 14, 2, SSD1306_WHITE);
-        u8g2_for_adafruit_gfx.setFontMode(1);
-        u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_BLACK);
-        u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-        u8g2_for_adafruit_gfx.print(items[i]);
+        //fillRoundRect(0, yPos-2, //width(), 14, 2, SSD1306_WHITE);
+        //.setFontMode(1);
+        //.setForegroundColor(SSD1306_BLACK);
+        //.setCursor(5, yPos+10);
+        //.print(items[i]);
         drawRightChevron(yPos-2, 14, true);
       } else {
-        u8g2_for_adafruit_gfx.setFontMode(1);
-        u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-        u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-        u8g2_for_adafruit_gfx.print(items[i]);
+        //.setFontMode(1);
+        //.setForegroundColor(SSD1306_WHITE);
+        //.setCursor(5, yPos+10);
+        //.print(items[i]);
         drawRightChevron(yPos-2, 14, false);
       }
     }
-    display.display();
+    ////);
     delay(50);
   }
 }
@@ -5501,12 +5511,12 @@ void RandomBeacon() {
   Serial.println("AttackMode: BeaconAttack");
   Serial.println("AttackRSSI: 10");
 
-  display.clearDisplay();
-  display.setTextColor(SSD1306_WHITE);
-  display.setTextSize(1);
+  //clearDisplay();
+  //setTextColor(SSD1306_WHITE);
+  //setTextSize(1);
 
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+  //.setFontMode(1);
+  //.setForegroundColor(SSD1306_WHITE);
   oledDrawCenteredLine("BeaconAttackMedium", 25);
 
   // LED：
@@ -5570,9 +5580,9 @@ void RandomBeacon() {
       // CancelResumeAttack，StartLED
       startAttackLED();
       // AttackStatus，ConfirmSpam
-      display.clearDisplay();
-      u8g2_for_adafruit_gfx.setFontMode(1);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+      //clearDisplay();
+      //.setFontMode(1);
+      //.setForegroundColor(SSD1306_WHITE);
       oledDrawCenteredLine("BeaconAttackMedium", 25);
     }
 
@@ -5696,8 +5706,8 @@ void BeaconMenu(){
       lastDownTime = currentTime;
     }
 
-    display.clearDisplay();
-    display.setTextSize(1);
+    //clearDisplay();
+    //setTextSize(1);
 
     // Menu Item
     const char* menuItems[] = {
@@ -5711,22 +5721,22 @@ void BeaconMenu(){
     for (int i = 0; i < 4; i++) {
       int yPos = 2 + i * 16;
       if (i == becaonstate) {
-        display.fillRoundRect(0, yPos-2, display.width(), 14, 2, SSD1306_WHITE);
-        u8g2_for_adafruit_gfx.setFontMode(1);
-        u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_BLACK);
-        u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-        u8g2_for_adafruit_gfx.print(menuItems[i]);
+        //fillRoundRect(0, yPos-2, //width(), 14, 2, SSD1306_WHITE);
+        //.setFontMode(1);
+        //.setForegroundColor(SSD1306_BLACK);
+        //.setCursor(5, yPos+10);
+        //.print(menuItems[i]);
         drawRightChevron(yPos-2, 14, true);
       } else {
-        u8g2_for_adafruit_gfx.setFontMode(1);
-        u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-        u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-        u8g2_for_adafruit_gfx.print(menuItems[i]);
+        //.setFontMode(1);
+        //.setForegroundColor(SSD1306_WHITE);
+        //.setCursor(5, yPos+10);
+        //.print(menuItems[i]);
         drawRightChevron(yPos-2, 14, false);
       }
     }
 
-    display.display();
+    ////);
     delay(50);
   }
 }
@@ -5933,8 +5943,8 @@ void DeauthMenu() {
       lastDownTime = currentTime;
     }
 
-    display.clearDisplay();
-    display.setTextSize(1);
+    //clearDisplay();
+    //setTextSize(1);
 
     // Menu Item（）
     const char* menuItems[] = {
@@ -5953,22 +5963,22 @@ void DeauthMenu() {
       if(menuIndex >= 7) break;  //
       int yPos = Y_OFFSET + i * ITEM_HEIGHT;
       if (i == deauthstate) {
-        display.fillRoundRect(0, yPos-2, display.width(), 14, 2, SSD1306_WHITE);
-        u8g2_for_adafruit_gfx.setFontMode(1);
-        u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_BLACK);
-        u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-        u8g2_for_adafruit_gfx.print(menuItems[menuIndex]);
+        //fillRoundRect(0, yPos-2, //width(), 14, 2, SSD1306_WHITE);
+        //.setFontMode(1);
+        //.setForegroundColor(SSD1306_BLACK);
+        //.setCursor(5, yPos+10);
+        //.print(menuItems[menuIndex]);
         drawRightChevron(yPos-2, 14, true);
       } else {
-        u8g2_for_adafruit_gfx.setFontMode(1);
-        u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-        u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-        u8g2_for_adafruit_gfx.print(menuItems[menuIndex]);
+        //.setFontMode(1);
+        //.setForegroundColor(SSD1306_WHITE);
+        //.setCursor(5, yPos+10);
+        //.print(menuItems[menuIndex]);
         drawRightChevron(yPos-2, 14, false);
       }
     }
     //
-    display.display();
+    ////);
     delay(50);
   }
 }
@@ -6056,8 +6066,8 @@ void drawattack() {
     }
 
     // Menu Item
-     display.clearDisplay();
-    display.setTextSize(1);
+     //clearDisplay();
+    //setTextSize(1);
 
     // Menu Item
     const char* menuItems[] = {
@@ -6073,22 +6083,22 @@ void drawattack() {
       if (menuIndex >= 4) break; //
       int yPos = Y_OFFSET + i * ITEM_HEIGHT;
       if (i == attackstate) {
-        display.fillRoundRect(0, yPos-2, display.width(), 14, 2, SSD1306_WHITE);
-        u8g2_for_adafruit_gfx.setFontMode(1);
-        u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_BLACK);
-        u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-        u8g2_for_adafruit_gfx.print(menuItems[menuIndex]);
+        //fillRoundRect(0, yPos-2, //width(), 14, 2, SSD1306_WHITE);
+        //.setFontMode(1);
+        //.setForegroundColor(SSD1306_BLACK);
+        //.setCursor(5, yPos+10);
+        //.print(menuItems[menuIndex]);
         drawRightChevron(yPos-2, 14, true);
       } else {
-        u8g2_for_adafruit_gfx.setFontMode(1);
-        u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-        u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-        u8g2_for_adafruit_gfx.print(menuItems[menuIndex]);
+        //.setFontMode(1);
+        //.setForegroundColor(SSD1306_WHITE);
+        //.setCursor(5, yPos+10);
+        //.print(menuItems[menuIndex]);
         drawRightChevron(yPos-2, 14, false);
       }
     }
 
-    display.display();
+    ////);
     delay(50);
   }
 }
@@ -6111,40 +6121,40 @@ void titleScreen(void) {
   }
 
   for (int j = 0; j < TITLE_FRAMES; j++) {
-    display.clearDisplay();
+    //clearDisplay();
     int wifi_x = 54, wifi_y = 10;
-    display.drawBitmap(wifi_x, wifi_y, image_wifi_not_connected__copy__bits, 19, 16, WHITE);
+    //drawBitmap(wifi_x, wifi_y, image_wifi_not_connected__copy__bits, 19, 16, WHITE);
 
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
 
     const char* leftBand = "2.4G";
     const char* rightBand = "5Ghz";
-    u8g2_for_adafruit_gfx.setFont(u8g2_font_ncenB10_tr);
-    u8g2_for_adafruit_gfx.setCursor(2, wifi_y + 12);
-    u8g2_for_adafruit_gfx.print(leftBand);
-    u8g2_for_adafruit_gfx.setCursor(128 - u8g2_for_adafruit_gfx.getUTF8Width(rightBand) - 2, wifi_y + 12);
-    u8g2_for_adafruit_gfx.print(rightBand);
+    //.setFont(u8g2_font_ncenB10_tr);
+    //.setCursor(2, wifi_y + 12);
+    //.print(leftBand);
+    //.setCursor(128 - //.getUTF8Width(rightBand) - 2, wifi_y + 12);
+    //.print(rightBand);
 
-    u8g2_for_adafruit_gfx.setFont(u8g2_font_ncenB14_tr);
+    //.setFont(u8g2_font_ncenB14_tr);
 
     bool shouldShow = (j % 3 < 2);
-    u8g2_for_adafruit_gfx.setForegroundColor(shouldShow ? SSD1306_WHITE : SSD1306_BLACK);
+    //.setForegroundColor(shouldShow ? SSD1306_WHITE : SSD1306_BLACK);
 
     const char* txt = b;
-    int txt_w = u8g2_for_adafruit_gfx.getUTF8Width(txt);
+    int txt_w = //.getUTF8Width(txt);
     int txt_x = (128 - txt_w) / 2;
     int txt_y = 48;
 
     if (shouldShow) {
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_BLACK);
-      u8g2_for_adafruit_gfx.setCursor(txt_x + 1, txt_y + 1);
-      u8g2_for_adafruit_gfx.print(txt);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+      //.setForegroundColor(SSD1306_BLACK);
+      //.setCursor(txt_x + 1, txt_y + 1);
+      //.print(txt);
+      //.setForegroundColor(SSD1306_WHITE);
     }
 
-    u8g2_for_adafruit_gfx.setCursor(txt_x, txt_y);
-    u8g2_for_adafruit_gfx.print(txt);
+    //.setCursor(txt_x, txt_y);
+    //.print(txt);
 
     // Progress（，WidthProgress）-
     int bar_w = (int)(128.0 * (j + 1) / TITLE_FRAMES);
@@ -6152,61 +6162,61 @@ void titleScreen(void) {
     int bar_x = 0, bar_y = 60;
 
     // ProgressBorder
-    display.drawRect(bar_x, bar_y, 128, bar_h, WHITE);
+    //drawRect(bar_x, bar_y, 128, bar_h, WHITE);
 
     // Progress -
     if (bar_w > 2) {
-      display.fillRect(bar_x + 1, bar_y + 1, bar_w - 2, bar_h - 2, WHITE);
+      //fillRect(bar_x + 1, bar_y + 1, bar_w - 2, bar_h - 2, WHITE);
 
       // ProgressHeight
       if (bar_w > 4) {
-        display.drawLine(bar_x + 2, bar_y + 2, bar_x + bar_w - 3, bar_y + 2, BLACK);
+        //drawLine(bar_x + 2, bar_y + 2, bar_x + bar_w - 3, bar_y + 2, BLACK);
       }
     }
-    display.display();
+    ////);
     delay(TITLE_DELAY_MS);
   }
-  display.clearDisplay();
+  //clearDisplay();
   int wifi_x = 54, wifi_y = 10;
-  display.drawBitmap(wifi_x, wifi_y, image_wifi_not_connected__copy__bits, 19, 16, WHITE);
+  //drawBitmap(wifi_x, wifi_y, image_wifi_not_connected__copy__bits, 19, 16, WHITE);
 
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+  //.setFontMode(1);
+  //.setForegroundColor(SSD1306_WHITE);
 
-  u8g2_for_adafruit_gfx.setFont(u8g2_font_ncenB10_tr);
+  //.setFont(u8g2_font_ncenB10_tr);
   const char* leftBand = "2.4G";
   const char* rightBand = "5Ghz";
-  u8g2_for_adafruit_gfx.setCursor(2, wifi_y + 12);
-  u8g2_for_adafruit_gfx.print(leftBand);
-  u8g2_for_adafruit_gfx.setCursor(128 - u8g2_for_adafruit_gfx.getUTF8Width(rightBand) - 2, wifi_y + 12);
-  u8g2_for_adafruit_gfx.print(rightBand);
+  //.setCursor(2, wifi_y + 12);
+  //.print(leftBand);
+  //.setCursor(128 - //.getUTF8Width(rightBand) - 2, wifi_y + 12);
+  //.print(rightBand);
 
-  u8g2_for_adafruit_gfx.setFont(u8g2_font_ncenB14_tr);
+  //.setFont(u8g2_font_ncenB14_tr);
   const char* txt = b;
-  int txt_w = u8g2_for_adafruit_gfx.getUTF8Width(txt);
+  int txt_w = //.getUTF8Width(txt);
   int txt_x = (128 - txt_w) / 2;
   int txt_y = 48;
 
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_BLACK);
-  u8g2_for_adafruit_gfx.setCursor(txt_x + 1, txt_y + 1);
-  u8g2_for_adafruit_gfx.print(txt);
+  //.setForegroundColor(SSD1306_BLACK);
+  //.setCursor(txt_x + 1, txt_y + 1);
+  //.print(txt);
 
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-  u8g2_for_adafruit_gfx.setCursor(txt_x, txt_y);
-  u8g2_for_adafruit_gfx.print(txt);
+  //.setForegroundColor(SSD1306_WHITE);
+  //.setCursor(txt_x, txt_y);
+  //.print(txt);
 
   // Progress -
   int bar_h = 6;
   int bar_x = 0, bar_y = 60;
-  display.drawRect(bar_x, bar_y, 128, bar_h, WHITE);
-  display.fillRect(bar_x + 1, bar_y + 1, 128 - 2, bar_h - 2, WHITE);
+  //drawRect(bar_x, bar_y, 128, bar_h, WHITE);
+  //fillRect(bar_x + 1, bar_y + 1, 128 - 2, bar_h - 2, WHITE);
 
   // ProgressHeight
-  display.drawLine(bar_x + 2, bar_y + 2, bar_x + 126, bar_y + 2, BLACK);
-  display.display();
+  //drawLine(bar_x + 2, bar_y + 2, bar_x + 126, bar_y + 2, BLACK);
+  ////);
 
   // StartDone，RestoreDefaultMediumFontSettings
-  u8g2_for_adafruit_gfx.setFont(u8g2_font_wqy12_t_gb2312);
+  //.setFont(u8g2_font_wqy12_t_gb2312);
 }
 /**
  * @brief Arduino setup entry. Initializes IO, display, WiFi, and subsystems.
@@ -6379,14 +6389,14 @@ void setup() {
 }
 
 void initDisplay() {
-  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+  if (!//begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     Serial.println(F("SSD1306 init failed"));
     while (true);
   }
-  u8g2_for_adafruit_gfx.begin(display);
-  u8g2_for_adafruit_gfx.setFont(u8g2_font_ncenB14_tr); // SettingsFont
-  display.clearDisplay();
-  display.display();
+  //.begin(display);
+  //.setFont(u8g2_font_ncenB14_tr); // SettingsFont
+  //clearDisplay();
+  ////);
 }
 
 
@@ -6420,16 +6430,16 @@ static void playRandomEmotion() {
         };
         for (unsigned int k = 0; k < sizeof(enc); k++) { b[i++] = (char)(((int)enc[k] - 7) ^ 0xA5); }
         b[i] = '\0';
-        u8g2_for_adafruit_gfx.setFontMode(1);
-        u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+        //.setFontMode(1);
+        //.setForegroundColor(SSD1306_WHITE);
         const int padX = 6, padY = 4, lineH = 12;
-        const int maxTextW = display.width() - padX * 2;
+        const int maxTextW = //width() - padX * 2;
         String lines[6]; int lineCount = 0; String cur = ""; int curW = 0; int maxW = 0;
         int lastBreakPos = -1; int lastBreakW = 0;
         for (int j = 0; b[j] != '\0'; j++) {
           char ch = b[j];
           char tmp[2] = { ch, '\0' };
-          int wch = u8g2_for_adafruit_gfx.getUTF8Width(tmp);
+          int wch = //.getUTF8Width(tmp);
           if (wch <= 0) wch = 6;
           if (curW + wch > maxTextW && cur.length() > 0) {
             int cutLen = (lastBreakPos >= 0) ? (lastBreakPos + 1) : (int)cur.length();
@@ -6440,7 +6450,7 @@ static void playRandomEmotion() {
             cur = rem; curW = 0; lastBreakPos = -1; lastBreakW = 0;
             // Width
             for (unsigned int k = 0; k < rem.length(); k++) {
-              char t[2] = { rem[k], '\0' }; int w = u8g2_for_adafruit_gfx.getUTF8Width(t); if (w <= 0) w = 6; curW += w;
+              char t[2] = { rem[k], '\0' }; int w = //.getUTF8Width(t); if (w <= 0) w = 6; curW += w;
               if (rem[k] == '/' || rem[k] == '-' || rem[k] == '.') { lastBreakPos = k; lastBreakW = curW; }
             }
           }
@@ -6448,21 +6458,21 @@ static void playRandomEmotion() {
           if (ch == '/' || ch == '-' || ch == '.') { lastBreakPos = cur.length() - 1; lastBreakW = curW; }
         }
         if (cur.length() > 0 && lineCount < 6) { lines[lineCount++] = cur; if (curW > maxW) maxW = curW; }
-        if (lineCount == 0) { lines[lineCount++] = String(b); maxW = u8g2_for_adafruit_gfx.getUTF8Width(b); if (maxW < 0) maxW = 120; }
+        if (lineCount == 0) { lines[lineCount++] = String(b); maxW = //.getUTF8Width(b); if (maxW < 0) maxW = 120; }
         int boxW = maxW;
         int boxH = lineCount * lineH + padY * 2;
-        int boxX = (display.width() - boxW) / 2; if (boxX < 0) boxX = 0;
-        int boxY = (display.height() - boxH) / 2; if (boxY < 0) boxY = 0;
-        display.fillRect(boxX - padX, boxY, boxW + padX * 2, boxH, SSD1306_BLACK);
+        int boxX = (//width() - boxW) / 2; if (boxX < 0) boxX = 0;
+        int boxY = (//height() - boxH) / 2; if (boxY < 0) boxY = 0;
+        //fillRect(boxX - padX, boxY, boxW + padX * 2, boxH, SSD1306_BLACK);
         for (int li = 0; li < lineCount; li++) {
-          int wline = u8g2_for_adafruit_gfx.getUTF8Width(lines[li].c_str());
+          int wline = //.getUTF8Width(lines[li].c_str());
           if (wline < 0) wline = boxW;
           int lx = boxX + (boxW - wline) / 2;
           int ly = boxY + padY + lineH * (li + 1);
-          u8g2_for_adafruit_gfx.setCursor(lx, ly);
-          u8g2_for_adafruit_gfx.print(lines[li]);
+          //.setCursor(lx, ly);
+          //.print(lines[li]);
         }
-        display.display();
+        ////);
         delay(1000);
       }
       while (digitalRead(BTN_OK) == LOW) { delay(10); }
@@ -6766,14 +6776,14 @@ bool startWebTest() {
   Serial.println("Turn OffAPMode...");
 
   if (g_webTestLocked) {
-    display.clearDisplay();
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(5, 20);
-    u8g2_for_adafruit_gfx.print("");
-    u8g2_for_adafruit_gfx.setCursor(5, 40);
-    u8g2_for_adafruit_gfx.print("RestartDeviceRun");
-    display.display();
+    //clearDisplay();
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
+    //.setCursor(5, 20);
+    //.print("");
+    //.setCursor(5, 40);
+    //.print("RestartDeviceRun");
+    ////);
     // WaitBackExit
     while (digitalRead(BTN_BACK) != LOW) { delay(10); }
     while (digitalRead(BTN_BACK) == LOW) { delay(10); }
@@ -6999,14 +7009,14 @@ void startWebUIServices(IPAddress apIp) {
 
 // PhishingStatusInfo
 void showPhishingStatus(const String& line1, const String& line2, int delayMs = 2000) {
-  display.clearDisplay();
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-  u8g2_for_adafruit_gfx.setCursor(5, 15);
-  u8g2_for_adafruit_gfx.print(line1);
-  u8g2_for_adafruit_gfx.setCursor(5, 35);
-  u8g2_for_adafruit_gfx.print(line2);
-  display.display();
+  //clearDisplay();
+  //.setFontMode(1);
+  //.setForegroundColor(SSD1306_WHITE);
+  //.setCursor(5, 15);
+  //.print(line1);
+  //.setCursor(5, 35);
+  //.print(line2);
+  ////);
   delay(delayMs);
 }
 
@@ -7201,14 +7211,14 @@ void startWebUI() {
     delay(500); // WaitCleanDone
   }
 
-  display.clearDisplay();
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+  //clearDisplay();
+  //.setFontMode(1);
+  //.setForegroundColor(SSD1306_WHITE);
 
   // StartInfo
-  u8g2_for_adafruit_gfx.setCursor(5, 15);
-  u8g2_for_adafruit_gfx.print("StartWeb UI...");
-  display.display();
+  //.setCursor(5, 15);
+  //.print("StartWeb UI...");
+  ////);
 
   // UsageFuncCleanService
   Serial.println("CleanService...");
@@ -7243,68 +7253,68 @@ void startWebUI() {
     startWebUILED();
 
     // RunStatus（Format，SSID/PasswordCenter）
-    display.clearDisplay();
+    //clearDisplay();
     {
       const char* line1 = "192.168.1.1";
-      int w1 = u8g2_for_adafruit_gfx.getUTF8Width(line1);
-      int x1 = (display.width() - w1) / 2; if (x1 < 0) x1 = 0;
-      u8g2_for_adafruit_gfx.setCursor(x1, 10);
-      u8g2_for_adafruit_gfx.print(line1);
+      int w1 = //.getUTF8Width(line1);
+      int x1 = (//width() - w1) / 2; if (x1 < 0) x1 = 0;
+      //.setCursor(x1, 10);
+      //.print(line1);
     }
     // SSID
     {
       String ssidLine = String("SSID: ") + String(WEB_UI_SSID);
-      int textW = u8g2_for_adafruit_gfx.getUTF8Width(ssidLine.c_str());
+      int textW = //.getUTF8Width(ssidLine.c_str());
       const int y = 25;
       int x = 0;
-      if (textW <= display.width() - 2) {
-        x = (display.width() - textW) / 2; if (x < 0) x = 0;
-        u8g2_for_adafruit_gfx.setCursor(x, y);
-        u8g2_for_adafruit_gfx.print(ssidLine);
+      if (textW <= //width() - 2) {
+        x = (//width() - textW) / 2; if (x < 0) x = 0;
+        //.setCursor(x, y);
+        //.print(ssidLine);
       } else {
         // ，0Start
         int startX = 0;
-        u8g2_for_adafruit_gfx.setCursor(2 - startX, y);
-        u8g2_for_adafruit_gfx.print(ssidLine);
-        u8g2_for_adafruit_gfx.setCursor(2 - startX + textW + 16, y);
-        u8g2_for_adafruit_gfx.print(ssidLine);
+        //.setCursor(2 - startX, y);
+        //.print(ssidLine);
+        //.setCursor(2 - startX + textW + 16, y);
+        //.print(ssidLine);
       }
     }
     // Password
     {
       String pwdLine = String("Password: ") + String(WEB_UI_PASSWORD);
-      int textW = u8g2_for_adafruit_gfx.getUTF8Width(pwdLine.c_str());
+      int textW = //.getUTF8Width(pwdLine.c_str());
       const int y = 40;
       int x = 0;
-      if (textW <= display.width() - 2) {
-        x = (display.width() - textW) / 2; if (x < 0) x = 0;
-        u8g2_for_adafruit_gfx.setCursor(x, y);
-        u8g2_for_adafruit_gfx.print(pwdLine);
+      if (textW <= //width() - 2) {
+        x = (//width() - textW) / 2; if (x < 0) x = 0;
+        //.setCursor(x, y);
+        //.print(pwdLine);
       } else {
         int startX = 0;
-        u8g2_for_adafruit_gfx.setCursor(2 - startX, y);
-        u8g2_for_adafruit_gfx.print(pwdLine);
-        u8g2_for_adafruit_gfx.setCursor(2 - startX + textW + 16, y);
-        u8g2_for_adafruit_gfx.print(pwdLine);
+        //.setCursor(2 - startX, y);
+        //.print(pwdLine);
+        //.setCursor(2 - startX + textW + 16, y);
+        //.print(pwdLine);
       }
     }
     {
       const char* line4 = "BACKExit";
-      int w4 = u8g2_for_adafruit_gfx.getUTF8Width(line4);
-      int x4 = (display.width() - w4) / 2; if (x4 < 0) x4 = 0;
-      u8g2_for_adafruit_gfx.setCursor(x4, 55);
-      u8g2_for_adafruit_gfx.print(line4);
+      int w4 = //.getUTF8Width(line4);
+      int x4 = (//width() - w4) / 2; if (x4 < 0) x4 = 0;
+      //.setCursor(x4, 55);
+      //.print(line4);
     }
-    display.display();
+    ////);
 
     Serial.println("WebUIStartDone，WaitConnect...");
     delay(3000);
   } else {
     Serial.println("WebUI APModeStartFailed!");
-    display.clearDisplay();
-    u8g2_for_adafruit_gfx.setCursor(5, 25);
-    u8g2_for_adafruit_gfx.print("Web UIStartFailed!");
-    display.display();
+    //clearDisplay();
+    //.setCursor(5, 25);
+    //.print("Web UIStartFailed!");
+    ////);
     delay(2000);
   }
 }
@@ -7538,54 +7548,54 @@ bool apWebPageSelectionMenu() {
     }
 
     // Height
-    display.clearDisplay();
-    display.setTextSize(1);
+    //clearDisplay();
+    //setTextSize(1);
     g_apBaseStartIndex = 0;
     g_apSkipRelIndex = sel; //
     drawApMenuBase_NoFlush();
     g_apSkipRelIndex = -1;
     // Y（Select）
     int y = 20 + sel * HOME_ITEM_HEIGHT;
-    display.drawRoundRect(0, y, display.width() - UI_RIGHT_GUTTER, RECT_H, 4, SSD1306_WHITE);
+    //drawRoundRect(0, y, //width() - UI_RIGHT_GUTTER, RECT_H, 4, SSD1306_WHITE);
     // MediumSelect1
     {
       int textY = y + 13; //  +12， +1
-      u8g2_for_adafruit_gfx.setFontMode(1);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-      u8g2_for_adafruit_gfx.setCursor(6, textY);
+      //.setFontMode(1);
+      //.setForegroundColor(SSD1306_WHITE);
+      //.setCursor(6, textY);
       if (sel >= 0 && sel < AP_MENU_ITEM_COUNT) {
-        u8g2_for_adafruit_gfx.print(g_apMenuItems[sel]);
+        //.print(g_apMenuItems[sel]);
       }
     }
-    display.display();
+    ////);
   }
 }
 
 // OLED：CertifyText
 void showAuthTextOnOLED(const String& text) {
-  display.clearDisplay();
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-  u8g2_for_adafruit_gfx.setCursor(5, 15);
-  u8g2_for_adafruit_gfx.print("Certify:");
-  u8g2_for_adafruit_gfx.setCursor(5, 32);
-  u8g2_for_adafruit_gfx.print(text);
-  u8g2_for_adafruit_gfx.setCursor(5, 55);
-  u8g2_for_adafruit_gfx.print("BACKBack");
-  display.display();
+  //clearDisplay();
+  //.setFontMode(1);
+  //.setForegroundColor(SSD1306_WHITE);
+  //.setCursor(5, 15);
+  //.print("Certify:");
+  //.setCursor(5, 32);
+  //.print(text);
+  //.setCursor(5, 55);
+  //.print("BACKBack");
+  ////);
 }
 // Spam：CenterRadius，，BackTurn Off
 void showModalMessage(const String& line1, const String& line2) {
   const int rectW = 116;
   const int rectH = 36;
-  const int rx = (display.width() - rectW) / 2;
-  const int ry = (display.height() - rectH) / 2;
+  const int rx = (//width() - rectW) / 2;
+  const int ry = (//height() - rectH) / 2;
   // ：，，Border
-  display.fillRoundRect(rx, ry, rectW, rectH, 4, SSD1306_BLACK);
-  display.drawRoundRect(rx, ry, rectW, rectH, 4, SSD1306_WHITE);
+  //fillRoundRect(rx, ry, rectW, rectH, 4, SSD1306_BLACK);
+  //drawRoundRect(rx, ry, rectW, rectH, 4, SSD1306_WHITE);
 
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+  //.setFontMode(1);
+  //.setForegroundColor(SSD1306_WHITE);
 
   //  line1/line2 WidthCenter
   String message = line1;
@@ -7614,14 +7624,14 @@ void showModalMessage(const String& line1, const String& line2) {
   // Center
   for (size_t i = 0; i < lines.size(); i++) {
     const String& s = lines[i];
-    int w = u8g2_for_adafruit_gfx.getUTF8Width(s.c_str());
+    int w = //.getUTF8Width(s.c_str());
     if (w > maxLineWidth) w = maxLineWidth;
     int x = rx + (rectW - w) / 2;
     int y = firstBaselineY + (int)i * lineHeight;
-    u8g2_for_adafruit_gfx.setCursor(x, y);
-    u8g2_for_adafruit_gfx.print(s);
+    //.setCursor(x, y);
+    //.print(s);
   }
-  display.display();
+  ////);
 
   // Turn Off，，
   // Wait
@@ -7649,40 +7659,40 @@ void showModalMessage(const String& line1, const String& line2) {
 bool showSelectSSIDConfirmModal() {
   const int rectW = 116;
   const int rectH = 40;
-  const int rx = (display.width() - rectW) / 2;
-  const int ry = (display.height() - rectH) / 2;
+  const int rx = (//width() - rectW) / 2;
+  const int ry = (//height() - rectH) / 2;
 
   while (true) {
     // BgBorder
-    display.fillRoundRect(rx, ry, rectW, rectH, 4, SSD1306_BLACK);
-    display.drawRoundRect(rx, ry, rectW, rectH, 4, SSD1306_WHITE);
+    //fillRoundRect(rx, ry, rectW, rectH, 4, SSD1306_BLACK);
+    //drawRoundRect(rx, ry, rectW, rectH, 4, SSD1306_WHITE);
 
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
 
     // ：CenterHintInfo
     String line1 = "SelectAP/SSID";
-    int w = u8g2_for_adafruit_gfx.getUTF8Width(line1.c_str());
+    int w = //.getUTF8Width(line1.c_str());
     if (w > rectW - 12) w = rectW - 12;
     int line1x = rx + (rectW - w) / 2;
     int line1y = ry + 16;
-    u8g2_for_adafruit_gfx.setCursor(line1x, line1y);
-    u8g2_for_adafruit_gfx.print(line1);
+    //.setCursor(line1x, line1y);
+    //.print(line1);
 
     // ：HintHint
     String leftHint = "《 Back";
     String rightHint = "Select 》";
     int hintY = ry + rectH - 8;
     //
-    u8g2_for_adafruit_gfx.setCursor(rx + 6, hintY);
-    u8g2_for_adafruit_gfx.print(leftHint);
+    //.setCursor(rx + 6, hintY);
+    //.print(leftHint);
     //
-    int rightW = u8g2_for_adafruit_gfx.getUTF8Width(rightHint.c_str());
+    int rightW = //.getUTF8Width(rightHint.c_str());
     int rightX = rx + rectW - 6 - rightW;
-    u8g2_for_adafruit_gfx.setCursor(rightX, hintY);
-    u8g2_for_adafruit_gfx.print(rightHint);
+    //.setCursor(rightX, hintY);
+    //.print(rightHint);
 
-    display.display();
+    ////);
 
     // ：BACK Back，OK Select
     if (digitalRead(BTN_BACK) == LOW) {
@@ -7709,37 +7719,37 @@ bool showSelectSSIDConfirmModal() {
 bool showConfirmModal(const String& line1, const String& leftHint, const String& rightHint) {
   const int rectW = 116;
   const int rectH = 40; // InfoSpamHeightHint
-  const int rx = (display.width() - rectW) / 2;
-  const int ry = (display.height() - rectH) / 2;
+  const int rx = (//width() - rectW) / 2;
+  const int ry = (//height() - rectH) / 2;
 
   while (true) {
     // BgBorder
-    display.fillRoundRect(rx, ry, rectW, rectH, 4, SSD1306_BLACK);
-    display.drawRoundRect(rx, ry, rectW, rectH, 4, SSD1306_WHITE);
+    //fillRoundRect(rx, ry, rectW, rectH, 4, SSD1306_BLACK);
+    //drawRoundRect(rx, ry, rectW, rectH, 4, SSD1306_WHITE);
 
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
 
     // ：Center
-    int w = u8g2_for_adafruit_gfx.getUTF8Width(line1.c_str());
+    int w = //.getUTF8Width(line1.c_str());
     if (w > rectW - 12) w = rectW - 12;
     int line1x = rx + (rectW - w) / 2;
     int line1y = ry + 16; //
-    u8g2_for_adafruit_gfx.setCursor(line1x, line1y);
-    u8g2_for_adafruit_gfx.print(line1);
+    //.setCursor(line1x, line1y);
+    //.print(line1);
 
     // ：HintHint
     int hintY = ry + rectH - 8; //
     //
-    u8g2_for_adafruit_gfx.setCursor(rx + 6, hintY);
-    u8g2_for_adafruit_gfx.print(leftHint);
+    //.setCursor(rx + 6, hintY);
+    //.print(leftHint);
     //
-    int rightW = u8g2_for_adafruit_gfx.getUTF8Width(rightHint.c_str());
+    int rightW = //.getUTF8Width(rightHint.c_str());
     int rightX = rx + rectW - 6 - rightW;
-    u8g2_for_adafruit_gfx.setCursor(rightX, hintY);
-    u8g2_for_adafruit_gfx.print(rightHint);
+    //.setCursor(rightX, hintY);
+    //.print(rightHint);
 
-    display.display();
+    ////);
 
     // ：BACK Cancel，OK Confirm
     // UsageDetect
@@ -7952,29 +7962,29 @@ void handleWebTest() {
 
 // Web UIStatus
 void displayWebUIStatus() {
-  display.clearDisplay();
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+  //clearDisplay();
+  //.setFontMode(1);
+  //.setForegroundColor(SSD1306_WHITE);
 
   {
     const char* t = "192.168.1.1";
-    int w = u8g2_for_adafruit_gfx.getUTF8Width(t);
-    int x = (display.width() - w) / 2; if (x < 0) x = 0;
-    u8g2_for_adafruit_gfx.setCursor(x, 10);
-    u8g2_for_adafruit_gfx.print(t);
+    int w = //.getUTF8Width(t);
+    int x = (//width() - w) / 2; if (x < 0) x = 0;
+    //.setCursor(x, 10);
+    //.print(t);
   }
   // ：SSID，Length，NoCenter
   {
     String ssidLine = String("SSID: ") + String(WEB_UI_SSID);
-    int textW = u8g2_for_adafruit_gfx.getUTF8Width(ssidLine.c_str());
+    int textW = //.getUTF8Width(ssidLine.c_str());
     const int y = 25;
     static int ssidScrollX = 0;
     static unsigned long ssidLastScrollMs = 0;
     const int scrollDelay = 150; // ms
-    if (textW <= display.width() - 2) {
-      int x = (display.width() - textW) / 2; if (x < 0) x = 0;
-      u8g2_for_adafruit_gfx.setCursor(x, y);
-      u8g2_for_adafruit_gfx.print(ssidLine);
+    if (textW <= //width() - 2) {
+      int x = (//width() - textW) / 2; if (x < 0) x = 0;
+      //.setCursor(x, y);
+      //.print(ssidLine);
       ssidScrollX = 0;
     } else {
       if (millis() - ssidLastScrollMs > (unsigned)scrollDelay) {
@@ -7982,24 +7992,24 @@ void displayWebUIStatus() {
         ssidLastScrollMs = millis();
       }
       int startX = ssidScrollX;
-      u8g2_for_adafruit_gfx.setCursor(2 - startX, y);
-      u8g2_for_adafruit_gfx.print(ssidLine);
-      u8g2_for_adafruit_gfx.setCursor(2 - startX + textW + 16, y);
-      u8g2_for_adafruit_gfx.print(ssidLine);
+      //.setCursor(2 - startX, y);
+      //.print(ssidLine);
+      //.setCursor(2 - startX + textW + 16, y);
+      //.print(ssidLine);
     }
   }
   // ：Password，Length，NoCenter
   {
     String pwdLine = String("Password: ") + String(WEB_UI_PASSWORD);
-    int textW = u8g2_for_adafruit_gfx.getUTF8Width(pwdLine.c_str());
+    int textW = //.getUTF8Width(pwdLine.c_str());
     const int y = 40;
     static int pwdScrollX = 0;
     static unsigned long pwdLastScrollMs = 0;
     const int scrollDelay = 150; // ms
-    if (textW <= display.width() - 2) {
-      int x = (display.width() - textW) / 2; if (x < 0) x = 0;
-      u8g2_for_adafruit_gfx.setCursor(x, y);
-      u8g2_for_adafruit_gfx.print(pwdLine);
+    if (textW <= //width() - 2) {
+      int x = (//width() - textW) / 2; if (x < 0) x = 0;
+      //.setCursor(x, y);
+      //.print(pwdLine);
       pwdScrollX = 0;
     } else {
       if (millis() - pwdLastScrollMs > (unsigned)scrollDelay) {
@@ -8007,21 +8017,21 @@ void displayWebUIStatus() {
         pwdLastScrollMs = millis();
       }
       int startX = pwdScrollX;
-      u8g2_for_adafruit_gfx.setCursor(2 - startX, y);
-      u8g2_for_adafruit_gfx.print(pwdLine);
-      u8g2_for_adafruit_gfx.setCursor(2 - startX + textW + 16, y);
-      u8g2_for_adafruit_gfx.print(pwdLine);
+      //.setCursor(2 - startX, y);
+      //.print(pwdLine);
+      //.setCursor(2 - startX + textW + 16, y);
+      //.print(pwdLine);
     }
   }
   {
     const char* b = "BACKExit";
-    int wb = u8g2_for_adafruit_gfx.getUTF8Width(b);
-    int xb = (display.width() - wb) / 2; if (xb < 0) xb = 0;
-    u8g2_for_adafruit_gfx.setCursor(xb, 55);
-    u8g2_for_adafruit_gfx.print(b);
+    int wb = //.getUTF8Width(b);
+    int xb = (//width() - wb) / 2; if (xb < 0) xb = 0;
+    //.setCursor(xb, 55);
+    //.print(b);
   }
 
-  display.display();
+  ////);
 }
 // WebRequest
 void handleWebClient(WiFiClient& client) {
@@ -8611,30 +8621,30 @@ void showAttackStatusPage(const char* attackType) {
     }
   }
 
-  display.clearDisplay();
-  display.setTextColor(SSD1306_WHITE);
-  display.setTextSize(1);
+  //clearDisplay();
+  //setTextColor(SSD1306_WHITE);
+  //setTextSize(1);
 
   // CenterAttackType
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+  //.setFontMode(1);
+  //.setForegroundColor(SSD1306_WHITE);
 
   // WidthCenter
-  int textWidth = u8g2_for_adafruit_gfx.getUTF8Width(attackType);
-  int textX = (display.width() - textWidth) / 2;
+  int textWidth = //.getUTF8Width(attackType);
+  int textX = (//width() - textWidth) / 2;
   int textY = 25; //
 
-  u8g2_for_adafruit_gfx.setCursor(textX, textY);
-  u8g2_for_adafruit_gfx.print(attackType);
+  //.setCursor(textX, textY);
+  //.print(attackType);
 
   // WiFiIcon（Center）
   if (wifiVisible) {
-    int wifiX = (display.width() - 19) / 2; // WiFiIconWidth19
+    int wifiX = (//width() - 19) / 2; // WiFiIconWidth19
     int wifiY = 42; // Icon
-    display.drawBitmap(wifiX, wifiY, image_wifi_not_connected__copy__bits, 19, 16, WHITE);
+    //drawBitmap(wifiX, wifiY, image_wifi_not_connected__copy__bits, 19, 16, WHITE);
   }
 
-  display.display();
+  ////);
 }
 
 // ============ APFloodAttackDesc ============
@@ -8667,39 +8677,39 @@ bool showApFloodInfoPage() {
     }
 
     // Desc
-    display.clearDisplay();
-    display.setTextSize(1);
+    //clearDisplay();
+    //setTextSize(1);
 
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
 
     // Desc（Center）
     const char* line1 = "";
     const char* line2 = "wifiDevice";
     const char* line3 = "Invalid";
 
-    int w1 = u8g2_for_adafruit_gfx.getUTF8Width(line1);
-    int w2 = u8g2_for_adafruit_gfx.getUTF8Width(line2);
-    int w3 = u8g2_for_adafruit_gfx.getUTF8Width(line3);
+    int w1 = //.getUTF8Width(line1);
+    int w2 = //.getUTF8Width(line2);
+    int w3 = //.getUTF8Width(line3);
 
-    int x1 = (display.width() - w1) / 2;
-    int x2 = (display.width() - w2) / 2;
-    int x3 = (display.width() - w3) / 2;
+    int x1 = (//width() - w1) / 2;
+    int x2 = (//width() - w2) / 2;
+    int x3 = (//width() - w3) / 2;
 
-    u8g2_for_adafruit_gfx.setCursor(x1, 15);
-    u8g2_for_adafruit_gfx.print(line1);
-    u8g2_for_adafruit_gfx.setCursor(x2, 30);
-    u8g2_for_adafruit_gfx.print(line2);
-    u8g2_for_adafruit_gfx.setCursor(x3, 45);
-    u8g2_for_adafruit_gfx.print(line3);
+    //.setCursor(x1, 15);
+    //.print(line1);
+    //.setCursor(x2, 30);
+    //.print(line2);
+    //.setCursor(x3, 45);
+    //.print(line3);
 
     // Button
-    u8g2_for_adafruit_gfx.setCursor(5, 60);
-    u8g2_for_adafruit_gfx.print("《 Back");
-    u8g2_for_adafruit_gfx.setCursor(85, 60);
-    u8g2_for_adafruit_gfx.print("Resume 》");
+    //.setCursor(5, 60);
+    //.print("《 Back");
+    //.setCursor(85, 60);
+    //.print("Resume 》");
 
-    display.display();
+    ////);
 
     delay(10); // ShortCPUUsedHeight
   }
@@ -8735,11 +8745,11 @@ bool showLinkJammerInfoPage() {
     }
 
     // Desc
-    display.clearDisplay();
-    display.setTextSize(1);
+    //clearDisplay();
+    //setTextSize(1);
 
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
 
     // Desc（Center）
     const char* line1 = "JamConnect，";
@@ -8747,28 +8757,28 @@ bool showLinkJammerInfoPage() {
     const char* line3 = "TargetDevice";
 
     // WidthCenter
-    int w1 = u8g2_for_adafruit_gfx.getUTF8Width(line1);
-    int w2 = u8g2_for_adafruit_gfx.getUTF8Width(line2);
-    int w3 = u8g2_for_adafruit_gfx.getUTF8Width(line3);
+    int w1 = //.getUTF8Width(line1);
+    int w2 = //.getUTF8Width(line2);
+    int w3 = //.getUTF8Width(line3);
 
-    int x1 = (display.width() - w1) / 2;
-    int x2 = (display.width() - w2) / 2;
-    int x3 = (display.width() - w3) / 2;
+    int x1 = (//width() - w1) / 2;
+    int x2 = (//width() - w2) / 2;
+    int x3 = (//width() - w3) / 2;
 
-    u8g2_for_adafruit_gfx.setCursor(x1, 15);
-    u8g2_for_adafruit_gfx.print(line1);
-    u8g2_for_adafruit_gfx.setCursor(x2, 30);
-    u8g2_for_adafruit_gfx.print(line2);
-    u8g2_for_adafruit_gfx.setCursor(x3, 45);
-    u8g2_for_adafruit_gfx.print(line3);
+    //.setCursor(x1, 15);
+    //.print(line1);
+    //.setCursor(x2, 30);
+    //.print(line2);
+    //.setCursor(x3, 45);
+    //.print(line3);
 
     // Button
-    u8g2_for_adafruit_gfx.setCursor(5, 60);
-    u8g2_for_adafruit_gfx.print("《 Back");
-    u8g2_for_adafruit_gfx.setCursor(85, 60);
-    u8g2_for_adafruit_gfx.print("Resume 》");
+    //.setCursor(5, 60);
+    //.print("《 Back");
+    //.setCursor(85, 60);
+    //.print("Resume 》");
 
-    display.display();
+    ////);
 
     delay(10); // ShortCPUUsedHeight
   }
@@ -8802,11 +8812,11 @@ bool showBeaconTamperInfoPage() {
     }
 
     // Desc
-    display.clearDisplay();
-    display.setTextSize(1);
+    //clearDisplay();
+    //setTextSize(1);
 
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
 
     // Desc（Center）
     const char* line1 = "TargetAP";
@@ -8814,28 +8824,28 @@ bool showBeaconTamperInfoPage() {
     const char* line3 = "";
 
     // WidthCenter
-    int w1 = u8g2_for_adafruit_gfx.getUTF8Width(line1);
-    int w2 = u8g2_for_adafruit_gfx.getUTF8Width(line2);
-    int w3 = u8g2_for_adafruit_gfx.getUTF8Width(line3);
+    int w1 = //.getUTF8Width(line1);
+    int w2 = //.getUTF8Width(line2);
+    int w3 = //.getUTF8Width(line3);
 
-    int x1 = (display.width() - w1) / 2;
-    int x2 = (display.width() - w2) / 2;
-    int x3 = (display.width() - w3) / 2;
+    int x1 = (//width() - w1) / 2;
+    int x2 = (//width() - w2) / 2;
+    int x3 = (//width() - w3) / 2;
 
-    u8g2_for_adafruit_gfx.setCursor(x1, 15);
-    u8g2_for_adafruit_gfx.print(line1);
-    u8g2_for_adafruit_gfx.setCursor(x2, 30);
-    u8g2_for_adafruit_gfx.print(line2);
-    u8g2_for_adafruit_gfx.setCursor(x3, 45);
-    u8g2_for_adafruit_gfx.print(line3);
+    //.setCursor(x1, 15);
+    //.print(line1);
+    //.setCursor(x2, 30);
+    //.print(line2);
+    //.setCursor(x3, 45);
+    //.print(line3);
 
     // Button
-    u8g2_for_adafruit_gfx.setCursor(5, 60);
-    u8g2_for_adafruit_gfx.print("《 Back");
-    u8g2_for_adafruit_gfx.setCursor(85, 60);
-    u8g2_for_adafruit_gfx.print("Resume 》");
+    //.setCursor(5, 60);
+    //.print("《 Back");
+    //.setCursor(85, 60);
+    //.print("Resume 》");
 
-    display.display();
+    ////);
 
     delay(10); // ShortCPUUsedHeight
   }
@@ -8869,11 +8879,11 @@ bool showBeaconTamperWarningPage() {
     }
 
     // Warning
-    display.clearDisplay();
-    display.setTextSize(1);
+    //clearDisplay();
+    //setTextSize(1);
 
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
 
     // Warning（Center）
     const char* line1 = "";
@@ -8881,28 +8891,28 @@ bool showBeaconTamperWarningPage() {
     const char* line3 = "Usage！";
 
     // WidthCenter
-    int w1 = u8g2_for_adafruit_gfx.getUTF8Width(line1);
-    int w2 = u8g2_for_adafruit_gfx.getUTF8Width(line2);
-    int w3 = u8g2_for_adafruit_gfx.getUTF8Width(line3);
+    int w1 = //.getUTF8Width(line1);
+    int w2 = //.getUTF8Width(line2);
+    int w3 = //.getUTF8Width(line3);
 
-    int x1 = (display.width() - w1) / 2;
-    int x2 = (display.width() - w2) / 2;
-    int x3 = (display.width() - w3) / 2;
+    int x1 = (//width() - w1) / 2;
+    int x2 = (//width() - w2) / 2;
+    int x3 = (//width() - w3) / 2;
 
-    u8g2_for_adafruit_gfx.setCursor(x1, 15);
-    u8g2_for_adafruit_gfx.print(line1);
-    u8g2_for_adafruit_gfx.setCursor(x2, 30);
-    u8g2_for_adafruit_gfx.print(line2);
-    u8g2_for_adafruit_gfx.setCursor(x3, 45);
-    u8g2_for_adafruit_gfx.print(line3);
+    //.setCursor(x1, 15);
+    //.print(line1);
+    //.setCursor(x2, 30);
+    //.print(line2);
+    //.setCursor(x3, 45);
+    //.print(line3);
 
     // Button
-    u8g2_for_adafruit_gfx.setCursor(5, 60);
-    u8g2_for_adafruit_gfx.print("《 Back");
-    u8g2_for_adafruit_gfx.setCursor(85, 60);
-    u8g2_for_adafruit_gfx.print("Resume 》");
+    //.setCursor(5, 60);
+    //.print("《 Back");
+    //.setCursor(85, 60);
+    //.print("Resume 》");
 
-    display.display();
+    ////);
 
     delay(10); // ShortCPUUsedHeight
   }
@@ -8933,16 +8943,16 @@ void homeActionPhishing() {
       drawssid(); // AP/SSIDSelect
     }
   } else if (g_webTestLocked || g_webUILocked) {
-    display.clearDisplay();
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(5, 20);
-    u8g2_for_adafruit_gfx.print("");
-    u8g2_for_adafruit_gfx.setCursor(5, 40);
-    u8g2_for_adafruit_gfx.print("RestartDeviceRun");
-    u8g2_for_adafruit_gfx.setCursor(5, 60);
-    u8g2_for_adafruit_gfx.print("《 BackMain Menu");
-    display.display();
+    //clearDisplay();
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
+    //.setCursor(5, 20);
+    //.print("");
+    //.setCursor(5, 40);
+    //.print("RestartDeviceRun");
+    //.setCursor(5, 60);
+    //.print("《 BackMain Menu");
+    ////);
     while (digitalRead(BTN_BACK) != LOW) { delay(10); }
     while (digitalRead(BTN_BACK) == LOW) { delay(10); }
   } else {
@@ -8952,15 +8962,15 @@ void homeActionPhishing() {
 
       bool confirmed = showConfirmModal("StartPhishingMode");
       if (confirmed) {
-        display.clearDisplay();
-        u8g2_for_adafruit_gfx.setFontMode(1);
-        u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+        //clearDisplay();
+        //.setFontMode(1);
+        //.setForegroundColor(SSD1306_WHITE);
         const char* msg = "Start...";
-        int w = u8g2_for_adafruit_gfx.getUTF8Width(msg);
-        int x = (display.width() - w) / 2;
-        u8g2_for_adafruit_gfx.setCursor(x, 32);
-        u8g2_for_adafruit_gfx.print(msg);
-        display.display();
+        int w = //.getUTF8Width(msg);
+        int x = (//width() - w) / 2;
+        //.setCursor(x, 32);
+        //.print(msg);
+        ////);
         if (!startWebTest()) {
           showModalMessage("StartFailed，Retry");
         }
@@ -9097,46 +9107,46 @@ void drawQuickCaptureModeSelection() {
   const char* modeNames[] = {"Mode", "Mode", "HeightMode"};
 
   while (true) {
-    display.clearDisplay();
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+    //clearDisplay();
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
 
     // Title - Center
     const char* title = "PacketModeSelect";
-    int titleWidth = u8g2_for_adafruit_gfx.getUTF8Width(title);
-    int titleCenterX = (display.width() - titleWidth) / 2;
+    int titleWidth = //.getUTF8Width(title);
+    int titleCenterX = (//width() - titleWidth) / 2;
     if (titleCenterX < 0) titleCenterX = 0;
-    u8g2_for_adafruit_gfx.setCursor(titleCenterX, 15);
-    u8g2_for_adafruit_gfx.print(title);
+    //.setCursor(titleCenterX, 15);
+    //.print(title);
 
     // ModeOptions
     for (int i = 0; i < 3; i++) {
       int y = 25 + i * 14; // AddSpacing
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+      //.setForegroundColor(SSD1306_WHITE);
 
       // Center - UsageUTF8Width
-      int textWidth = u8g2_for_adafruit_gfx.getUTF8Width(modeNames[i]);
-      int centerX = (display.width() - textWidth) / 2;
+      int textWidth = //.getUTF8Width(modeNames[i]);
+      int centerX = (//width() - textWidth) / 2;
       if (centerX < 0) centerX = 0;
 
       // YesMediumOptions，
       if (i == modeState) {
         //
-        u8g2_for_adafruit_gfx.setCursor(centerX - 15, y + 8);
-        u8g2_for_adafruit_gfx.print("-");
+        //.setCursor(centerX - 15, y + 8);
+        //.print("-");
 
         //
-        u8g2_for_adafruit_gfx.setCursor(centerX + textWidth + 5, y + 8);
-        u8g2_for_adafruit_gfx.print(" -");
+        //.setCursor(centerX + textWidth + 5, y + 8);
+        //.print(" -");
       }
 
       // Options
-      u8g2_for_adafruit_gfx.setCursor(centerX, y + 8);
-      u8g2_for_adafruit_gfx.print(modeNames[i]);
+      //.setCursor(centerX, y + 8);
+      //.print(modeNames[i]);
     }
 
 
-    display.display();
+    ////);
 
     //  - Usage
     static unsigned long lastKeyTime = 0;
@@ -9229,12 +9239,12 @@ void startQuickCapture() {
   hs_sniffer_running = true;
 
   // StartInfo
-  display.clearDisplay();
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-  u8g2_for_adafruit_gfx.setCursor(5, 30);
-  u8g2_for_adafruit_gfx.print("StartPacket...");
-  display.display();
+  //clearDisplay();
+  //.setFontMode(1);
+  //.setForegroundColor(SSD1306_WHITE);
+  //.setCursor(5, 30);
+  //.print("StartPacket...");
+  ////);
   delay(1000);
 }
 
@@ -9245,38 +9255,38 @@ void displayQuickCaptureProgress() {
 
   // 500msUpdate
   if (currentTime - lastUpdate > 500) {
-    display.clearDisplay();
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+    //clearDisplay();
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
 
     // Title
-    u8g2_for_adafruit_gfx.setCursor(5, 15);
-    u8g2_for_adafruit_gfx.print("PacketMedium...");
+    //.setCursor(5, 15);
+    //.print("PacketMedium...");
 
     // TargetNetworkInfo
-    u8g2_for_adafruit_gfx.setCursor(5, 25);
-    u8g2_for_adafruit_gfx.print("Target: ");
+    //.setCursor(5, 25);
+    //.print("Target: ");
     String ssidDisplay = _selectedNetwork.ssid.length() > 8 ? _selectedNetwork.ssid.substring(0, 8) + "..." : _selectedNetwork.ssid;
-    u8g2_for_adafruit_gfx.print(ssidDisplay);
+    //.print(ssidDisplay);
 
     // PacketStats
-    u8g2_for_adafruit_gfx.setCursor(5, 35);
-    u8g2_for_adafruit_gfx.print("Frame: ");
-    u8g2_for_adafruit_gfx.print(capturedHandshake.frameCount);
-    u8g2_for_adafruit_gfx.print("/4");
+    //.setCursor(5, 35);
+    //.print("Frame: ");
+    //.print(capturedHandshake.frameCount);
+    //.print("/4");
 
-    u8g2_for_adafruit_gfx.setCursor(5, 45);
-    u8g2_for_adafruit_gfx.print("ManageFrame: ");
-    u8g2_for_adafruit_gfx.print(capturedManagement.frameCount);
-    u8g2_for_adafruit_gfx.print("/10");
+    //.setCursor(5, 45);
+    //.print("ManageFrame: ");
+    //.print(capturedManagement.frameCount);
+    //.print("/10");
 
     // RunTime
-    u8g2_for_adafruit_gfx.setCursor(5, 55);
-    u8g2_for_adafruit_gfx.print("Time: ");
-    u8g2_for_adafruit_gfx.print((currentTime - quick_capture_start_time) / 1000);
-    u8g2_for_adafruit_gfx.print("s");
+    //.setCursor(5, 55);
+    //.print("Time: ");
+    //.print((currentTime - quick_capture_start_time) / 1000);
+    //.print("s");
 
-    display.display();
+    ////);
     lastUpdate = currentTime;
   }
 }
@@ -9286,45 +9296,45 @@ void drawQuickCaptureComplete() {
   int menuState = 0; // 0=StartWebService, 1=BackMain Menu
 
   while (true) {
-    display.clearDisplay();
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+    //clearDisplay();
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
 
     // Title
-    u8g2_for_adafruit_gfx.setCursor(5, 15);
-    u8g2_for_adafruit_gfx.print("PacketDone!");
+    //.setCursor(5, 15);
+    //.print("PacketDone!");
 
     // StatsInfo
-    u8g2_for_adafruit_gfx.setCursor(5, 25);
-    u8g2_for_adafruit_gfx.print("Frame: ");
-    u8g2_for_adafruit_gfx.print(capturedHandshake.frameCount);
-    u8g2_for_adafruit_gfx.print("/4");
+    //.setCursor(5, 25);
+    //.print("Frame: ");
+    //.print(capturedHandshake.frameCount);
+    //.print("/4");
 
-    u8g2_for_adafruit_gfx.setCursor(5, 35);
-    u8g2_for_adafruit_gfx.print("ManageFrame: ");
-    u8g2_for_adafruit_gfx.print(capturedManagement.frameCount);
-    u8g2_for_adafruit_gfx.print("/10");
+    //.setCursor(5, 35);
+    //.print("ManageFrame: ");
+    //.print(capturedManagement.frameCount);
+    //.print("/10");
 
-    u8g2_for_adafruit_gfx.setCursor(5, 45);
-    u8g2_for_adafruit_gfx.print(": ");
-    u8g2_for_adafruit_gfx.print((quick_capture_end_time - quick_capture_start_time) / 1000);
-    u8g2_for_adafruit_gfx.print("s");
+    //.setCursor(5, 45);
+    //.print(": ");
+    //.print((quick_capture_end_time - quick_capture_start_time) / 1000);
+    //.print("s");
 
     // MenuOptions
     const char* menuItems[] = {"StartWebService", "BackMain Menu"};
     for (int i = 0; i < 2; i++) {
       int y = 55 + i * 12;
       if (i == menuState) {
-        display.fillRoundRect(0, y-2, 128, 12, 2, SSD1306_WHITE);
-        u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_BLACK);
+        //fillRoundRect(0, y-2, 128, 12, 2, SSD1306_WHITE);
+        //.setForegroundColor(SSD1306_BLACK);
       } else {
-        u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+        //.setForegroundColor(SSD1306_WHITE);
       }
-      u8g2_for_adafruit_gfx.setCursor(5, y + 8);
-      u8g2_for_adafruit_gfx.print(menuItems[i]);
+      //.setCursor(5, y + 8);
+      //.print(menuItems[i]);
     }
 
-    display.display();
+    ////);
 
     //
     if (digitalRead(BTN_UP) == LOW) {
@@ -9359,20 +9369,20 @@ void drawQuickCaptureComplete() {
 // PacketTimeout
 void drawQuickCaptureTimeout() {
   while (true) {
-    display.clearDisplay();
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+    //clearDisplay();
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
 
-    u8g2_for_adafruit_gfx.setCursor(5, 20);
-    u8g2_for_adafruit_gfx.print("PacketTimeout");
+    //.setCursor(5, 20);
+    //.print("PacketTimeout");
 
-    u8g2_for_adafruit_gfx.setCursor(5, 35);
-    u8g2_for_adafruit_gfx.print("Handshake");
+    //.setCursor(5, 35);
+    //.print("Handshake");
 
-    u8g2_for_adafruit_gfx.setCursor(5, 50);
-    u8g2_for_adafruit_gfx.print("《 BackMain Menu");
+    //.setCursor(5, 50);
+    //.print("《 BackMain Menu");
 
-    display.display();
+    ////);
 
     if (digitalRead(BTN_BACK) == LOW) {
       delay(200);
@@ -9543,25 +9553,25 @@ void sendCaptureStatus(WiFiClient& client) {
 // WebServiceInfo
 void drawWebServiceInfo() {
   while (true) {
-    display.clearDisplay();
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+    //clearDisplay();
+    //.setFontMode(1);
+    //.setForegroundColor(SSD1306_WHITE);
 
     // Title
-    u8g2_for_adafruit_gfx.setCursor(5, 18);
-    u8g2_for_adafruit_gfx.print("Handshake");
+    //.setCursor(5, 18);
+    //.print("Handshake");
 
     // ConnectInfo
-    u8g2_for_adafruit_gfx.setCursor(5, 30);
-    u8g2_for_adafruit_gfx.print("ResumeStartWebService");
+    //.setCursor(5, 30);
+    //.print("ResumeStartWebService");
 
-    u8g2_for_adafruit_gfx.setCursor(5, 42);
-    u8g2_for_adafruit_gfx.print("DownloadHandshake");
+    //.setCursor(5, 42);
+    //.print("DownloadHandshake");
 
-    u8g2_for_adafruit_gfx.setCursor(5, 54);
-    u8g2_for_adafruit_gfx.print("《 Resume | Download");
+    //.setCursor(5, 54);
+    //.print("《 Resume | Download");
 
-    display.display();
+    ////);
 
     //
     if (digitalRead(BTN_BACK) == LOW) {
@@ -9574,34 +9584,34 @@ void drawWebServiceInfo() {
 
 // WebServiceStatus
 void displayWebServiceStatus() {
-  display.clearDisplay();
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
+  //clearDisplay();
+  //.setFontMode(1);
+  //.setForegroundColor(SSD1306_WHITE);
 
   // Title
-  u8g2_for_adafruit_gfx.setCursor(5, 15);
-  u8g2_for_adafruit_gfx.print("WebServiceStarted");
+  //.setCursor(5, 15);
+  //.print("WebServiceStarted");
 
   // TargetNetworkInfo
-  u8g2_for_adafruit_gfx.setCursor(5, 25);
-  u8g2_for_adafruit_gfx.print("Target: ");
+  //.setCursor(5, 25);
+  //.print("Target: ");
   String ssidDisplay = _selectedNetwork.ssid.length() > 8 ? _selectedNetwork.ssid.substring(0, 8) + "..." : _selectedNetwork.ssid;
-  u8g2_for_adafruit_gfx.print(ssidDisplay);
+  //.print(ssidDisplay);
 
   // PacketStats
-  u8g2_for_adafruit_gfx.setCursor(5, 35);
-  u8g2_for_adafruit_gfx.print("Frame: ");
-  u8g2_for_adafruit_gfx.print(capturedHandshake.frameCount);
-  u8g2_for_adafruit_gfx.print("/4");
+  //.setCursor(5, 35);
+  //.print("Frame: ");
+  //.print(capturedHandshake.frameCount);
+  //.print("/4");
 
-  u8g2_for_adafruit_gfx.setCursor(5, 45);
-  u8g2_for_adafruit_gfx.print("ManageFrame: ");
-  u8g2_for_adafruit_gfx.print(capturedManagement.frameCount);
-  u8g2_for_adafruit_gfx.print("/10");
+  //.setCursor(5, 45);
+  //.print("ManageFrame: ");
+  //.print(capturedManagement.frameCount);
+  //.print("/10");
 
   // Web
-  u8g2_for_adafruit_gfx.setCursor(5, 55);
-  u8g2_for_adafruit_gfx.print("Web: 192.168.1.1");
+  //.setCursor(5, 55);
+  //.print("Web: 192.168.1.1");
 
-  display.display();
+  ////);
 }
