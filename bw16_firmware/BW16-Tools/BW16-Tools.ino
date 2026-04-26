@@ -1,3 +1,77 @@
+
+#include <vector>
+#include <set>
+
+#ifndef MOCK_DISPLAY_H
+#define MOCK_DISPLAY_H
+#define SSD1306_SWITCHCAPVCC 0
+#define SSD1306_WHITE 1
+#define SSD1306_BLACK 0
+#define WHITE 1
+#define BLACK 0
+
+struct u8g2_font_ncenB14_tr {};
+struct u8g2_font_ncenB10_tr {};
+struct u8g2_font_wqy12_t_gb2312 {};
+
+extern u8g2_font_ncenB14_tr u8g2_font_ncenB14_tr;
+extern u8g2_font_ncenB10_tr u8g2_font_ncenB10_tr;
+extern u8g2_font_wqy12_t_gb2312 u8g2_font_wqy12_t_gb2312;
+
+class DummyDisplay {
+public:
+    void begin(int, int) {}
+    void clearDisplay() {}
+    void display() {}
+    void setTextColor(int) {}
+    void setTextSize(int) {}
+    void setCursor(int, int) {}
+    void print(String) {}
+    void print(const char*) {}
+    void print(int) {}
+    void print(unsigned long) {}
+    void print(char) {}
+    void drawRoundRect(int,int,int,int,int,int) {}
+    void fillRoundRect(int,int,int,int,int,int) {}
+    void drawRect(int,int,int,int,int) {}
+    void fillRect(int,int,int,int,int) {}
+    void drawLine(int,int,int,int,int) {}
+    void drawBitmap(int,int,const unsigned char*,int,int,int) {}
+    void fillTriangle(int,int,int,int,int,int,int) {}
+    int width() { return 128; }
+    int height() { return 64; }
+};
+
+class DummyU8g2 {
+public:
+    template<typename T>
+    void begin(T&) {}
+    template<typename T>
+    void setFont(T) {}
+    void setFontMode(int) {}
+    void setForegroundColor(int) {}
+    void setCursor(int, int) {}
+    void print(String) {}
+    void print(const char*) {}
+    void print(int) {}
+    void print(unsigned int) {}
+    void print(unsigned long) {}
+    int getUTF8Width(const char*) { return 10; }
+};
+
+extern DummyDisplay display;
+extern DummyU8g2 u8g2_for_adafruit_gfx;
+#endif
+
+typedef struct {
+  String ssid;
+  String bssid_str;
+  uint8_t bssid[6];
+  short rssi;
+  uint channel;
+  int security_type;
+} WiFiScanResult;
+
 /**
  * @file BW16-Tools.ino
  * @author FlyingIce
@@ -23,124 +97,6 @@ void LinkJammer();
 #include "wifi_util.h"
 #include "wifi_structures.h"
 #include "AnchorOTA.h"
-
-#include <vector>
-#include <set>
-typedef struct {
-  String ssid;
-  String bssid_str;
-  uint8_t bssid[6];
-
-  short rssi;
-  uint channel;
-  int security_type;
-} WiFiScanResult;
-
-
-
-#define BRUCE_CMD_PREFIX "BRUCE:"
-#define BRUCE_RESP_PREFIX "BRUCE_RESP:"
-
-bool bruceIdsActive = false;
-unsigned long lastBruceHeartbeat = 0;
-
-void sendToBruce(const char* format, ...) {
-  char buffer[512];
-  va_list args;
-  va_start(args, format);
-  vsnprintf(buffer, sizeof(buffer), format, args);
-  va_end(args);
-
-  Serial.print(BRUCE_RESP_PREFIX);
-  Serial.println(buffer);
-}
-
-void sendSSIDListToBruce() {
-  sendToBruce("SCAN_RESULT:COUNT=%d", scan_results.size());
-  for (uint i = 0; i < scan_results.size(); i++) {
-    char bssid_str[18];
-    snprintf(bssid_str, sizeof(bssid_str), "%02X:%02X:%02X:%02X:%02X:%02X",
-             scan_results[i].bssid[0], scan_results[i].bssid[1], scan_results[i].bssid[2],
-             scan_results[i].bssid[3], scan_results[i].bssid[4], scan_results[i].bssid[5]);
-    sendToBruce("AP:%d|%s|%s|%d|%d|%d",
-                i, scan_results[i].ssid.c_str(), bssid_str,
-                scan_results[i].channel, scan_results[i].security, scan_results[i].rssi);
-  }
-  sendToBruce("SCAN_COMPLETE");
-}
-
-void handleBruceCommand(String cmd) {
-  cmd.trim();
-  Serial.println("[Bruce CMD]: " + cmd);
-
-  if (cmd.startsWith("SCAN")) {
-    scanNetworks();
-    sendToBruce("SCAN_SUCCESS");
-    sendSSIDListToBruce();
-  }
-  else if (cmd.startsWith("SELECT_SSID")) {
-    int idx = cmd.substring(cmd.indexOf(',') + 1).toInt();
-    if (idx >= 0 && idx < scan_results.size()) {
-      scrollindex = idx + 1; // BW16-Tools uses scrollindex (1-indexed for APs)
-      sendToBruce("SELECTED:%d|%s", idx, scan_results[idx].ssid.c_str());
-    }
-  }
-  else if (cmd.startsWith("DEAUTH_START")) {
-    int idx = cmd.substring(cmd.indexOf(',') + 1).toInt();
-    if (idx >= 0 && idx < scan_results.size()) {
-
-      attackstate = 0;
-      deauthAttackRunning = true;
-      sendToBruce("DEAUTH_STARTED:%d", idx);
-    }
-  }
-  else if (cmd.startsWith("DEAUTH_STOP") || cmd.startsWith("DEAUTH_STOP_ALL")) {
-    stopAllAttacks();
-
-    sendToBruce("DEAUTH_ALL_STOPPED");
-  }
-  else if (cmd.startsWith("GET_AP_LIST")) {
-    sendSSIDListToBruce();
-  }
-  else if (cmd.startsWith("IDS_START")) {
-    int rc = wifi_set_promisc(RTW_PROMISC_ENABLE, promiscDetectCallback, 1);
-    bruceIdsActive = true;
-    sendToBruce("IDS_STARTED (rc=%d)", rc);
-  }
-
-  else if (cmd.startsWith("OTA_START")) {
-    sendToBruce("OTA_CONNECTING");
-
-    // Connect to Bruce's local AP
-    WiFi.begin("Bruce-OTA");
-    int retry = 0;
-    while (WiFi.status() != WL_CONNECTED && retry < 15) {
-      delay(500);
-      retry++;
-    }
-
-    if (WiFi.status() == WL_CONNECTED) {
-      sendToBruce("OTA_DOWNLOADING");
-      // Bruce is always 192.168.4.1 in AP mode, port 8080
-      IPAddress serverIP(192,168,4,1);
-      int ret = OTA.beginCloud(serverIP, 8080, true);
-
-      if (ret < 0) {
-        sendToBruce("OTA_FAILED:%d", ret);
-        WiFi.disconnect();
-      }
-    } else {
-      sendToBruce("OTA_WIFI_FAIL");
-    }
-  }
-  else if (cmd.startsWith("IDS_STOP")) {
-    wifi_set_promisc(RTW_PROMISC_DISABLE, nullptr, 0);
-    bruceIdsActive = false;
-    sendToBruce("IDS_STOPPED");
-  }
-}
-// ==========================================
-
 
 #undef max
 #undef min
@@ -170,73 +126,7 @@ class __FlashStringHelper; // forward declaration for Arduino-style flash string
 #include "DNSServer.h"
 
 // Display
-
-#ifndef MOCK_DISPLAY_H
-#define MOCK_DISPLAY_H
-
-#define SSD1306_SWITCHCAPVCC 0
-#define SSD1306_WHITE 1
-#define SSD1306_BLACK 0
-#define WHITE 1
-#define BLACK 0
-
-struct u8g2_font_ncenB14_tr {};
-struct u8g2_font_ncenB10_tr {};
-struct u8g2_font_wqy12_t_gb2312 {};
-
-extern u8g2_font_ncenB14_tr u8g2_font_ncenB14_tr;
-extern u8g2_font_ncenB10_tr u8g2_font_ncenB10_tr;
-extern u8g2_font_wqy12_t_gb2312 u8g2_font_wqy12_t_gb2312;
-
-class DummyDisplay {
-public:
-    void begin(int, int) {}
-    void clearDisplay() {}
-    void display() {}
-    void setTextColor(int) {}
-    void setTextSize(int) {}
-    void setCursor(int, int) {}
-    void print(String) {}
-    void print(const char*) {}
-    void print(int) {}
-    void print(unsigned int) {}
-    void print(unsigned long) {}
-    void print(char) {}
-    void drawRoundRect(int,int,int,int,int,int) {}
-    void fillRoundRect(int,int,int,int,int,int) {}
-    void drawRect(int,int,int,int,int) {}
-    void fillRect(int,int,int,int,int) {}
-    void drawLine(int,int,int,int,int) {}
-    void drawBitmap(int,int,const unsigned char*,int,int,int) {}
-    void fillTriangle(int,int,int,int,int,int,int) {}
-    int width() { return 128; }
-    int height() { return 64; }
-};
-
-
-class DummyU8g2 {
-public:
-    template<typename T>
-    void begin(T&) {}
-    template<typename T>
-    void setFont(T) {}
-    void setFontMode(int) {}
-    void setForegroundColor(int) {}
-    void setCursor(int, int) {}
-    void print(String) {}
-    void print(const char*) {}
-    void print(int) {}
-    void print(unsigned int) {}
-    void print(unsigned long) {}
-    int getUTF8Width(const char*) { return 10; }
-};
-
-
-extern DummyDisplay display;
-extern DummyU8g2 u8g2_for_adafruit_gfx;
-
-#endif
-
+// Removed Adafruit_GFX
 // Removed Adafruit_SSD1306
 // Removed U8g2_for_Adafruit_GFX
 // U8G2_FOR_ADAFRUIT_GFX removed
@@ -341,7 +231,15 @@ void homeActionWebUI();
 void homeActionQuickCapture();
 
 // VARIABLES
+typedef struct {
+  String ssid;
+  String bssid_str;
+  uint8_t bssid[6];
 
+  short rssi;
+  uint channel;
+  int security_type;
+} WiFiScanResult;
 
 // ===== Handshake WebUI State =====
 extern bool hs_sniffer_running;
@@ -4996,7 +4894,7 @@ void drawRequestFloodStatus(const String& ssid, bool clearDisplay = true) {
   u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
   oledDrawCenteredLine("[Dos攻击帧发送中]", 18);
   oledDrawCenteredLine(ssid.c_str(), 32);
-  if (clearDisplay) { /* display disabled */ }
+  if (clearDisplay) // display.display(); // DISABLED
 }
 
 void RequestFlood() {
@@ -6393,8 +6291,100 @@ void titleScreen(void) {
  *
  * Sets up LEDs/buttons, screen, networking, DNS/web, and initial state.
  */
+
 // ==========================================
-// BRUCE UART INTEGRATION - BY JULES
+// BRUCE UART INTEGRATION
+// ==========================================
+#define BRUCE_CMD_PREFIX "BRUCE:"
+#define BRUCE_RESP_PREFIX "BRUCE_RESP:"
+
+bool bruceIdsActive = false;
+unsigned long lastBruceHeartbeat = 0;
+
+void sendToBruce(const char* format, ...) {
+  char buffer[512];
+  va_list args;
+  va_start(args, format);
+  vsnprintf(buffer, sizeof(buffer), format, args);
+  va_end(args);
+  Serial.print(BRUCE_RESP_PREFIX);
+  Serial.println(buffer);
+}
+
+void sendSSIDListToBruce() {
+  sendToBruce("SCAN_RESULT:COUNT=%d", scan_results.size());
+  for (uint i = 0; i < scan_results.size(); i++) {
+    char bssid_str[18];
+    snprintf(bssid_str, sizeof(bssid_str), "%02X:%02X:%02X:%02X:%02X:%02X",
+             scan_results[i].bssid[0], scan_results[i].bssid[1], scan_results[i].bssid[2],
+             scan_results[i].bssid[3], scan_results[i].bssid[4], scan_results[i].bssid[5]);
+    sendToBruce("AP:%d|%s|%s|%d|%d|%d",
+                i, scan_results[i].ssid.c_str(), bssid_str,
+                scan_results[i].channel, scan_results[i].security_type, scan_results[i].rssi);
+  }
+  sendToBruce("SCAN_COMPLETE");
+}
+
+void handleBruceCommand(String cmd) {
+  cmd.trim();
+  if (cmd.startsWith("SCAN")) {
+    scanNetworks();
+    sendToBruce("SCAN_SUCCESS");
+    sendSSIDListToBruce();
+  }
+  else if (cmd.startsWith("SELECT_SSID")) {
+    int idx = cmd.substring(cmd.indexOf(',') + 1).toInt();
+    if (idx >= 0 && idx < scan_results.size()) {
+      scrollindex = idx + 1;
+      sendToBruce("SELECTED:%d|%s", idx, scan_results[idx].ssid.c_str());
+    }
+  }
+  else if (cmd.startsWith("DEAUTH_START")) {
+    int idx = cmd.substring(cmd.indexOf(',') + 1).toInt();
+    if (idx >= 0 && idx < scan_results.size()) {
+      attackstate = 0;
+      deauthAttackRunning = true;
+      sendToBruce("DEAUTH_STARTED:%d", idx);
+    }
+  }
+  else if (cmd.startsWith("DEAUTH_STOP") || cmd.startsWith("DEAUTH_STOP_ALL")) {
+    stopAllAttacks();
+    sendToBruce("DEAUTH_ALL_STOPPED");
+  }
+  else if (cmd.startsWith("GET_AP_LIST")) {
+    sendSSIDListToBruce();
+  }
+  else if (cmd.startsWith("IDS_START")) {
+    int rc = wifi_set_promisc(RTW_PROMISC_ENABLE, promiscDetectCallback, 1);
+    bruceIdsActive = true;
+    sendToBruce("IDS_STARTED (rc=%d)", rc);
+  }
+  else if (cmd.startsWith("OTA_START")) {
+    sendToBruce("OTA_CONNECTING");
+    WiFi.begin("Bruce-OTA");
+    int retry = 0;
+    while (WiFi.status() != WL_CONNECTED && retry < 15) {
+      delay(500);
+      retry++;
+    }
+    if (WiFi.status() == WL_CONNECTED) {
+      sendToBruce("OTA_DOWNLOADING");
+      IPAddress serverIP(192,168,4,1);
+      int ret = OTA.beginCloud(serverIP, 8080, true);
+      if (ret < 0) {
+        sendToBruce("OTA_FAILED:%d", ret);
+        WiFi.disconnect();
+      }
+    } else {
+      sendToBruce("OTA_WIFI_FAIL");
+    }
+  }
+  else if (cmd.startsWith("IDS_STOP")) {
+    wifi_set_promisc(RTW_PROMISC_DISABLE, nullptr, 0);
+    bruceIdsActive = false;
+    sendToBruce("IDS_STOPPED");
+  }
+}
 // ==========================================
 
 void setup() {
@@ -6466,26 +6456,10 @@ void initDisplay() {
 
 static void enterStandbyFaceMode() {
   return;
-
-  if (g_standbyFaceActive) return;
-  g_standbyFaceActive = true;
-  if (!g_face) {
-    g_face = new Face(128, 64, 40);
-    // Face removed
-    // Face removed
-    // Face removed
-    // Face removed
-    // Face removed
-  }
-  g_faceLastRandomizeMs = millis();
 }
 
 static void playRandomEmotion() {
   return;
-
-  if (!g_face) return;
-  int idx = random(0, (int)eEmotions::EMOTIONS_COUNT);
-  // Face removed
 }
 
 static bool handleStandbyFaceLoop() {
@@ -6608,21 +6582,16 @@ static bool handleStandbyFaceLoop() {
  */
 void loop() {
 
-  // ==========================================
-  // BRUCE UART LISTENER
-  // ==========================================
   while (Serial.available()) {
     String line = Serial.readStringUntil('\n');
     if (line.startsWith(BRUCE_CMD_PREFIX)) {
       handleBruceCommand(line.substring(strlen(BRUCE_CMD_PREFIX)));
     }
   }
-
   if (deauthAttackRunning && millis() - lastBruceHeartbeat > 2000) {
       sendToBruce("DEAUTH_HEARTBEAT:ACTIVE_COUNT=1");
       lastBruceHeartbeat = millis();
   }
-  // ==========================================
 
   unsigned long currentTime = millis();
 
