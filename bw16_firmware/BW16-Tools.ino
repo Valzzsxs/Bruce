@@ -98,10 +98,10 @@ const int TITLE_DELAY_MS = 25;   // Frame
 static bool g_skipNextSelectAnim = false;
 
 //
-#define BTN_DOWN PA12
-#define BTN_UP PA27
-#define BTN_OK PA13
-#define BTN_BACK PB2
+
+
+
+
 
 // LED（BW16）
 #ifndef LED_R
@@ -1026,7 +1026,7 @@ static void updateKeyStates() {
   unsigned long currentTime = millis();
 
   // DetectUP
-  bool upKeyCurrentState = (digitalRead(BTN_UP) == LOW);
+  bool upKeyCurrentState = (HIGH == LOW);
   if (upKeyCurrentState && !g_upKeyPressed) {
     //
     g_upKeyPressed = true;
@@ -1074,7 +1074,7 @@ static void updateKeyStates() {
   }
 
   // DetectDOWN
-  bool downKeyCurrentState = (digitalRead(BTN_DOWN) == LOW);
+  bool downKeyCurrentState = (HIGH == LOW);
   if (downKeyCurrentState && !g_downKeyPressed) {
     //
     g_downKeyPressed = true;
@@ -1545,7 +1545,7 @@ void drawAttackDetectPage() {
     }
 
     //
-    if (digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       if (g_detectUiMode == 0) {
         // ：StopConfirmSpam
@@ -1589,17 +1589,17 @@ void drawAttackDetectPage() {
 
 
 
-    if (digitalRead(BTN_OK) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       if (g_detectUiMode == 0) { g_detectUiMode = 1; g_recordsPage = 0; }
       else if (g_detectUiMode == 1) { if (!g_suspects.empty()) g_recordsPage = (g_recordsPage + 1) % (int)g_suspects.size(); }
     }
-    if (digitalRead(BTN_DOWN) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       if (g_detectUiMode == 0) g_detectUiMode = 2;
       else if (g_detectUiMode == 2) g_detectUiMode = 0;
     }
-    if (digitalRead(BTN_UP) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       if (g_detectUiMode == 0) {
         // Mode：Channel
@@ -1719,7 +1719,7 @@ void drawPacketDetectPage() {
     }
 
     //
-    if (digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       if (showConfirmModal("StopPacket")) {
         stopPacketDetection();
@@ -3251,7 +3251,7 @@ inline void homeMoveDown(unsigned long currentTime) {
 
 // Menu："Confirm/OK"
 inline void handleHomeOk() {
-  if (digitalRead(BTN_OK) != LOW) return;
+  if (HIGH != LOW) return;
   delay(400);
   // UsageFuncSystem
   if (menustate >= 0 && menustate < HOME_MAX_ITEMS) {
@@ -3278,27 +3278,27 @@ void showWiFiDetails(const WiFiScanResult& wifi) {
     while (!exitDetails) {
         unsigned long currentTime = millis();
 
-        if (digitalRead(BTN_BACK) == LOW) {
+        if (HIGH == LOW) {
             if (currentTime - lastBackTime <= DEBOUNCE_DELAY) continue;
             exitDetails = true;
             continue;
         }
 
-        if (digitalRead(BTN_UP) == LOW) {
+        if (HIGH == LOW) {
             if (currentTime - lastUpTime <= DEBOUNCE_DELAY) continue;
             if (detailsScroll > 0) detailsScroll--;
             scrollPosition = 0; //
             lastUpTime = currentTime;
         }
 
-        if (digitalRead(BTN_DOWN) == LOW) {
+        if (HIGH == LOW) {
             if (currentTime - lastDownTime <= DEBOUNCE_DELAY) continue;
             if (detailsScroll < 1) detailsScroll++; // 1，Total5，4
             scrollPosition = 0; //
             lastDownTime = currentTime;
         }
 
-        if (digitalRead(BTN_OK) == LOW) {
+        if (HIGH == LOW) {
             if (currentTime - lastOkTime <= DEBOUNCE_DELAY) continue;
             if (detailsScroll == 1) {
                 exitDetails = true;
@@ -3470,9 +3470,9 @@ void drawssid() {
     // SelectYesNo""
     allSelected = (SelectedVector.size() == scan_results.size() && !scan_results.empty());
 
-    if(digitalRead(BTN_BACK)==LOW) break;
+    if(HIGH==LOW) break;
 
-    if(digitalRead(BTN_OK) == LOW) {
+    if(HIGH == LOW) {
       delay(400);
       if(scrollindex == 0) {
         // /Cancel
@@ -3494,19 +3494,19 @@ void drawssid() {
         toggleSelection(scrollindex - 1);
       }
       unsigned long pressStartTime = millis();
-      while (digitalRead(BTN_OK) == LOW) {
+      while (HIGH == LOW) {
         if (millis() - pressStartTime >= 800) {
           if (scrollindex >= 1) {
             showWiFiDetails(scan_results[scrollindex - 1]);
           }
-          while (digitalRead(BTN_OK) == LOW) delay(10);
+          while (HIGH == LOW) delay(10);
           break;
         }
       }
       lastDownTime = currentTime;
     }
 
-    if(digitalRead(BTN_DOWN) == LOW) {
+    if(HIGH == LOW) {
       if (currentTime - lastDownTime <= DEBOUNCE_DELAY) continue;
       scrollPosition = 0;
       // ：LargeSSID（ scan_results.size()）
@@ -3529,7 +3529,7 @@ void drawssid() {
       lastUpTime = currentTime;
     }
 
-    if(digitalRead(BTN_UP) == LOW) {
+    if(HIGH == LOW) {
       if (currentTime - lastUpTime <= DEBOUNCE_DELAY) continue;
       scrollPosition = 0;
       if(scrollindex > 0) {
@@ -4105,7 +4105,7 @@ void processSingleAttack() {
 
   // ButtonDetect（Freq）
   if (now - g_deauthState.lastButtonCheckMs >= g_deauthState.buttonCheckInterval) {
-    if (digitalRead(BTN_OK) == LOW || digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW || HIGH == LOW) {
       if (showConfirmModal("ConfirmStopAttack")) {
         stopAttack();
         return;
@@ -4215,7 +4215,7 @@ void processMultiAttack() {
 
   // ButtonDetect（Freq）
   if (now - g_deauthState.lastButtonCheckMs >= g_deauthState.buttonCheckInterval) {
-    if (digitalRead(BTN_OK) == LOW || digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW || HIGH == LOW) {
       if (showConfirmModal("ConfirmStopAttack")) {
         stopAttack();
         return;
@@ -4342,7 +4342,7 @@ void processAutoSingleAttack() {
 
   // ButtonDetect（Freq）
   if (now - g_deauthState.lastButtonCheckMs >= g_deauthState.buttonCheckInterval) {
-    if (digitalRead(BTN_OK) == LOW || digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW || HIGH == LOW) {
       if (showConfirmModal("ConfirmStopAttack")) {
         stopAttack();
         return;
@@ -4450,7 +4450,7 @@ void processAutoMultiAttack() {
 
   // ButtonDetect（Freq）
   if (now - g_deauthState.lastButtonCheckMs >= g_deauthState.buttonCheckInterval) {
-    if (digitalRead(BTN_OK) == LOW || digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW || HIGH == LOW) {
       if (showConfirmModal("ConfirmStopAttack")) {
         stopAttack();
         return;
@@ -4574,7 +4574,7 @@ void processAllAttack() {
 
   // ButtonDetect（Freq）
   if (now - g_deauthState.lastButtonCheckMs >= g_deauthState.buttonCheckInterval) {
-    if (digitalRead(BTN_OK) == LOW || digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW || HIGH == LOW) {
       if (showConfirmModal("ConfirmStopAttack")) {
         stopAttack();
         return;
@@ -4639,7 +4639,7 @@ void processBeaconDeauthAttack() {
 
   // ButtonDetect（Freq）
   if (now - g_deauthState.lastButtonCheckMs >= g_deauthState.buttonCheckInterval) {
-    if (digitalRead(BTN_OK) == LOW || digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW || HIGH == LOW) {
       if (showConfirmModal("ConfirmStopAttack")) {
         stopAttack();
         return;
@@ -4869,7 +4869,7 @@ void RequestFlood() {
   AssocReqFrame asf; size_t asflen;
 
   while (true) {
-    if ((digitalRead(BTN_OK) == LOW) || (digitalRead(BTN_BACK) == LOW)) {
+    if ((HIGH == LOW) || (HIGH == LOW)) {
       digitalWrite(LED_R, LOW); digitalWrite(LED_G, LOW); digitalWrite(LED_B, LOW);
       delay(200);
       stabilizeButtonState();
@@ -4957,7 +4957,7 @@ void LinkJammer() {
 
   while (true) {
     // Stop：OK/BACK  -> Confirm
-    if ((digitalRead(BTN_OK) == LOW) || (digitalRead(BTN_BACK) == LOW)) {
+    if ((HIGH == LOW) || (HIGH == LOW)) {
       digitalWrite(LED_R, LOW); digitalWrite(LED_G, LOW); digitalWrite(LED_B, LOW);
       delay(200);
       // Status，ConfirmSpam
@@ -4973,7 +4973,7 @@ void LinkJammer() {
 
     for (int ch : channels) {
       // ChannelStatus
-      if ((digitalRead(BTN_OK) == LOW) || (digitalRead(BTN_BACK) == LOW)) {
+      if ((HIGH == LOW) || (HIGH == LOW)) {
         digitalWrite(LED_R, LOW); digitalWrite(LED_G, LOW); digitalWrite(LED_B, LOW);
         delay(200);
         // Status，ConfirmSpam
@@ -5064,7 +5064,7 @@ void BeaconTamper() {
 
   while (true) {
     // Stop：OK/BACK  -> Confirm
-    if ((digitalRead(BTN_OK) == LOW) || (digitalRead(BTN_BACK) == LOW)) {
+    if ((HIGH == LOW) || (HIGH == LOW)) {
       digitalWrite(LED_R, LOW); digitalWrite(LED_G, LOW); digitalWrite(LED_B, LOW);
       delay(200);
       // Status，ConfirmSpam
@@ -5080,7 +5080,7 @@ void BeaconTamper() {
 
     for (int ch : channels) {
       // ChannelStatus
-      if ((digitalRead(BTN_OK) == LOW) || (digitalRead(BTN_BACK) == LOW)) {
+      if ((HIGH == LOW) || (HIGH == LOW)) {
         digitalWrite(LED_R, LOW); digitalWrite(LED_G, LOW); digitalWrite(LED_B, LOW);
         delay(200);
         // Status，ConfirmSpam
@@ -5286,7 +5286,7 @@ void Beacon() {
       prevBlink = now;
     }
 
-    if ((digitalRead(BTN_OK) == LOW) || (digitalRead(BTN_BACK) == LOW)){
+    if ((HIGH == LOW) || (HIGH == LOW)){
       digitalWrite(LED_R, LOW);
       digitalWrite(LED_G, LOW);
       digitalWrite(LED_B, LOW);
@@ -5380,7 +5380,7 @@ void StableBeacon() {
       prevBlink = now;
     }
 
-    if ((digitalRead(BTN_OK) == LOW) || (digitalRead(BTN_BACK) == LOW)){
+    if ((HIGH == LOW) || (HIGH == LOW)){
       digitalWrite(LED_R, LOW);
       digitalWrite(LED_G, LOW);
       digitalWrite(LED_B, LOW);
@@ -5444,20 +5444,20 @@ bool BeaconBandMenu() {
   int state = beaconBandMode; // Mode
 
   while (true) {
-    if (digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       return false;
     }
-    if (digitalRead(BTN_OK) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       beaconBandMode = state;
       return true;
     }
-    if (digitalRead(BTN_UP) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       if (state > 0) state--;
     }
-    if (digitalRead(BTN_DOWN) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       if (state < 2) state++;
     }
@@ -5567,7 +5567,7 @@ void RandomBeacon() {
       prevBlink = now;
     }
 
-    if ((digitalRead(BTN_OK) == LOW) || (digitalRead(BTN_BACK) == LOW)){
+    if ((HIGH == LOW) || (HIGH == LOW)){
       digitalWrite(LED_R, LOW);
       digitalWrite(LED_G, LOW);
       digitalWrite(LED_B, LOW);
@@ -5630,12 +5630,12 @@ void BeaconMenu(){
 
   while (true) {
     unsigned long currentTime = millis();
-    if(digitalRead(BTN_BACK)==LOW) {
+    if(HIGH==LOW) {
       if (currentTime - lastBackTime <= DEBOUNCE_DELAY) continue;
       drawattack();
       break;
     }
-    if(digitalRead(BTN_OK)==LOW){
+    if(HIGH==LOW){
       if (currentTime - lastOkTime <= DEBOUNCE_DELAY) continue;
       stabilizeButtonState(); // Fix：Spam
       if(becaonstate == 0){
@@ -5685,7 +5685,7 @@ void BeaconMenu(){
       }
       lastOkTime = currentTime;
     }
-    if(digitalRead(BTN_UP)==LOW){
+    if(HIGH==LOW){
       if (currentTime - lastUpTime <= DEBOUNCE_DELAY) continue;
       if(becaonstate > 0){
         int yFrom = 2 + becaonstate * 16;
@@ -5695,7 +5695,7 @@ void BeaconMenu(){
       }
       lastUpTime = currentTime;
     }
-    if(digitalRead(BTN_DOWN)==LOW){
+    if(HIGH==LOW){
       if (currentTime - lastDownTime <= DEBOUNCE_DELAY) continue;
       if(becaonstate < 3){
         int yFrom = 2 + becaonstate * 16;
@@ -5790,7 +5790,7 @@ void StableAutoMulti() {
 
     // Button
     if (currentTime - buttonCheckTime >= buttonCheckInterval) {
-      if (digitalRead(BTN_OK) == LOW || digitalRead(BTN_BACK) == LOW) {
+      if (HIGH == LOW || HIGH == LOW) {
         digitalWrite(LED_R, LOW);
         digitalWrite(LED_G, LOW);
         digitalWrite(LED_B, LOW);
@@ -5833,7 +5833,7 @@ void StableAutoMulti() {
       if (channelBucketsCache.buckets[chIdx].empty()) continue;
       wext_set_channel(WLAN0_NAME, allChannels[chIdx]);
       for (const uint8_t *bssidPtr : channelBucketsCache.buckets[chIdx]) {
-        if (digitalRead(BTN_OK) == LOW || digitalRead(BTN_BACK) == LOW) {
+        if (HIGH == LOW || HIGH == LOW) {
           digitalWrite(LED_R, LOW);
           digitalWrite(LED_G, LOW);
           digitalWrite(LED_B, LOW);
@@ -5876,12 +5876,12 @@ void DeauthMenu() {
 
   while (true) {
     unsigned long currentTime = millis();
-    if(digitalRead(BTN_BACK)==LOW) {
+    if(HIGH==LOW) {
       if (currentTime - lastBackTime <= DEBOUNCE_DELAY) continue;
       drawattack();
       break;
     }
-    if(digitalRead(BTN_OK)==LOW){
+    if(HIGH==LOW){
       if (currentTime - lastOkTime <= DEBOUNCE_DELAY) continue;
       stabilizeButtonState(); // Fix：Spam
       switch(deauthstate + startIndex) {
@@ -5908,7 +5908,7 @@ void DeauthMenu() {
       //  case AttackFunc break; ConfirmResume
       lastOkTime = currentTime;
     }
-    if(digitalRead(BTN_UP)==LOW){
+    if(HIGH==LOW){
       if (currentTime - lastUpTime <= DEBOUNCE_DELAY) continue;
       if(deauthstate > 0){
         int yFrom = Y_OFFSET + deauthstate * ITEM_HEIGHT;
@@ -5925,7 +5925,7 @@ void DeauthMenu() {
       }
       lastUpTime = currentTime;
     }
-    if(digitalRead(BTN_DOWN)==LOW){
+    if(HIGH==LOW){
       if (currentTime - lastDownTime <= DEBOUNCE_DELAY) continue;
       if(deauthstate < MAX_DISPLAY_ITEMS - 1 && (startIndex + deauthstate < 6)){
         int yFrom = Y_OFFSET + deauthstate * ITEM_HEIGHT;
@@ -5995,8 +5995,8 @@ void drawattack() {
 
   while (true) {
     unsigned long currentTime = millis();
-    if(digitalRead(BTN_BACK)==LOW) break;
-    if (digitalRead(BTN_OK) == LOW) {
+    if(HIGH==LOW) break;
+    if (HIGH == LOW) {
       delay(300);
       if (attackstate == 0) {
         if (SelectedVector.empty()) {
@@ -6029,7 +6029,7 @@ void drawattack() {
         break;
       }
     }
-    if (digitalRead(BTN_UP) == LOW) {
+    if (HIGH == LOW) {
       if (currentTime - lastDownTime <= DEBOUNCE_DELAY) continue;
       if (attackstate > 0) {
         int yFrom = Y_OFFSET + attackstate * ITEM_HEIGHT;
@@ -6046,7 +6046,7 @@ void drawattack() {
       }
       lastUpTime = currentTime;
     }
-    if (digitalRead(BTN_DOWN) == LOW) {
+    if (HIGH == LOW) {
       if (currentTime - lastUpTime <= DEBOUNCE_DELAY) continue;
       if (attackstate < MAX_DISPLAY_ITEMS - 1) {
         int yFrom = Y_OFFSET + attackstate * ITEM_HEIGHT;
@@ -6335,10 +6335,10 @@ void handleBruceCommand(String cmd) {
 void setup() {
   pinMode(LED_R, OUTPUT);
   pinMode(LED_G, OUTPUT);
-  pinMode(BTN_DOWN, INPUT_PULLUP);
-  pinMode(BTN_UP, INPUT_PULLUP);
-  pinMode(BTN_OK, INPUT_PULLUP);
-  pinMode(BTN_BACK, INPUT_PULLUP);
+
+
+
+
   Serial.begin(115200);
 
   // LEDInit
@@ -6408,14 +6408,14 @@ static void playRandomEmotion() {
 
 
 
-  if (digitalRead(BTN_UP) == LOW) {
+  if (HIGH == LOW) {
     if (now - lastUp > debounce) { playRandomEmotion(); lastUp = now; }
   }
-  if (digitalRead(BTN_DOWN) == LOW) {
+  if (HIGH == LOW) {
     if (now - lastDown > debounce) { playRandomEmotion(); lastDown = now; }
   }
   static bool okHeld = false; static unsigned long okPressTs = 0;
-  if (digitalRead(BTN_OK) == LOW) {
+  if (HIGH == LOW) {
     if (!okHeld) { okHeld = true; okPressTs = now; }
     if (okHeld && (now - okPressTs >= longPress)) {
       {
@@ -6475,7 +6475,7 @@ static void playRandomEmotion() {
         ////);
         delay(1000);
       }
-      while (digitalRead(BTN_OK) == LOW) { delay(10); }
+      while (HIGH == LOW) { delay(10); }
       okHeld = false; lastOk = millis();
     }
   } else {
@@ -6488,13 +6488,13 @@ static void playRandomEmotion() {
     if (now - lastOk > debounce) { lastOk = now; }
   }
   static bool backHeld = false; static unsigned long backPressTs = 0;
-  if (digitalRead(BTN_BACK) == LOW) {
+  if (HIGH == LOW) {
     if (!backHeld) {
       backHeld = true; backPressTs = now;
       if (now - lastBack > debounce) { playRandomEmotion(); lastBack = now; }
     }
     if (backHeld && (now - backPressTs >= longPress)) {
-      while (digitalRead(BTN_BACK) == LOW) { delay(10); }
+      while (HIGH == LOW) { delay(10); }
       return false;
     }
   } else {
@@ -6693,7 +6693,7 @@ void loop() {
     }
 
     // BackStopPacket
-    if (digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       // Status，ConfirmSpam
       stabilizeButtonState();
@@ -6748,15 +6748,15 @@ void loop() {
   handleHomeOk();
 
   // ，AttackSelect
-  if (digitalRead(BTN_UP) == LOW) {
+  if (HIGH == LOW) {
     // UP+DOWN：Mode
-    if (digitalRead(BTN_DOWN) == LOW) {
+    if (HIGH == LOW) {
     } else {
       homeMoveUp(currentTime);
     }
   }
-  if (digitalRead(BTN_DOWN) == LOW) {
-    if (digitalRead(BTN_UP) == LOW) {
+  if (HIGH == LOW) {
+    if (HIGH == LOW) {
     } else {
       homeMoveDown(currentTime);
     }
@@ -6785,8 +6785,8 @@ bool startWebTest() {
     //.print("RestartDeviceRun");
     ////);
     // WaitBackExit
-    while (digitalRead(BTN_BACK) != LOW) { delay(10); }
-    while (digitalRead(BTN_BACK) == LOW) { delay(10); }
+    while (HIGH != LOW) { delay(10); }
+    while (HIGH == LOW) { delay(10); }
     return false;
   }
 
@@ -7130,7 +7130,7 @@ void performWebUIHealthCheck(unsigned long currentTime) {
 
 // Stop
 void checkEmergencyStop() {
-  if (digitalRead(BTN_UP) == LOW && digitalRead(BTN_DOWN) == LOW && digitalRead(BTN_OK) == LOW) {
+  if (HIGH == LOW && HIGH == LOW && HIGH == LOW) {
     if (web_test_active) {
       Serial.println("DetectStop，CleanPhishing...");
       forceCleanupWebTest();
@@ -7143,7 +7143,7 @@ void checkEmergencyStop() {
       showPhishingStatus("Web UIStop", "Clean", 3000);
     }
     // Wait
-    while (digitalRead(BTN_UP) == LOW || digitalRead(BTN_DOWN) == LOW || digitalRead(BTN_OK) == LOW) {
+    while (HIGH == LOW || HIGH == LOW || HIGH == LOW) {
       delay(10);
     }
   }
@@ -7154,8 +7154,8 @@ void stabilizeButtonState() {
   // WaitStatus
   delay(200);
   //
-  while (digitalRead(BTN_BACK) == LOW || digitalRead(BTN_OK) == LOW ||
-         digitalRead(BTN_UP) == LOW || digitalRead(BTN_DOWN) == LOW) {
+  while (HIGH == LOW || HIGH == LOW ||
+         HIGH == LOW || HIGH == LOW) {
     delay(10);
   }
   delay(100); // Time
@@ -7534,14 +7534,14 @@ bool apWebPageSelectionMenu() {
 
   while (true) {
     unsigned long currentTime = millis();
-    if (digitalRead(BTN_BACK) == LOW) { return false; }
-    if (digitalRead(BTN_OK) == LOW) { g_apSelectedPage = sel; return true; }
-    if (digitalRead(BTN_UP) == LOW) {
+    if (HIGH == LOW) { return false; }
+    if (HIGH == LOW) { g_apSelectedPage = sel; return true; }
+    if (HIGH == LOW) {
       if (currentTime - lastUpTime <= DEBOUNCE_DELAY) continue;
       if (sel > 0) sel--;
       lastUpTime = currentTime;
     }
-    if (digitalRead(BTN_DOWN) == LOW) {
+    if (HIGH == LOW) {
       if (currentTime - lastDownTime <= DEBOUNCE_DELAY) continue;
       if (sel < AP_MENU_ITEM_COUNT - 1) sel++;
       lastDownTime = currentTime;
@@ -7635,16 +7635,16 @@ void showModalMessage(const String& line1, const String& line2) {
 
   // Turn Off，，
   // Wait
-  while (digitalRead(BTN_BACK) != LOW && digitalRead(BTN_OK) != LOW &&
-         digitalRead(BTN_UP) != LOW && digitalRead(BTN_DOWN) != LOW) { delay(10); }
+  while (HIGH != LOW && HIGH != LOW &&
+         HIGH != LOW && HIGH != LOW) { delay(10); }
   // Wait
-  while (digitalRead(BTN_BACK) == LOW || digitalRead(BTN_OK) == LOW ||
-         digitalRead(BTN_UP) == LOW || digitalRead(BTN_DOWN) == LOW) { delay(10); }
+  while (HIGH == LOW || HIGH == LOW ||
+         HIGH == LOW || HIGH == LOW) { delay(10); }
   // Time，
   unsigned long stableStart = millis();
   while (true) {
-    bool anyKeyLow = (digitalRead(BTN_BACK) == LOW) || (digitalRead(BTN_OK) == LOW) ||
-                     (digitalRead(BTN_UP) == LOW) || (digitalRead(BTN_DOWN) == LOW);
+    bool anyKeyLow = (HIGH == LOW) || (HIGH == LOW) ||
+                     (HIGH == LOW) || (HIGH == LOW);
     if (anyKeyLow) {
       stableStart = millis();
     }
@@ -7695,17 +7695,17 @@ bool showSelectSSIDConfirmModal() {
     ////);
 
     // ：BACK Back，OK Select
-    if (digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW) {
       // WaitBACK
-      while (digitalRead(BTN_BACK) == LOW) { delay(10); }
+      while (HIGH == LOW) { delay(10); }
       // Time
       delay(200);
       return false; // Back，Exec
     }
 
-    if (digitalRead(BTN_OK) == LOW) {
+    if (HIGH == LOW) {
       // WaitOK
-      while (digitalRead(BTN_OK) == LOW) { delay(10); }
+      while (HIGH == LOW) { delay(10); }
       // Time
       delay(200);
       return true; // AP/SSIDSelect
@@ -7753,17 +7753,17 @@ bool showConfirmModal(const String& line1, const String& leftHint, const String&
 
     // ：BACK Cancel，OK Confirm
     // UsageDetect
-    if (digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW) {
       // WaitBACK
-      while (digitalRead(BTN_BACK) == LOW) { delay(10); }
+      while (HIGH == LOW) { delay(10); }
       // Time
       delay(200);
       return false; // Cancel
     }
 
-    if (digitalRead(BTN_OK) == LOW) {
+    if (HIGH == LOW) {
       // WaitOK
-      while (digitalRead(BTN_OK) == LOW) { delay(10); }
+      while (HIGH == LOW) { delay(10); }
       // Time
       delay(200);
       return true; // Confirm
@@ -7776,7 +7776,7 @@ bool showConfirmModal(const String& line1, const String& leftHint, const String&
 // Web UI
 void handleWebUI() {
   // Button
-  if (digitalRead(BTN_BACK) == LOW) {
+  if (HIGH == LOW) {
     // Status，ConfirmSpam
     stabilizeButtonState();
 
@@ -7832,7 +7832,7 @@ void handleWebTest() {
 
   //
   unsigned long currentTime = millis();
-  if (digitalRead(BTN_BACK) == LOW) {
+  if (HIGH == LOW) {
     if (currentTime - lastBackTime <= DEBOUNCE_DELAY) return;
     if (webtest_ui_page == 0) {
       // Back：ConfirmSpam，ConfirmStopWebTest
@@ -7858,7 +7858,7 @@ void handleWebTest() {
     return;
   }
 
-  if (digitalRead(BTN_UP) == LOW) {
+  if (HIGH == LOW) {
     if (currentTime - lastUpTime <= DEBOUNCE_DELAY) return;
     if (webtest_ui_page == 0) {
       webtest_ui_page = 1; // Info
@@ -7873,7 +7873,7 @@ void handleWebTest() {
     }
     lastUpTime = currentTime;
   }
-  if (digitalRead(BTN_DOWN) == LOW) {
+  if (HIGH == LOW) {
     if (currentTime - lastDownTime <= DEBOUNCE_DELAY) return;
     if (webtest_ui_page == 0) {
       webtest_ui_page = 3; // RunStatus
@@ -7893,7 +7893,7 @@ void handleWebTest() {
   }
   // ：OKPasswordList，BACK/OKBack
   // OKPasswordList
-  if (digitalRead(BTN_OK) == LOW) {
+  if (HIGH == LOW) {
     if (currentTime - lastOkTime <= DEBOUNCE_DELAY) return;
     if (webtest_ui_page == 0) {
       webtest_ui_page = 2; // OKPasswordList
@@ -8659,19 +8659,19 @@ bool showApFloodInfoPage() {
     unsigned long currentTime = millis();
 
     // Back
-    if (digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW) {
       if (currentTime - lastBackTime <= DEBOUNCE_DELAY) continue;
       // Wait
-      while (digitalRead(BTN_BACK) == LOW) { delay(10); }
+      while (HIGH == LOW) { delay(10); }
       delay(200); // Time
       return false; // Back
     }
 
     // Confirm
-    if (digitalRead(BTN_OK) == LOW) {
+    if (HIGH == LOW) {
       if (currentTime - lastOkTime <= DEBOUNCE_DELAY) continue;
       // Wait
-      while (digitalRead(BTN_OK) == LOW) { delay(10); }
+      while (HIGH == LOW) { delay(10); }
       delay(200); // Time
       return true; // ResumeExecAPFloodAttack
     }
@@ -8727,19 +8727,19 @@ bool showLinkJammerInfoPage() {
     unsigned long currentTime = millis();
 
     // Back
-    if (digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW) {
       if (currentTime - lastBackTime <= DEBOUNCE_DELAY) continue;
       // Wait
-      while (digitalRead(BTN_BACK) == LOW) { delay(10); }
+      while (HIGH == LOW) { delay(10); }
       delay(200); // Time
       return false; // Back
     }
 
     // Confirm
-    if (digitalRead(BTN_OK) == LOW) {
+    if (HIGH == LOW) {
       if (currentTime - lastOkTime <= DEBOUNCE_DELAY) continue;
       // Wait
-      while (digitalRead(BTN_OK) == LOW) { delay(10); }
+      while (HIGH == LOW) { delay(10); }
       delay(200); // Time
       return true; // ResumeExecConnectJam
     }
@@ -8794,19 +8794,19 @@ bool showBeaconTamperInfoPage() {
     unsigned long currentTime = millis();
 
     // Back
-    if (digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW) {
       if (currentTime - lastBackTime <= DEBOUNCE_DELAY) continue;
       // Wait
-      while (digitalRead(BTN_BACK) == LOW) { delay(10); }
+      while (HIGH == LOW) { delay(10); }
       delay(200); // Time
       return false; // Back
     }
 
     // Confirm
-    if (digitalRead(BTN_OK) == LOW) {
+    if (HIGH == LOW) {
       if (currentTime - lastOkTime <= DEBOUNCE_DELAY) continue;
       // Wait
-      while (digitalRead(BTN_OK) == LOW) { delay(10); }
+      while (HIGH == LOW) { delay(10); }
       delay(200); // Time
       return true; // ResumeExecBeacon
     }
@@ -8861,19 +8861,19 @@ bool showBeaconTamperWarningPage() {
     unsigned long currentTime = millis();
 
     // Back
-    if (digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW) {
       if (currentTime - lastBackTime <= DEBOUNCE_DELAY) continue;
       // Wait
-      while (digitalRead(BTN_BACK) == LOW) { delay(10); }
+      while (HIGH == LOW) { delay(10); }
       delay(200); // Time
       return false; // Back
     }
 
     // Confirm
-    if (digitalRead(BTN_OK) == LOW) {
+    if (HIGH == LOW) {
       if (currentTime - lastOkTime <= DEBOUNCE_DELAY) continue;
       // Wait
-      while (digitalRead(BTN_OK) == LOW) { delay(10); }
+      while (HIGH == LOW) { delay(10); }
       delay(200); // Time
       return true; // ResumeExecBroadcast
     }
@@ -8953,8 +8953,8 @@ void homeActionPhishing() {
     //.setCursor(5, 60);
     //.print("《 BackMain Menu");
     ////);
-    while (digitalRead(BTN_BACK) != LOW) { delay(10); }
-    while (digitalRead(BTN_BACK) == LOW) { delay(10); }
+    while (HIGH != LOW) { delay(10); }
+    while (HIGH == LOW) { delay(10); }
   } else {
     if (apWebPageSelectionMenu()) {
       // Status，ConfirmSpam
@@ -9152,19 +9152,19 @@ void drawQuickCaptureModeSelection() {
     static unsigned long lastKeyTime = 0;
     static bool keyPressed = false;
 
-    if (digitalRead(BTN_UP) == LOW) {
+    if (HIGH == LOW) {
       if (!keyPressed && millis() - lastKeyTime > 150) {
         keyPressed = true;
         lastKeyTime = millis();
         if (modeState > 0) modeState--;
       }
-    } else if (digitalRead(BTN_DOWN) == LOW) {
+    } else if (HIGH == LOW) {
       if (!keyPressed && millis() - lastKeyTime > 150) {
         keyPressed = true;
         lastKeyTime = millis();
         if (modeState < 2) modeState++;
       }
-    } else if (digitalRead(BTN_OK) == LOW) {
+    } else if (HIGH == LOW) {
       if (!keyPressed && millis() - lastKeyTime > 150) {
         keyPressed = true;
         lastKeyTime = millis();
@@ -9172,7 +9172,7 @@ void drawQuickCaptureModeSelection() {
         startQuickCapture();
         return;
       }
-    } else if (digitalRead(BTN_BACK) == LOW) {
+    } else if (HIGH == LOW) {
       if (!keyPressed && millis() - lastKeyTime > 150) {
         keyPressed = true;
         lastKeyTime = millis();
@@ -9337,15 +9337,15 @@ void drawQuickCaptureComplete() {
     ////);
 
     //
-    if (digitalRead(BTN_UP) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       if (menuState > 0) menuState--;
     }
-    if (digitalRead(BTN_DOWN) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       if (menuState < 1) menuState++;
     }
-    if (digitalRead(BTN_OK) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       if (menuState == 0) {
         // StartWebService
@@ -9358,7 +9358,7 @@ void drawQuickCaptureComplete() {
         return;
       }
     }
-    if (digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       return;
     }
@@ -9384,7 +9384,7 @@ void drawQuickCaptureTimeout() {
 
     ////);
 
-    if (digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       return;
     }
@@ -9574,7 +9574,7 @@ void drawWebServiceInfo() {
     ////);
 
     //
-    if (digitalRead(BTN_BACK) == LOW) {
+    if (HIGH == LOW) {
       delay(200);
       return;
     }
