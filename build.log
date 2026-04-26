@@ -1,4 +1,4 @@
-Processing lilygo-t-display-ttgo (board: lilygo-t-display-ttgo; platform: https://github.com/pioarduino/platform-espressif32/releases/download/55.03.36/platform-espressif32.zip; framework: arduino)
+Processing smoochiee-board (board: smoochiee-board; platform: https://github.com/pioarduino/platform-espressif32/releases/download/55.03.36/platform-espressif32.zip; framework: arduino)
 --------------------------------------------------------------------------------
 Library Manager: Installing h2zero/NimBLE-Arduino
 Library Manager: Installing h2zero/NimBLE-Arduino
@@ -7,10 +7,10 @@ Library Manager: Installing whywilson/ESP-PN532-UART
 Verbose mode can be enabled via `-v, --verbose` option
 [GZIP & EMBED INTO HEADER] - Nothing to process.
 1f7994c8ed5c769eed978510bc87130b8a949a2f3c2042ccddba35aa8032befc 1f7994c8ed5c769eed978510bc87130b8a949a2f3c2042ccddba35aa8032befc
-CONFIGURATION: https://docs.platformio.org/page/boards/espressif32/lilygo-t-display-ttgo.html
-PLATFORM: Espressif 32 (55.3.36) > Espressif ESP32 Dev Module (16MB)
-HARDWARE: ESP32 240MHz, 320KB RAM, 16MB Flash
-DEBUG: Current (cmsis-dap) External (cmsis-dap, esp-bridge, esp-prog, iot-bus-jtag, jlink, minimodule, olimex-arm-usb-ocd, olimex-arm-usb-ocd-h, olimex-arm-usb-tiny-h, olimex-jtag-tiny, tumpa)
+CONFIGURATION: https://docs.platformio.org/page/boards/espressif32/smoochiee-board.html
+PLATFORM: Espressif 32 (55.3.36) > Smoochiee Board
+HARDWARE: ESP32S3 240MHz, 320KB RAM, 16MB Flash
+DEBUG: Current (cmsis-dap) External (cmsis-dap, esp-bridge, esp-builtin, esp-prog, iot-bus-jtag, jlink, minimodule, olimex-arm-usb-ocd, olimex-arm-usb-ocd-h, olimex-arm-usb-tiny-h, olimex-jtag-tiny, tumpa)
 PACKAGES:
  - contrib-piohome @ 3.4.4
  - framework-arduinoespressif32 @ 3.3.6
@@ -29,7 +29,7 @@ Dependency Graph
 |-- LibSSH-ESP32 @ 5.8.0
 |-- Adafruit BusIO @ 1.17.2-bruce.1+sha.27230c1
 |-- Adafruit PN532 @ 1.3.3-bruce.1+sha.e91d695
-|-- BER-TLV @ 0.0.0+20260426085525.sha.bd61b70
+|-- BER-TLV @ 0.0.0+20260318175655.sha.bd61b70
 |-- RFID_MFRC522v2 @ 2.0.6+sha.a6977df
 |-- ESP Chameleon Ultra @ 0.0.2+sha.f66f354
 |-- ESP Amiibolink @ 0.0.2+sha.fc26412
@@ -46,7 +46,7 @@ Dependency Graph
 |-- ESP8266SAM @ 1.1.0
 |-- TinyGPSPlus @ 1.1.0
 |-- FFT @ 0.0.1
-|-- NimBLE-Arduino @ 2.5.0
+|-- NimBLE-Arduino @ 2.3.9
 |-- RF24 @ 1.4.11
 |-- Adafruit Si4713 Library @ 1.2.3
 |-- JPEGDecoder @ 2.0.0
@@ -54,21 +54,21 @@ Dependency Graph
 |-- mquickjs @ 0.0.4+sha.60b29b8
 |-- OneWire @ 2.3.8+sha.42e045e
 |-- ESP32-PSRamFS @ 1.0.6+sha.5ace2e6
-|-- AnimatedGIF @ 2.2.1
+|-- AnimatedGIF @ 2.2.0
 |-- PNGdec @ 1.1.6
 |-- ESPAsyncWebServer @ 3.10.3
 |-- FastLED @ 3.10.3
 |-- RadioLib @ 7.6.0
-|-- ESP32_Button @ 0.0.1+sha.5ad995f
+|-- XPowersLib @ 0.3.0
 |-- RotaryEncoder @ 1.5.3
+|-- Wire @ 3.3.6
 |-- WiFi @ 3.3.6
 |-- BruceHAL @ 7.3.1
-|-- Wire @ 3.3.6
-|-- FS @ 3.3.6
 |-- HTTPClient @ 3.3.6
 |-- Ethernet @ 3.3.6
 |-- Networking @ 3.3.6
 |-- SPI @ 3.3.6
+|-- FS @ 3.3.6
 |-- LittleFS @ 3.3.6
 |-- Bad_Usb_Lib
 |-- TFT_eSPI QRcode @ 1.0.0
@@ -82,81 +82,63 @@ Dependency Graph
 |-- NetworkClientSecure @ 3.3.6
 |-- SPIFFS @ 3.3.6
 Building in release mode
-Compiling .pio/build/lilygo-t-display-ttgo/libded/JPEGDecoder/JPEGDecoder.cpp.o
-Compiling .pio/build/lilygo-t-display-ttgo/libded/JPEGDecoder/picojpeg.c.o
-Compiling .pio/build/lilygo-t-display-ttgo/src/core/display.cpp.o
-Compiling .pio/build/lilygo-t-display-ttgo/src/core/menu_items/BW16Menu.cpp.o
-In file included from src/core/display.cpp:1646:
-.pio/libdeps/lilygo-t-display-ttgo/PNGdec/src/PNGdec.h:217:9: warning: "INTELSHORT" redefined
-  217 | #define INTELSHORT(p) ((*p) + (*(p+1)<<8))
-      |         ^~~~~~~~~~
-In file included from src/core/display.h:33,
-                 from src/core/display.cpp:1:
-.pio/libdeps/lilygo-t-display-ttgo/AnimatedGIF/src/AnimatedGIF.h:286:9: note: this is the location of the previous definition
-  286 | #define INTELSHORT(p) (*(uint16_t *)p)
-      |         ^~~~~~~~~~
-.pio/libdeps/lilygo-t-display-ttgo/PNGdec/src/PNGdec.h:218:9: warning: "INTELLONG" redefined
-  218 | #define INTELLONG(p) ((*p) + (*(p+1)<<8) + (*(p+2)<<16) + (*(p+3)<<24))
-      |         ^~~~~~~~~
-.pio/libdeps/lilygo-t-display-ttgo/AnimatedGIF/src/AnimatedGIF.h:287:9: note: this is the location of the previous definition
-  287 | #define INTELLONG(p) (*(uint32_t *)p)
-      |         ^~~~~~~~~
-Linking .pio/build/lilygo-t-display-ttgo/firmware.elf
+Linking .pio/build/smoochiee-board/firmware.elf
 Memory region         Used Size  Region Size  %age Used
-     iram0_0_seg:      110532 B       128 KB     84.33%
-     iram0_2_seg:     2625672 B    3342304 B     78.56%
-     dram0_0_seg:       97788 B     124580 B     78.49%
-     drom0_0_seg:      877756 B    4194272 B     20.93%
-    rtc_iram_seg:           0 B       8176 B      0.00%
-    rtc_data_seg:           0 B       8176 B      0.00%
-rtc_fast_reserved_seg:          16 B         16 B    100.00%
-    rtc_slow_seg:         132 B       7656 B      1.72%
-rtc_slow_reserved_seg:          24 B         24 B    100.00%
-  extern_ram_seg:           0 B         4 MB      0.00%
+     iram0_0_seg:      112128 B     358144 B     31.31%
+     iram0_2_seg:     2721964 B    8388576 B     32.45%
+     dram0_0_seg:      213664 B     341760 B     62.52%
+     drom0_0_seg:     3696921 B   33554400 B     11.02%
+    rtc_iram_seg:          96 B       8152 B      1.18%
+rtc_reserved_seg:          40 B         40 B    100.00%
+    rtc_slow_seg:          36 B       7680 B      0.47%
+  extern_ram_seg:     3735520 B   33554400 B     11.13%
                             Memory Type Usage Summary
 ┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
 ┃ Memory Type/Section ┃ Used [bytes] ┃ Used [%] ┃ Remain [bytes] ┃ Total [bytes] ┃
 ┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━┩
-│ Flash Code          │      2625672 │          │                │               │
-│    .text            │      2625672 │          │                │               │
-│ Flash Data          │       854256 │          │                │               │
-│    .rodata          │       853968 │          │                │               │
+│ Flash Code          │      2721964 │          │                │               │
+│    .text            │      2721964 │          │                │               │
+│ Flash Data          │       920996 │          │                │               │
+│    .rodata          │       920708 │          │                │               │
 │    .appdesc         │          288 │          │                │               │
-│ IRAM                │       110531 │    84.33 │          20541 │        131072 │
-│    .text            │       109503 │    83.54 │                │               │
-│    .vectors         │         1028 │     0.78 │                │               │
-│ DRAM                │        97784 │    78.49 │          26796 │        124580 │
-│    .bss             │        62216 │    49.94 │                │               │
-│    .data            │        35568 │    28.55 │                │               │
+│ DIRAM               │       213455 │    62.46 │         128305 │        341760 │
+│    .text            │        95539 │    27.95 │                │               │
+│    .bss             │        83352 │    24.39 │                │               │
+│    .data            │        34564 │    10.11 │                │               │
+│ IRAM                │        16384 │    100.0 │              0 │         16384 │
+│    .text            │        15356 │    93.73 │                │               │
+│    .vectors         │         1028 │     6.27 │                │               │
+│ RTC FAST            │           92 │     1.12 │           8100 │          8192 │
+│    .text            │           92 │     1.12 │                │               │
 │ RTC SLOW            │            1 │     0.01 │           7679 │          7680 │
 │    .data            │            1 │     0.01 │                │               │
 └─────────────────────┴──────────────┴──────────┴────────────────┴───────────────┘
-Total image size: 3626028 bytes (.bin may be padded larger)
+Total image size: 3789540 bytes (.bin may be padded larger)
 Note: The reported total sizes may be smaller than those in the technical reference manual due to reserved memory and application configuration. The total flash size available for the application is not included by default, as it cannot be reliably determined due to the presence of other data like the bootloader, partition table, and application partition size.
-Retrieving maximum program size .pio/build/lilygo-t-display-ttgo/firmware.elf
-Checking size .pio/build/lilygo-t-display-ttgo/firmware.elf
+Retrieving maximum program size .pio/build/smoochiee-board/firmware.elf
+Checking size .pio/build/smoochiee-board/firmware.elf
 Advanced Memory Usage is available via "PlatformIO Home > Project Inspect"
-RAM:   [===       ]  29.8% (used 97784 bytes from 327680 bytes)
-Flash: [========  ]  77.9% (used 3625739 bytes from 4653056 bytes)
-Building .pio/build/lilygo-t-display-ttgo/firmware.bin
+RAM:   [====      ]  36.0% (used 117916 bytes from 327680 bytes)
+Flash: [========  ]  81.4% (used 3789159 bytes from 4653056 bytes)
+Building .pio/build/smoochiee-board/firmware.bin
 esptool v5.1.0
-Creating ESP32 image...
-Merged 3 ELF sections.
-Successfully created ESP32 image.
-_merge_bins_callback([".pio/build/lilygo-t-display-ttgo/firmware.bin"], [".pio/build/lilygo-t-display-ttgo/firmware.elf"])
-BRUCE: [===============     ] 77.9% (used 0x375520 bytes of 0x470000 of OTA partition)
+Creating ESP32S3 image...
+Merged 4 ELF sections.
+Successfully created ESP32S3 image.
+_merge_bins_callback([".pio/build/smoochiee-board/firmware.bin"], [".pio/build/smoochiee-board/firmware.elf"])
+BRUCE: [================    ] 81.4% (used 0x39D380 bytes of 0x470000 of OTA partition)
 [merge_bin] Merging binaries:
-  "/home/jules/.platformio/penv/bin/python" -m platformio pkg exec -p "tool-esptoolpy" -- esptool.py --chip esp32 merge-bin --output "/app/Bruce-lilygo-t-display-ttgo.bin" 0x1000 "/app/.pio/build/lilygo-t-display-ttgo/bootloader.bin" 0x8000 "/app/.pio/build/lilygo-t-display-ttgo/partitions.bin" 0x10000 "/app/.pio/build/lilygo-t-display-ttgo/firmware.bin"
-"/home/jules/.platformio/penv/bin/python" -m platformio pkg exec -p "tool-esptoolpy" -- esptool.py --chip esp32 merge-bin --output "/app/Bruce-lilygo-t-display-ttgo.bin" 0x1000 "/app/.pio/build/lilygo-t-display-ttgo/bootloader.bin" 0x8000 "/app/.pio/build/lilygo-t-display-ttgo/partitions.bin" 0x10000 "/app/.pio/build/lilygo-t-display-ttgo/firmware.bin"
+  "/home/jules/.platformio/penv/bin/python" -m platformio pkg exec -p "tool-esptoolpy" -- esptool.py --chip esp32s3 merge-bin --output "/app/Bruce-smoochiee-board.bin" 0x0 "/app/.pio/build/smoochiee-board/bootloader.bin" 0x8000 "/app/.pio/build/smoochiee-board/partitions.bin" 0x10000 "/app/.pio/build/smoochiee-board/firmware.bin"
+"/home/jules/.platformio/penv/bin/python" -m platformio pkg exec -p "tool-esptoolpy" -- esptool.py --chip esp32s3 merge-bin --output "/app/Bruce-smoochiee-board.bin" 0x0 "/app/.pio/build/smoochiee-board/bootloader.bin" 0x8000 "/app/.pio/build/smoochiee-board/partitions.bin" 0x10000 "/app/.pio/build/smoochiee-board/firmware.bin"
 Using tool-esptoolpy@5.1.0 package
 Warning: DEPRECATED: 'esptool.py' is deprecated. Please use 'esptool' instead. The '.py' suffix will be removed in a future major release.
 esptool v5.1.0
-Wrote 0x385520 bytes to file '/app/Bruce-lilygo-t-display-ttgo.bin', ready to flash to offset 0x0.
-[merge_bin] Success -> /app/Bruce-lilygo-t-display-ttgo.bin (3691808 bytes)
+Wrote 0x3ad380 bytes to file '/app/Bruce-smoochiee-board.bin', ready to flash to offset 0x0.
+[merge_bin] Success -> /app/Bruce-smoochiee-board.bin (3855232 bytes)
 [Final bin] Valid bin to upload
-======================== [SUCCESS] Took 148.70 seconds ========================
+======================== [SUCCESS] Took 147.57 seconds ========================
 
-Environment            Status    Duration
----------------------  --------  ------------
-lilygo-t-display-ttgo  SUCCESS   00:02:28.705
-========================= 1 succeeded in 00:02:28.705 =========================
+Environment      Status    Duration
+---------------  --------  ------------
+smoochiee-board  SUCCESS   00:02:27.567
+========================= 1 succeeded in 00:02:27.567 =========================

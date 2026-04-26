@@ -150,6 +150,7 @@ bool BW16::otaUpdate(File &file) {
     // This allows the user to manually press "Burn" + "RST" buttons if the sketch isn't running
     bool ready = false;
     unsigned long startWait = millis();
+    unsigned long lastProgress = 0;
     while (millis() - startWait < 15000) { // Wait up to 15s for the user
         if (_serial.available()) {
             if (_serial.read() == 'C') {
@@ -158,9 +159,11 @@ bool BW16::otaUpdate(File &file) {
             }
         }
 
-        if (millis() - startWait < 15000) {
+        if (millis() - lastProgress > 100) { // Update UI every 100ms to avoid overwhelming display
             progressHandler(millis() - startWait, 15000, "Waiting for BW16 'C' (Burn Mode)...");
+            lastProgress = millis();
         }
+        delay(1); // Yield to prevent WDT
     }
 
     if (!ready) {
@@ -210,6 +213,7 @@ bool BW16::otaUpdate(File &file) {
                 break; // ready for data blocks
             }
         }
+        delay(1); // Yield
     }
 
     if (!ack) {
@@ -254,6 +258,7 @@ bool BW16::otaUpdate(File &file) {
                     break;
                 }
             }
+            delay(1); // Yield
         }
 
         if (!ack) {
@@ -282,6 +287,7 @@ bool BW16::otaUpdate(File &file) {
                 break;
             }
         }
+        delay(1); // Yield
     }
 
     // Send empty Block 0 to end YMODEM session
@@ -300,6 +306,7 @@ bool BW16::otaUpdate(File &file) {
         if (_serial.available()) {
             if (_serial.read() == 0x06) break; // ACK
         }
+        delay(1); // Yield
     }
 
     return true;
