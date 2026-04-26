@@ -231,7 +231,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh workflow list
-          gh workflow run .github/workflows/deploy.yml --ref WebPage
+          # gh workflow run .github/workflows/deploy.yml --ref WebPage
 
   create_release:
     runs-on: ubuntu-latest
