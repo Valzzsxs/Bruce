@@ -172,7 +172,12 @@ bool BW16::otaUpdate(File &file) {
     }
 
     // YMODEM Block 0 - Filename and size
-    uint8_t block0[133] = {0};
+    uint8_t *block0 = (uint8_t *)calloc(133, sizeof(uint8_t));
+    if (!block0) {
+        log_e("Failed to allocate block0");
+        return false;
+    }
+
     block0[0] = 0x01; // SOH
     block0[1] = 0x00; // Block 0
     block0[2] = 0xFF; // ~Block 0
@@ -218,6 +223,7 @@ bool BW16::otaUpdate(File &file) {
 
     if (!ack) {
         log_e("BW16 did not ACK block 0");
+        free(block0);
         return false;
     }
 
@@ -225,7 +231,13 @@ bool BW16::otaUpdate(File &file) {
     size_t totalBytes = file.size();
     size_t sentBytes = 0;
     uint8_t blockNum = 1;
-    uint8_t dataBlock[1029] = {0};
+
+    uint8_t *dataBlock = (uint8_t *)calloc(1029, sizeof(uint8_t));
+    if (!dataBlock) {
+        log_e("Failed to allocate dataBlock");
+        free(block0);
+        return false;
+    }
 
     while (sentBytes < totalBytes) {
         size_t toRead = totalBytes - sentBytes;
@@ -263,6 +275,8 @@ bool BW16::otaUpdate(File &file) {
 
         if (!ack) {
             log_e("BW16 did not ACK block %d", blockNum);
+            free(block0);
+            free(dataBlock);
             return false;
         }
 
@@ -291,15 +305,15 @@ bool BW16::otaUpdate(File &file) {
     }
 
     // Send empty Block 0 to end YMODEM session
-    uint8_t endBlock[133] = {0};
-    endBlock[0] = 0x01; // SOH
-    endBlock[1] = 0x00; // Block 0
-    endBlock[2] = 0xFF; // ~Block 0
-    crc = bw16_crc16(&endBlock[3], 128);
-    endBlock[131] = (crc >> 8) & 0xFF;
-    endBlock[132] = crc & 0xFF;
+    memset(block0, 0, 133);
+    block0[0] = 0x01; // SOH
+    block0[1] = 0x00; // Block 0
+    block0[2] = 0xFF; // ~Block 0
+    crc = bw16_crc16(&block0[3], 128);
+    block0[131] = (crc >> 8) & 0xFF;
+    block0[132] = crc & 0xFF;
 
-    _serial.write(endBlock, 133);
+    _serial.write(block0, 133);
 
     startWait = millis();
     while (millis() - startWait < 1000) {
@@ -308,6 +322,9 @@ bool BW16::otaUpdate(File &file) {
         }
         delay(1); // Yield
     }
+
+    free(block0);
+    free(dataBlock);
 
     return true;
 }
