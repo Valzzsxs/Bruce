@@ -2,7 +2,6 @@
 #include <vector>
 #include <set>
 
-#include "mock_display.h"
 
 
 /**
@@ -65,7 +64,6 @@ class __FlashStringHelper; // forward declaration for Arduino-style flash string
 // U8G2_FOR_ADAFRUIT_GFX removed
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
-#define OLED_RESET -1
 // display removed
 // Face standby includes
 // Removed Face header
@@ -99,7 +97,6 @@ const int ANIM_STEPS = 6;       // 动画步数（更顺滑）
 const int ANIM_DELAY_MS = 0;    // 通用每步延时（非选择框移动场景）
 // 统一选择框移动总时长（毫秒）：略慢于当前首页，略快于SSID页
 const int SELECT_MOVE_TOTAL_MS = 60;
-// 动画刷帧频率控制：每隔多少帧调用一次 display.display（减少刷新次数）
 const int DISPLAY_FLUSH_EVERY_FRAMES = 2;
 // 启动动画（更短）
 const int TITLE_FRAMES = 20;     // 增加闪烁次数（启动仍保持<1s）
@@ -445,7 +442,6 @@ int web_test_channel_dynamic = WEB_TEST_CHANNEL;
 std::vector<String> web_test_submitted_texts;
 static int webtest_password_scroll = 0;
 static int webtest_password_cursor = 0;
-// Web Test OLED 页面状态：0=主页面，1=接入点信息，2=密码列表，3=运行状态
 static int webtest_ui_page = 0;
 // 最近一次接收到密码的时间戳，用于主页高亮显示一秒
 static bool webtest_border_always_on = false;
@@ -747,7 +743,6 @@ static void promiscDetectCallback(unsigned char *buf, unsigned int len, void *us
     int tIdx = -1; for (size_t j = 0; j < g_tempCounts.size(); j++) { bool eq=true; for(int k=0;k<6;k++) if (g_tempCounts[j].bssid[k]!=src[k]) {eq=false;break;} if(eq){tIdx=(int)j;break;} }
     if (tIdx == -1) { TempCount tc; memcpy(tc.bssid, src, 6); tc.d = isDeauth?1:0; tc.a = isDisassoc?1:0; g_tempCounts.push_back(tc); }
     else { if (isDeauth) g_tempCounts[tIdx].d++; if (isDisassoc) g_tempCounts[tIdx].a++; }
-    // 保留最近一次用于OLED角落显示
     if (isDeauth) { g_lastDetectKind = 0xC0; } else { g_lastDetectKind = 0xA0; }
     for (int i = 0; i < 6; i++) g_lastDetectSrc[i] = src[i];
     if (len >= (unsigned)(off + 26)) { uint16_t r; memcpy(&r, base + 24, sizeof(r)); g_lastReason = r; }
@@ -894,8 +889,6 @@ static void stopPacketDetection() {
   g_previewSwitchPending = false;
 
   // 恢复默认字体设置以支持中文显示
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
   Serial.println("[PacketDetect] Packet detection stopped and resources cleaned up");
 }
@@ -1124,7 +1117,6 @@ static void updateKeyStates() {
 }
 
 /**
- * @brief Draw a dashed line on the OLED display.
  * @param x1 Start x
  * @param y1 Start y
  * @param x2 End x
@@ -1143,12 +1135,10 @@ static void drawDashedLine(int x1, int y1, int x2, int y2, int dashLength = 2) {
     if (nextI > steps) nextI = steps;
     int endX = x1 + (x2 - x1) * nextI / steps;
     int endY = y1 + (y2 - y1) * nextI / steps;
-    display.drawLine(x, y, endX, endY, SSD1306_WHITE);
   }
 }
 
 /**
- * @brief Render packet history chart and average line on OLED.
  */
 static void drawPacketChart() {
   // 图表区域：x=0-127, y=20-60 (高度40像素，增加高度以填补删除packets统计后的空间)
@@ -1158,7 +1148,6 @@ static void drawPacketChart() {
   int chartHeight = 40;
 
   // 绘制图表边框
-  display.drawRect(chartX, chartY, chartWidth, chartHeight, SSD1306_WHITE);
 
   // 找到历史数据中的最大值用于缩放
   unsigned long maxPackets = 1;
@@ -1195,7 +1184,6 @@ static void drawPacketChart() {
       // 绘制柱状图
       int x = chartX + 1 + i * pointWidth;
       int y = chartY + chartHeight - 1 - barHeight;
-      display.fillRect(x, y, pointWidth - 1, barHeight, SSD1306_WHITE);
     }
   }
 
@@ -1309,7 +1297,6 @@ static void stopAttackDetection() {
   Serial.println("[Detect] Attack detection stopped and resources cleaned up");
 }
 
-// 简易OLED页面：显示统计并自动换信道
 void drawAttackDetectPage() {
   // 初始化UI与统计
   g_detectUiMode = 0;
@@ -1397,9 +1384,6 @@ void drawAttackDetectPage() {
 
     if (now - g_attackDetectLastDrawMs >= drawInterval) {
       g_attackDetectLastDrawMs = now;
-      // display.clearDisplay(); // DISABLED
-      u8g2_for_adafruit_gfx.setFontMode(1);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
       int total = 0;
       const uint8_t* channels = getCurrentChannelGroup(total);
@@ -1407,21 +1391,13 @@ void drawAttackDetectPage() {
 
       if (g_detectUiMode == 0) {
         // 主页（对齐 drawWebTestMain 的四行排版：y=12,28,44,60）
-        const char* t1 = "[攻击帧检测中]"; int w1 = u8g2_for_adafruit_gfx.getUTF8Width(t1); int x1 = (display.width()-w1)/2; if (x1<0) x1=0;
-        u8g2_for_adafruit_gfx.setCursor(x1, 12); u8g2_for_adafruit_gfx.print(t1);
-        String t2 = String("监听信道：") + String(curCh) + "/" + getCurrentChannelGroupShortName(); int w2 = u8g2_for_adafruit_gfx.getUTF8Width(t2.c_str()); int x2=(display.width()-w2)/2; if(x2<0)x2=0;
-        u8g2_for_adafruit_gfx.setCursor(x2, 28); u8g2_for_adafruit_gfx.print(t2);
-        const char* t3 = "查看可疑记录"; int w3 = u8g2_for_adafruit_gfx.getUTF8Width(t3);
         // 计算文字+箭头的总宽度，然后整体居中
         int arrowWidth = 0; // 箭头宽度
         int spacing = 5; // 文字和箭头之间的间距
         int totalWidth = w3 + spacing + arrowWidth;
-        int x3 = (display.width() - totalWidth) / 2; if(x3<0) x3=0;
-        u8g2_for_adafruit_gfx.setCursor(x3, 44); u8g2_for_adafruit_gfx.print(t3);
         // 右箭头（与文字垂直居中对齐，位置相对于文字右边缘）
         int arrowY = 44 - 8; // 文字基线y=44，箭头中心应该在文字中心，文字高度约10px，向上移动4像素
         int arrowX = x3 + w3 + spacing; // 箭头左边缘位置
-        display.fillTriangle(arrowX, arrowY, arrowX, arrowY+6, arrowX+6, arrowY+3, SSD1306_WHITE);
 
         // 绘制"查看可疑记录"圆角边框：
         // 规则：
@@ -1453,21 +1429,14 @@ void drawAttackDetectPage() {
             int rect_w = w3 + pad_x * 2 + 2;
             int rect_h = text_height + pad_y * 2;
             int r = 3; // 圆角半径
-            display.drawRoundRect(rect_x, rect_y, rect_w, rect_h, r, SSD1306_WHITE);
           }
         }
-        const char* t4 = "↓ 监听统计 ↓"; int w4 = u8g2_for_adafruit_gfx.getUTF8Width(t4); int x4=(display.width()-w4)/2; if(x4<0)x4=0;
-        u8g2_for_adafruit_gfx.setCursor(x4, 60); u8g2_for_adafruit_gfx.print(t4);
 
 
       } else if (g_detectUiMode == 1) {
         // 记录列表（与参考样式一致的基线：标题y=12，主体y=28/44/60）
-        u8g2_for_adafruit_gfx.setCursor(2, 12); u8g2_for_adafruit_gfx.print("《 返回");
         int pages = (int)g_suspects.size(); if (pages==0) pages=1;
         String mid = String(g_recordsPage + 1) + "/" + String(pages);
-        int wm = u8g2_for_adafruit_gfx.getUTF8Width(mid.c_str()); int xm=(display.width()-wm)/2; if(xm<0)xm=0;
-        u8g2_for_adafruit_gfx.setCursor(xm, 12); u8g2_for_adafruit_gfx.print(mid);
-        int wr = u8g2_for_adafruit_gfx.getUTF8Width("翻页 》"); u8g2_for_adafruit_gfx.setCursor(display.width()-wr-2, 12); u8g2_for_adafruit_gfx.print("翻页 》");
         if (!g_suspects.empty()) {
           int idx = g_recordsPage % (int)g_suspects.size();
           // SSID 或 MAC 居中 y=28（过长滚动）
@@ -1476,9 +1445,6 @@ void drawAttackDetectPage() {
           String label = String(macBuf);
           for (size_t i=0;i<scan_results.size();i++){ bool eq=true; for(int k=0;k<6;k++) if (scan_results[i].bssid[k]!=g_suspects[idx].bssid[k]) {eq=false;break;} if(eq){ label=scan_results[i].ssid; break; } }
           static int scrollX = 0; static unsigned long lastScrollMs = 0; const int scrollDelay = 120; // ms
-          int textW = u8g2_for_adafruit_gfx.getUTF8Width(label.c_str());
-          if (textW <= display.width()-2) {
-            int xl=(display.width()-textW)/2; if(xl<0) xl=0; u8g2_for_adafruit_gfx.setCursor(xl, 28); u8g2_for_adafruit_gfx.print(label);
             scrollX = 0; // 重置滚动
           } else {
             if (millis() - lastScrollMs > (unsigned)scrollDelay) { scrollX = (scrollX + 2) % (textW + 16); lastScrollMs = millis(); }
@@ -1486,32 +1452,18 @@ void drawAttackDetectPage() {
             int startX = scrollX;
             // 简单实现：截断在可视宽度内分段打印（UTF8下精确裁剪较复杂，这里以像素滚动代替）
             // 将文本整体左移 startX 像素
-            u8g2_for_adafruit_gfx.setCursor(2 - startX, 28); u8g2_for_adafruit_gfx.print(label);
             // 在尾部追加一段空格+文本以形成循环滚动
-            u8g2_for_adafruit_gfx.setCursor(2 - startX + textW + 16, 28); u8g2_for_adafruit_gfx.print(label);
           }
           // Deauth/Disassoc 左对齐 y=44/60
           String s2 = String("Deauth: ") + String(g_suspects[idx].deauthCount);
           String s3 = String("Disassoc: ") + String(g_suspects[idx].disassocCount);
-          u8g2_for_adafruit_gfx.setCursor(2, 44); u8g2_for_adafruit_gfx.print(s2);
-          u8g2_for_adafruit_gfx.setCursor(2, 60); u8g2_for_adafruit_gfx.print(s3);
         } else {
-          const char* empt = "暂无记录"; int we=u8g2_for_adafruit_gfx.getUTF8Width(empt); int xe=(display.width()-we)/2; if(xe<0) xe=0;
-          u8g2_for_adafruit_gfx.setCursor(xe, 36); u8g2_for_adafruit_gfx.print(empt);
         }
       } else {
         // 统计页（同样采用 y=12,28,44,60）
-        const char* backUp = "↑ 返回 ↑"; int wb=u8g2_for_adafruit_gfx.getUTF8Width(backUp); int xb=(display.width()-wb)/2; if(xb<0) xb=0;
-        u8g2_for_adafruit_gfx.setCursor(xb, 12); u8g2_for_adafruit_gfx.print(backUp);
         String s2 = String("Deauth: ") + String(g_totalDeauth);
         String s3 = String("Disassoc: ") + String(g_totalDisassoc);
         String s4 = String("总计: ") + String(g_totalDeauth + g_totalDisassoc);
-        int w2=u8g2_for_adafruit_gfx.getUTF8Width(s2.c_str()); int x2=(display.width()-w2)/2; if(x2<0)x2=0;
-        int w3=u8g2_for_adafruit_gfx.getUTF8Width(s3.c_str()); int x3s=(display.width()-w3)/2; if(x3s<0)x3s=0;
-        int w4=u8g2_for_adafruit_gfx.getUTF8Width(s4.c_str()); int x4s=(display.width()-w4)/2; if(x4s<0)x4s=0;
-        u8g2_for_adafruit_gfx.setCursor(x2, 28); u8g2_for_adafruit_gfx.print(s2);
-        u8g2_for_adafruit_gfx.setCursor(x3s, 44); u8g2_for_adafruit_gfx.print(s3);
-        u8g2_for_adafruit_gfx.setCursor(x4s, 60); u8g2_for_adafruit_gfx.print(s4);
       }
 
       // 取消角落最近事件显示，避免与记录页内容重叠引起换行卡顿
@@ -1542,7 +1494,6 @@ void drawAttackDetectPage() {
       // 左侧返回指示（仅主页显示）
       // 主页不再显示"返回"文字以避免与标题冲突
 
-      // display.display(); // DISABLED
     }
 
     // 键处理
@@ -1672,9 +1623,6 @@ void drawPacketDetectPage() {
       }
 
       // 绘制页面
-      // display.clearDisplay(); // DISABLED
-      u8g2_for_adafruit_gfx.setFontMode(1);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
       // 检查并更新指示器状态
       unsigned long currentTime = millis();
@@ -1686,17 +1634,11 @@ void drawPacketDetectPage() {
 
       // 绘制方向键指示器（顶部左侧）
       if (g_showDownIndicator) {
-        u8g2_for_adafruit_gfx.setCursor(2, 10);
-        u8g2_for_adafruit_gfx.print("[↓]");
       } else if (g_showUpIndicator) {
-        u8g2_for_adafruit_gfx.setCursor(2, 10);
-        u8g2_for_adafruit_gfx.print("[↑]");
       }
 
       // 绘制管理帧指示器（顶部右侧）
       if (g_showMgmtFrameIndicator) {
-        u8g2_for_adafruit_gfx.setCursor(110, 10);
-        u8g2_for_adafruit_gfx.print("[*]");
       }
 
       // 顶部显示当前监测信道和频段（小字体）
@@ -1707,16 +1649,11 @@ void drawPacketDetectPage() {
       }
       channelInfo += " " + getChannelBand(displayChannel);
       // 使用默认字体以支持中文
-      int w1 = u8g2_for_adafruit_gfx.getUTF8Width(channelInfo.c_str());
-      int x1 = (display.width() - w1) / 2;
       if (x1 < 0) x1 = 0;
-      u8g2_for_adafruit_gfx.setCursor(x1, 10);
-      u8g2_for_adafruit_gfx.print(channelInfo);
 
       // 绘制统计图表（增加高度以填补删除packets统计后的空间）
       drawPacketChart();
 
-      // display.display(); // DISABLED
     }
 
     // 按键处理
@@ -1754,17 +1691,9 @@ static int g_apSkipRelIndex = -1;   // 在基础绘制中跳过的相对行（�
 
 // 无刷新基础绘制：AP页面选择菜单
 static void drawApMenuBase_NoFlush() {
-  // display.clearDisplay(); // DISABLED
-  display.setTextSize(1);
   // 标题：参考频段选择页面样式
   const char* title = "[选择钓鱼页面样式]";
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
   {
-    int w = u8g2_for_adafruit_gfx.getUTF8Width(title);
-    int x = (display.width() - w) / 2;
-    u8g2_for_adafruit_gfx.setCursor(x, 12);
-    u8g2_for_adafruit_gfx.print(title);
   }
   const int BASE_Y = 20; // 与频段选择相同的起始Y
   for (int i = 0; i < AP_MENU_ITEM_COUNT; i++) {
@@ -1772,12 +1701,8 @@ static void drawApMenuBase_NoFlush() {
     int rectY = BASE_Y + i * HOME_ITEM_HEIGHT;
     int textY = rectY + 12; // 普通项基线
     if (i != g_apSkipRelIndex) {
-      u8g2_for_adafruit_gfx.setFontMode(1);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-      u8g2_for_adafruit_gfx.setCursor(6, textY);
-      u8g2_for_adafruit_gfx.print(g_apMenuItems[menuIndex]);
     }
-    drawRightChevron(rectY, HOME_RECT_HEIGHT, false);
+
   }
 }
 // Web UI攻击状态变量
@@ -2126,17 +2051,7 @@ int scanNetworks() {
 // 复用的扫描流程与UI显示：标题居中+动态显示最新SSID
 static void performScanWithUI(const char* title, unsigned long timeoutMs, int maxResults) {
   while (true) {
-    // display.clearDisplay(); // DISABLED
-    display.setTextColor(SSD1306_WHITE);
-    display.setTextSize(1);
 
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    int titleW = u8g2_for_adafruit_gfx.getUTF8Width(title);
-    int titleX = (display.width() - titleW) / 2;
-    u8g2_for_adafruit_gfx.setCursor(titleX, 24);
-    u8g2_for_adafruit_gfx.print(title);
-    // display.display(); // DISABLED
 
     scan_results.clear();
     SelectedVector.clear();
@@ -2152,20 +2067,8 @@ static void performScanWithUI(const char* title, unsigned long timeoutMs, int ma
         unsigned long nowMs = millis();
         if (nowMs - lastAnimMs >= animIntervalMs) {
           lastAnimMs = nowMs;
-          // display.clearDisplay(); // DISABLED
-          u8g2_for_adafruit_gfx.setFontMode(1);
-          u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-          int tW = u8g2_for_adafruit_gfx.getUTF8Width(title);
-          int tX = (display.width() - tW) / 2;
-          u8g2_for_adafruit_gfx.setCursor(tX, 24);
-          u8g2_for_adafruit_gfx.print(title);
           const char* animText = frames[frameIndex & 1];
-          int aW = u8g2_for_adafruit_gfx.getUTF8Width(animText);
-          int aX = (display.width() - aW) / 2;
           if (aX < 0) aX = 0;
-          u8g2_for_adafruit_gfx.setCursor(aX, 48);
-          u8g2_for_adafruit_gfx.print(animText);
-          // display.display(); // DISABLED
           frameIndex++;
         }
         delay(10);
@@ -2180,12 +2083,6 @@ static void performScanWithUI(const char* title, unsigned long timeoutMs, int ma
     }
 
     Serial.println("扫描完成");
-    // display.clearDisplay(); // DISABLED
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(5, 25);
-    u8g2_for_adafruit_gfx.print("完成");
-    // display.display(); // DISABLED
     delay(300);
     menustate = 0;
     homeState = 0;
@@ -2239,10 +2136,7 @@ bool containsChinese(const String& str) {
 
 String utf8TruncateToWidth(const String& input, int maxPixelWidth) {
   String out = input;
-  if (u8g2_for_adafruit_gfx.getUTF8Width(out.c_str()) <= maxPixelWidth) return out;
-  int ellipsisWidth = u8g2_for_adafruit_gfx.getUTF8Width("...");
   // Trim until text + ellipsis fits
-  while (out.length() > 0 && (u8g2_for_adafruit_gfx.getUTF8Width(out.c_str()) + ellipsisWidth) > maxPixelWidth) {
     out.remove(out.length() - 1);
     // ensure we don't cut in the middle of a UTF-8 multibyte char
     while (out.length() > 0) {
@@ -2260,9 +2154,7 @@ String utf8TruncateToWidth(const String& input, int maxPixelWidth) {
 
 // 裁剪到指定像素宽度且不添加省略号（用于高亮项滚动显示）
 String utf8ClipToWidthNoEllipsis(const String& input, int maxPixelWidth) {
-  if (u8g2_for_adafruit_gfx.getUTF8Width(input.c_str()) <= maxPixelWidth) return input;
   String out = input;
-  while (out.length() > 0 && u8g2_for_adafruit_gfx.getUTF8Width(out.c_str()) > maxPixelWidth) {
     out.remove(out.length() - 1);
     while (out.length() > 0) {
       uint8_t last = (uint8_t)out[out.length() - 1];
@@ -2290,30 +2182,16 @@ static inline int advanceUtf8Index(const String& s, int start) {
 
 // ===== UI Helpers: rounded highlight, chevron =====
 void drawRightChevron(int y, int lineHeight, bool isSelected) {
-  int x = display.width() - UI_RIGHT_GUTTER - 8; // 向左移动箭头
   int ymid = y + lineHeight / 2;
-  int color = isSelected ? SSD1306_BLACK : SSD1306_WHITE;
-  display.fillTriangle(x, ymid - 3, x, ymid + 3, x + 4, ymid, color);
 }
 
 void drawRoundedHighlight(int y, int height) {
-  int width = display.width() - UI_RIGHT_GUTTER; // 预留右侧滚动条区域
   int radius = 2; // 稍微减小圆角
-  display.fillRoundRect(0, y, width, height, radius, SSD1306_WHITE);
 }
 
-// ===== OLED single-line helpers =====
 // 清理一行区域并居中绘制文本，然后立即刷新显示
 static inline void oledDrawCenteredLine(const char* text, int baselineY) {
-  display.fillRect(0, baselineY - 9, display.width(), 12, SSD1306_BLACK);
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-  int w = u8g2_for_adafruit_gfx.getUTF8Width(text);
-  int x = (display.width() - w) / 2;
   if (x < 0) x = 0;
-  u8g2_for_adafruit_gfx.setCursor(x, baselineY);
-  u8g2_for_adafruit_gfx.print(text);
-  // display.display(); // DISABLED
 }
 
 // 在节流间隔内尝试绘制；若到达间隔则绘制并返回true
@@ -2321,7 +2199,7 @@ static inline bool oledMaybeDrawCenteredLine(const char* text, int baselineY, un
   unsigned long nowMs = millis();
   if (intervalMs == 0) return false; // 0 表示不刷新
   if (nowMs - lastDrawMs < intervalMs) return false;
-  oledDrawCenteredLine(text, baselineY);
+
   lastDrawMs = nowMs;
   return true;
 }
@@ -2331,13 +2209,11 @@ void drawHomeScrollbar(int startIndex) {
   // 如果一页即可显示全部，不绘制滚动条
   if (HOME_MAX_ITEMS <= HOME_PAGE_SIZE) return;
 
-  int barX = display.width() - UI_RIGHT_GUTTER + 1; // 靠近右侧边缘内侧
   int barWidth = UI_RIGHT_GUTTER - 2; // 留出1px内边距
   int trackY = HOME_Y_OFFSET;
   int trackH = HOME_ITEM_HEIGHT * HOME_PAGE_SIZE;
 
   // 轨道（浅色描边）
-  display.drawRoundRect(barX, trackY, barWidth, trackH, 2, SSD1306_WHITE);
 
   // 滑块高度按页占比
   float pageRatio = (float)HOME_PAGE_SIZE / (float)HOME_MAX_ITEMS;
@@ -2348,19 +2224,16 @@ void drawHomeScrollbar(int startIndex) {
   int thumbY = trackY + (int)((trackH - thumbH) * posRatio + 0.5f);
 
   // 滑块
-  display.fillRoundRect(barX + 1, thumbY, barWidth - 2, thumbH, 2, SSD1306_WHITE);
 }
 
 // 动画版滚动条：支持浮点起始索引以实现平滑过渡
 void drawHomeScrollbarFraction(float startIndexF) {
   if (HOME_MAX_ITEMS <= HOME_PAGE_SIZE) return;
 
-  int barX = display.width() - UI_RIGHT_GUTTER + 1;
   int barWidth = UI_RIGHT_GUTTER - 2;
   int trackY = HOME_Y_OFFSET;
   int trackH = HOME_ITEM_HEIGHT * HOME_PAGE_SIZE;
 
-  display.drawRoundRect(barX, trackY, barWidth, trackH, 2, SSD1306_WHITE);
 
   float pageRatio = (float)HOME_PAGE_SIZE / (float)HOME_MAX_ITEMS;
   int computedThumb = (int)(trackH * pageRatio);
@@ -2372,7 +2245,6 @@ void drawHomeScrollbarFraction(float startIndexF) {
   if (posRatio > 1.0f) posRatio = 1.0f;
   int thumbY = trackY + (int)((trackH - thumbH) * posRatio + 0.5f);
 
-  display.fillRoundRect(barX + 1, thumbY, barWidth - 2, thumbH, 2, SSD1306_WHITE);
 }
 
 // 滚动条已移除
@@ -2383,38 +2255,21 @@ void drawHomeScrollbarFraction(float startIndexF) {
 //   // 此函数已被 drawHomeMenuBasePaged 和 drawHomeMenuBasePaged_NoFlush 替代
 // }
 
-// ===== WebTest OLED Pages (defined after globals to fix forward references) =====
 void drawWebTestMain() {
-  // display.clearDisplay(); // DISABLED
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
   // 第一行
   const char* line1_text = "↑ 接入点信息 ↑";
-  int w1 = u8g2_for_adafruit_gfx.getUTF8Width(line1_text);
-  int x1_center = (display.width() - w1) / 2;
-  u8g2_for_adafruit_gfx.setCursor(x1_center, 12);
-  u8g2_for_adafruit_gfx.print(line1_text);
 
 
   // 第二行
-  u8g2_for_adafruit_gfx.setCursor(15, 28);
-  u8g2_for_adafruit_gfx.print("停止钓鱼并返回");
   int left_arrow2_x = 5;
   int arrow2_y = 22;
   // 绘制向左箭头
-  display.fillTriangle(left_arrow2_x + 4, arrow2_y - 3, left_arrow2_x + 4, arrow2_y + 3, left_arrow2_x - 2, arrow2_y, SSD1306_WHITE);
 
   // 第三行
   const char* line3_text = "查看接收到的密码";
-  int w3 = u8g2_for_adafruit_gfx.getUTF8Width(line3_text);
-  int x3_right = display.width() - w3 - 15;
-  u8g2_for_adafruit_gfx.setCursor(x3_right, 44);
-  u8g2_for_adafruit_gfx.print(line3_text);
-  int right_arrow3_x = display.width() - 5;
   int arrow3_y = 38;
   // 绘制向右箭头
-  display.fillTriangle(right_arrow3_x - 4, arrow3_y - 3, right_arrow3_x - 4, arrow3_y + 3, right_arrow3_x + 2, arrow3_y, SSD1306_WHITE);
   // 绘制"查看接收到的密码"圆角边框：
   // 规则：
   // - 收到过至少一次密码后常亮
@@ -2445,69 +2300,30 @@ void drawWebTestMain() {
       int rect_w = w3 + pad_x * 2 + 2;
       int rect_h = text_height + pad_y * 2;
       int r = 3; // 圆角半径
-      display.drawRoundRect(rect_x, rect_y, rect_w, rect_h, r, SSD1306_WHITE);
     }
   }
 
   // 第四行
   const char* line4_text = "↓ 运行状态 ↓";
-  int w4 = u8g2_for_adafruit_gfx.getUTF8Width(line4_text);
-  int x4_center = (display.width() - w4) / 2;
-  u8g2_for_adafruit_gfx.setCursor(x4_center, 60);
-  u8g2_for_adafruit_gfx.print(line4_text);
 
-  // display.display(); // DISABLED
 }
 
 void drawWebTestInfo() {
-  // display.clearDisplay(); // DISABLED
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
   const char* title = "[接入点信息]";
-  int w = u8g2_for_adafruit_gfx.getUTF8Width(title);
-  int x = (display.width() - w) / 2;
-  u8g2_for_adafruit_gfx.setCursor(x, 12);
-  u8g2_for_adafruit_gfx.print(title);
   String line2 = web_test_ssid_dynamic;
-  w = u8g2_for_adafruit_gfx.getUTF8Width(line2.c_str());
-  x = (display.width() - w) / 2;
-  u8g2_for_adafruit_gfx.setCursor(x, 28);
-  u8g2_for_adafruit_gfx.print(line2);
   String band = (is24GChannel(web_test_channel_dynamic) ? "2.4" : (is5GChannel(web_test_channel_dynamic) ? "5G" : "?"));
   String line3 = String("频段: ") + band + String("|信道: ") + String(web_test_channel_dynamic);
-  w = u8g2_for_adafruit_gfx.getUTF8Width(line3.c_str());
-  x = (display.width() - w) / 2;
-  u8g2_for_adafruit_gfx.setCursor(x, 44);
-  u8g2_for_adafruit_gfx.print(line3);
   const char* hint = "↓ 返回 ↓";
-  w = u8g2_for_adafruit_gfx.getUTF8Width(hint);
-  x = (display.width() - w) / 2;
-  u8g2_for_adafruit_gfx.setCursor(x, 60);
-  u8g2_for_adafruit_gfx.print(hint);
-  // display.display(); // DISABLED
 }
 
 void drawWebTestPasswords() {
-  // display.clearDisplay(); // DISABLED
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-  u8g2_for_adafruit_gfx.setCursor(5, 12);
-  u8g2_for_adafruit_gfx.print("< 返回");
   const char* title = "[密码列表]";
-  int w = u8g2_for_adafruit_gfx.getUTF8Width(title);
-  int x = display.width() - w - 2;
-  u8g2_for_adafruit_gfx.setCursor(x, 12);
-  u8g2_for_adafruit_gfx.print(title);
   const int startY = 28;
   const int lineH = 14;
   const int scrollbarWidth = 3; // 极窄滚动条宽度
   int y = startY;
   if (web_test_submitted_texts.empty()) {
     const char* emptyMsg = "暂未接收到密码提交";
-    w = u8g2_for_adafruit_gfx.getUTF8Width(emptyMsg);
-    x = (display.width() - w) / 2;
-    u8g2_for_adafruit_gfx.setCursor(x, 40);
-    u8g2_for_adafruit_gfx.print(emptyMsg);
   } else {
     int totalItems = (int)web_test_submitted_texts.size();
     if (webtest_password_scroll < 0) webtest_password_scroll = 0;
@@ -2518,8 +2334,6 @@ void drawWebTestPasswords() {
       String remaining = txt;
       bool firstLineOfEntry = true;
       while (remaining.length() > 0 && usedLines < 3) {
-        int widthAvail = display.width() - 6 - (scrollbarWidth + 1); // 预留滚动条并留1像素间距
-        int tw = u8g2_for_adafruit_gfx.getUTF8Width(remaining.c_str());
         String seg = remaining;
         if (tw > widthAvail) {
           int approx = (remaining.length() * widthAvail) / tw;
@@ -2535,8 +2349,6 @@ void drawWebTestPasswords() {
           line = String("> ") + line;
           firstLineOfEntry = false;
         }
-        u8g2_for_adafruit_gfx.setCursor(2, y);
-        u8g2_for_adafruit_gfx.print(line);
         y += lineH;
         usedLines++;
       }
@@ -2544,16 +2356,12 @@ void drawWebTestPasswords() {
     // 绘制简约滚动条（覆盖三行可视区域）
     // totalItems 已在上方计算
     if (totalItems > 1) {
-      int trackX = display.width() - scrollbarWidth;
       int trackY = startY; // 与首行对齐
       int trackH = 3 * lineH; // 覆盖三行
       // 若超出屏幕高度则裁剪
-      if (trackY + trackH > display.height()) {
-        trackH = display.height() - trackY;
       }
       if (trackH < 6) trackH = 6; // 最小高度
       // 细轨道（终点为包含式坐标）
-      display.drawLine(trackX, trackY, trackX, trackY + trackH - 1, SSD1306_WHITE);
       // 拇指高度最小6px，按可见比例估算
       int thumbH = (trackH * 1) / std::max(totalItems, 3); // 视窗大约覆盖1项
       if (thumbH < 6) thumbH = 6;
@@ -2561,53 +2369,29 @@ void drawWebTestPasswords() {
       float posRatio = (float)webtest_password_scroll / (float)(totalItems - 1);
       int thumbY = trackY + (int)((trackH - thumbH) * posRatio + 0.5f);
       // 拇指（填充条）
-      display.fillRect(trackX, thumbY, scrollbarWidth, thumbH, SSD1306_WHITE);
     }
   }
-  // display.display(); // DISABLED
 }
 
 void drawWebTestStatus() {
-  // display.clearDisplay(); // DISABLED
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
   {
     const char* t = "↑ 返回 ↑";
-    int w = u8g2_for_adafruit_gfx.getUTF8Width(t);
-    int x = (display.width() - w) / 2;
-    u8g2_for_adafruit_gfx.setCursor(x, 12);
-    u8g2_for_adafruit_gfx.print(t);
   }
   // bool apRunning = web_test_active; // unused
   String l2 = String("正在发送解除认证帧");
   {
-    int w = u8g2_for_adafruit_gfx.getUTF8Width(l2.c_str());
-    int x = (display.width() - w) / 2;
-    u8g2_for_adafruit_gfx.setCursor(x, 28);
-    u8g2_for_adafruit_gfx.print(l2);
   }
   String l3 = String("Web服务: ") + (web_server_active ? "运行中" : "未运行");
   {
-    int w = u8g2_for_adafruit_gfx.getUTF8Width(l3.c_str());
-    int x = (display.width() - w) / 2;
-    u8g2_for_adafruit_gfx.setCursor(x, 44);
-    u8g2_for_adafruit_gfx.print(l3);
   }
   String l4 = String("DNSServer: ") + (dns_server_active ? "运行中" : "未运行");
   {
-    int w = u8g2_for_adafruit_gfx.getUTF8Width(l4.c_str());
-    int x = (display.width() - w) / 2;
-    u8g2_for_adafruit_gfx.setCursor(x, 60);
-    u8g2_for_adafruit_gfx.print(l4);
   }
-  // display.display(); // DISABLED
 }
 
 // 主页分页基础绘制（不带高亮）- 与攻击页风格一致
 static int g_homeBaseStartIndex = 0;
 void drawHomeMenuBasePaged(int startIndex) {
-  // display.clearDisplay(); // DISABLED
-  display.setTextSize(1);
   // 计算当前页实际显示的项目数量
   int currentPageItems = (HOME_PAGE_SIZE < (HOME_MAX_ITEMS - startIndex)) ? HOME_PAGE_SIZE : (HOME_MAX_ITEMS - startIndex);
   for (int i = 0; i < currentPageItems; i++) {
@@ -2615,21 +2399,14 @@ void drawHomeMenuBasePaged(int startIndex) {
     if (menuIndex >= HOME_MAX_ITEMS) break;
     int rectY = HOME_Y_OFFSET + i * HOME_ITEM_HEIGHT;
     int textY = rectY + 12; // 调整文字垂直位置
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(5, textY);
-    u8g2_for_adafruit_gfx.print(g_homeMenuItems[menuIndex].label);
     // 使用与攻击页完全一致的右箭头指示器
-    drawRightChevron(rectY, HOME_RECT_HEIGHT, false);
+
   }
   // 绘制滚动条
-  drawHomeScrollbar(startIndex);
-  // display.display(); // DISABLED
+
 }
 // 无刷新版本：用于动画帧中避免双重刷新
 void drawHomeMenuBasePaged_NoFlush(int startIndex) {
-  // display.clearDisplay(); // DISABLED
-  display.setTextSize(1);
   // 计算当前页实际显示的项目数量
   int currentPageItems = (HOME_PAGE_SIZE < (HOME_MAX_ITEMS - startIndex)) ? HOME_PAGE_SIZE : (HOME_MAX_ITEMS - startIndex);
   for (int i = 0; i < currentPageItems; i++) {
@@ -2640,11 +2417,8 @@ void drawHomeMenuBasePaged_NoFlush(int startIndex) {
 
     // 裁剪标签
     String label = g_homeMenuItems[menuIndex].label;
-    int maxTextWidth = display.width() - UI_RIGHT_GUTTER - 15;
-    int labelWidth = u8g2_for_adafruit_gfx.getUTF8Width(label.c_str());
     if (labelWidth > maxTextWidth) {
       while (label.length() > 0 &&
-             u8g2_for_adafruit_gfx.getUTF8Width(label.c_str()) > maxTextWidth - 20) {
         label.remove(label.length() - 1);
         while (label.length() > 0 && ((uint8_t)label[label.length()-1] & 0xC0) == 0x80) {
           label.remove(label.length() - 1);
@@ -2653,20 +2427,15 @@ void drawHomeMenuBasePaged_NoFlush(int startIndex) {
       label += "..";
     }
 
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(5, textY);
-    u8g2_for_adafruit_gfx.print(label);
-    drawRightChevron(rectY, HOME_RECT_HEIGHT, false);
+
   }
   // 绘制滚动条（无刷新版本）
-  drawHomeScrollbar(startIndex);
+
 }
 void drawHomeMenuBasePagedShim() { drawHomeMenuBasePaged_NoFlush(g_homeBaseStartIndex); }
 
 // 内部辅助：绘制某页并整体添加y偏移（不刷新）。偏移允许为负/正，用于翻页过渡。
 static inline void drawHomePageWithOffset_NoFlush(int startIndex, int yOffset) {
-  display.setTextSize(1);
   // 计算当前页实际显示的项目数量
   int currentPageItems = (HOME_PAGE_SIZE < (HOME_MAX_ITEMS - startIndex)) ? HOME_PAGE_SIZE : (HOME_MAX_ITEMS - startIndex);
   for (int i = 0; i < currentPageItems; i++) {
@@ -2675,15 +2444,11 @@ static inline void drawHomePageWithOffset_NoFlush(int startIndex, int yOffset) {
     int rectY = HOME_Y_OFFSET + i * HOME_ITEM_HEIGHT + yOffset;
     int textY = rectY + 13; // 下移2px：从+11改为+13
     // 仅绘制可见区域，避免越界绘制
-    if (rectY > display.height() || rectY + HOME_RECT_HEIGHT < 0) continue;
 
     // 裁剪标签
     String label = g_homeMenuItems[menuIndex].label;
-    int maxTextWidth = display.width() - UI_RIGHT_GUTTER - 15;
-    int labelWidth = u8g2_for_adafruit_gfx.getUTF8Width(label.c_str());
     if (labelWidth > maxTextWidth) {
       while (label.length() > 0 &&
-             u8g2_for_adafruit_gfx.getUTF8Width(label.c_str()) > maxTextWidth - 20) {
         label.remove(label.length() - 1);
         while (label.length() > 0 && ((uint8_t)label[label.length()-1] & 0xC0) == 0x80) {
           label.remove(label.length() - 1);
@@ -2692,11 +2457,7 @@ static inline void drawHomePageWithOffset_NoFlush(int startIndex, int yOffset) {
       label += "..";
     }
 
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(5, textY);
-    u8g2_for_adafruit_gfx.print(label);
-    drawRightChevron(rectY, HOME_RECT_HEIGHT, false);
+
   }
 }
 
@@ -2717,7 +2478,6 @@ static inline void animateHomePageFlip(int fromStartIndex, int toStartIndex) {
     int fromYOffset = (dir > 0) ? -offset : offset;
     int toYOffset = (dir > 0) ? (HOME_ITEM_HEIGHT - offset) : -(HOME_ITEM_HEIGHT - offset);
 
-    // display.clearDisplay(); // DISABLED
     // 先画在底层的那一页（避免覆盖顺序问题）
     if (dir > 0) {
       // 向上滚动：先画新页，再画旧页
@@ -2732,10 +2492,9 @@ static inline void animateHomePageFlip(int fromStartIndex, int toStartIndex) {
     // 滚动条按进度插值
     float progress = (float)offset / (float)HOME_ITEM_HEIGHT; // 0..1
     float startIndexF = (float)fromStartIndex + progress * (float)delta;
-    drawHomeScrollbarFraction(startIndexF);
+
 
     if ((s % DISPLAY_FLUSH_EVERY_FRAMES) == 0 || s == ANIM_STEPS) {
-      // display.display(); // DISABLED
     }
     if (delayPerStepMs > 0) {
       while ((long)(millis() - nextStepDeadline) < 0) {
@@ -2763,18 +2522,14 @@ static inline void animateSelectionGeneric(
   void (*drawBaseNoFlush)()
 ) {
   const int delayPerStepMs = SELECT_MOVE_TOTAL_MS / ANIM_STEPS;
-  const int width = useFullWidth ? display.width() : (display.width() - UI_RIGHT_GUTTER);
   unsigned long startMs = millis();
   unsigned long nextStepDeadline = startMs + delayPerStepMs;
   for (int s = 1; s <= ANIM_STEPS; s++) {
     int y = yFrom + ((yTo - yFrom) * s) / ANIM_STEPS;
     drawBaseNoFlush();
-    display.drawRoundRect(0, y, width, rectHeight, cornerRadius, SSD1306_WHITE);
     if (doubleOutline) {
-      display.drawRoundRect(1, y + 1, width - 2, rectHeight - 2, cornerRadius, SSD1306_WHITE);
     }
     if ((s % DISPLAY_FLUSH_EVERY_FRAMES) == 0 || s == ANIM_STEPS) {
-      // display.display(); // DISABLED
     }
     // 非阻塞等待到下一帧时间点
     if (delayPerStepMs > 0) {
@@ -2789,8 +2544,6 @@ static inline void animateSelectionGeneric(
 
 // 基础绘制：攻击菜单（不带高亮）
 void drawAttackMenuBase() {
-  // display.clearDisplay(); // DISABLED
-  display.setTextSize(1);
   const char* menuItems[] = {
     "解除身份认证攻击",
     "发送信标帧攻击",
@@ -2799,18 +2552,12 @@ void drawAttackMenuBase() {
   };
   for (int i = 0; i < 4; i++) {
     int yPos = 2 + i * 16;
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-    u8g2_for_adafruit_gfx.print(menuItems[i]);
-    drawRightChevron(yPos-2, 14, false);
+
   }
 }
 
 // 无刷新版本：用于动画帧
 void drawAttackMenuBase_NoFlush() {
-  // display.clearDisplay(); // DISABLED
-  display.setTextSize(1);
   const char* menuItems[] = {
     "解除身份认证攻击",
     "发送信标帧攻击",
@@ -2819,47 +2566,28 @@ void drawAttackMenuBase_NoFlush() {
   };
   for (int i = 0; i < 4; i++) {
     int yPos = 2 + i * 16;
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-    u8g2_for_adafruit_gfx.print(menuItems[i]);
-    drawRightChevron(yPos-2, 14, false);
+
   }
 }
 // 基础绘制：信标菜单（不带高亮）
 void drawBeaconMenuBase() {
-  // display.clearDisplay(); // DISABLED
-  display.setTextSize(1);
   const char* menuItems[] = {"随机信标攻击", "克隆已选AP(暴力)", "克隆已选AP(稳定)", "《 返回 》"};
   for (int i = 0; i < 4; i++) {
     int yPos = 2 + i * 16;
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-    u8g2_for_adafruit_gfx.print(menuItems[i]);
-    drawRightChevron(yPos-2, 14, false);
+
   }
-  // display.display(); // DISABLED
 }
 
 // 无刷新版本：用于动画帧
 void drawBeaconMenuBase_NoFlush() {
-  // display.clearDisplay(); // DISABLED
-  display.setTextSize(1);
   const char* menuItems[] = {"随机信标攻击", "克隆已选AP(暴力)", "克隆已选AP(稳定)", "《 返回 》"};
   for (int i = 0; i < 4; i++) {
     int yPos = 2 + i * 16;
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-    u8g2_for_adafruit_gfx.print(menuItems[i]);
-    drawRightChevron(yPos-2, 14, false);
+
   }
 }
 // 基础绘制：解除认证菜单（不带高亮）
 void drawDeauthMenuBase(int startIndex) {
-  // display.clearDisplay(); // DISABLED
-  display.setTextSize(1);
   const char* menuItems[] = {
     "稳定自动多重攻击",
     "自动多重攻击",
@@ -2873,18 +2601,11 @@ void drawDeauthMenuBase(int startIndex) {
     int menuIndex = startIndex + i;
     if (menuIndex >= 6) break;
     int yPos = 2 + i * 16;
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-    u8g2_for_adafruit_gfx.print(menuItems[menuIndex]);
-    drawRightChevron(yPos-2, 14, false);
+
   }
-  // display.display(); // DISABLED
 }
 // 无刷新版本：用于动画帧
 void drawDeauthMenuBase_NoFlush(int startIndex) {
-  // display.clearDisplay(); // DISABLED
-  display.setTextSize(1);
   const char* menuItems[] = {
     "稳定自动多重攻击",
     "自动多重攻击",
@@ -2898,11 +2619,7 @@ void drawDeauthMenuBase_NoFlush(int startIndex) {
     int menuIndex = startIndex + i;
     if (menuIndex >= 6) break;
     int yPos = 2 + i * 16;
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-    u8g2_for_adafruit_gfx.print(menuItems[menuIndex]);
-    drawRightChevron(yPos-2, 14, false);
+
   }
 }
 
@@ -2981,20 +2698,12 @@ void drawSsidPageBase(int startIndex) {
   const int STAR_GAP = 20;
 
   bool allSelected = (SelectedVector.size() == scan_results.size() && !scan_results.empty());
-  // display.clearDisplay(); // DISABLED
-  display.setTextSize(1);
   for (int i = 0; i < MAX_DISPLAY_ITEMS && i <= (int)scan_results.size(); i++) {
     int displayIndex = startIndex + i;
     if (displayIndex > (int)scan_results.size()) break;
     if (displayIndex == 0) {
       int yPos = i * ITEM_HEIGHT + Y_OFFSET;
-      u8g2_for_adafruit_gfx.setFontMode(1);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
       const char* label = allSelected ? "> 取消全选 <" : "> 全选 <";
-      int w = u8g2_for_adafruit_gfx.getUTF8Width(label);
-      int x = (display.width() - w) / 2;
-      u8g2_for_adafruit_gfx.setCursor(x, yPos + BASELINE_CHINESE_OFFSET);
-      u8g2_for_adafruit_gfx.print(label);
       continue;
     }
     int wifiIndex = displayIndex - 1;
@@ -3013,28 +2722,14 @@ void drawSsidPageBase(int startIndex) {
     bool isSelected = isIndexSelected(wifiIndex);
     bool showIndicator = isSelected;
     if (showIndicator) {
-      display.setCursor(3, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
-      display.setTextColor(SSD1306_WHITE);
-      display.print("[*]");
     }
     int textX = TEXT_LEFT + (isSelected ? STAR_GAP : 0);
     String clipped = utf8TruncateToWidth(ssid, SSID_RIGHT_LIMIT_X - textX);
     if (containsChinese(ssid)) {
-      u8g2_for_adafruit_gfx.setFontMode(1);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
       int textY = i * ITEM_HEIGHT + BASELINE_CHINESE_OFFSET + Y_OFFSET;
-      u8g2_for_adafruit_gfx.setCursor(textX, textY);
-      u8g2_for_adafruit_gfx.print(clipped);
     } else {
-      display.setCursor(textX, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
-      display.setTextColor(SSD1306_WHITE);
-      display.print(clipped);
     }
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(110, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
-    display.print(scan_results[wifiIndex].channel >= 36 ? "5G" : "24");
   }
-  // display.display(); // DISABLED
 }
 // 无刷新版本：用于动画帧
 void drawSsidPageBase_NoFlush(int startIndex) {
@@ -3048,20 +2743,12 @@ void drawSsidPageBase_NoFlush(int startIndex) {
   const int STAR_GAP = 20;
 
   bool allSelected = (SelectedVector.size() == scan_results.size() && !scan_results.empty());
-  // display.clearDisplay(); // DISABLED
-  display.setTextSize(1);
   for (int i = 0; i < MAX_DISPLAY_ITEMS && i <= (int)scan_results.size(); i++) {
     int displayIndex = startIndex + i;
     if (displayIndex > (int)scan_results.size()) break;
     if (displayIndex == 0) {
       int yPos = i * ITEM_HEIGHT + Y_OFFSET;
-      u8g2_for_adafruit_gfx.setFontMode(1);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
       const char* label = allSelected ? "> 取消全选 <" : "> 全选 <";
-      int w = u8g2_for_adafruit_gfx.getUTF8Width(label);
-      int x = (display.width() - w) / 2;
-      u8g2_for_adafruit_gfx.setCursor(x, yPos + BASELINE_CHINESE_OFFSET);
-      u8g2_for_adafruit_gfx.print(label);
       continue;
     }
     int wifiIndex = displayIndex - 1;
@@ -3080,26 +2767,13 @@ void drawSsidPageBase_NoFlush(int startIndex) {
     bool isSelected = isIndexSelected(wifiIndex);
     bool showIndicator = isSelected;
     if (showIndicator) {
-      display.setCursor(3, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
-      display.setTextColor(SSD1306_WHITE);
-      display.print("[*]");
     }
     int textX = TEXT_LEFT + (isSelected ? STAR_GAP : 0);
     String clipped = utf8TruncateToWidth(ssid, SSID_RIGHT_LIMIT_X - textX);
     if (containsChinese(ssid)) {
-      u8g2_for_adafruit_gfx.setFontMode(1);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
       int textY = i * ITEM_HEIGHT + BASELINE_CHINESE_OFFSET + Y_OFFSET;
-      u8g2_for_adafruit_gfx.setCursor(textX, textY);
-      u8g2_for_adafruit_gfx.print(clipped);
     } else {
-      display.setCursor(textX, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
-      display.setTextColor(SSD1306_WHITE);
-      display.print(clipped);
     }
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(110, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
-    display.print(scan_results[wifiIndex].channel >= 36 ? "5G" : "24");
   }
 }
 
@@ -3153,8 +2827,6 @@ void drawHomeMenu() {
     g_skipNextSelectAnim = false;
   }
 
-  // display.clearDisplay(); // DISABLED
-  display.setTextSize(1);
   // 计算当前页实际显示的项目数量
   int currentPageItems = (HOME_PAGE_SIZE < (HOME_MAX_ITEMS - startIndex)) ? HOME_PAGE_SIZE : (HOME_MAX_ITEMS - startIndex);
   for (int i = 0; i < currentPageItems; i++) {
@@ -3166,13 +2838,10 @@ void drawHomeMenu() {
 
     // 获取并裁剪标签，防止文字超出选择框范围
     String label = g_homeMenuItems[menuIndex].label;
-    int maxTextWidth = display.width() - UI_RIGHT_GUTTER - 15; // 留出箭头和边距
-    int labelWidth = u8g2_for_adafruit_gfx.getUTF8Width(label.c_str());
 
     if (labelWidth > maxTextWidth) {
       // UTF-8安全裁剪
       while (label.length() > 0 &&
-             u8g2_for_adafruit_gfx.getUTF8Width(label.c_str()) > maxTextWidth - 20) {
         // 移除最后一个字符（UTF-8安全）
         label.remove(label.length() - 1);
         // 跳过UTF-8续字节
@@ -3185,23 +2854,13 @@ void drawHomeMenu() {
 
     if (isSel) {
       // 使用与攻击页完全一致的高亮效果（减去右侧滚动条区域避免覆盖）
-      display.fillRoundRect(0, rectY, display.width() - UI_RIGHT_GUTTER, HOME_RECT_HEIGHT, 4, SSD1306_WHITE);
-      u8g2_for_adafruit_gfx.setFontMode(1);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_BLACK);
-      u8g2_for_adafruit_gfx.setCursor(5, textY + 1);
-      u8g2_for_adafruit_gfx.print(label);
     } else {
-      u8g2_for_adafruit_gfx.setFontMode(1);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-      u8g2_for_adafruit_gfx.setCursor(5, textY + 1);
-      u8g2_for_adafruit_gfx.print(label);
     }
     // 使用与攻击页完全一致的右箭头指示器
-    drawRightChevron(rectY, HOME_RECT_HEIGHT, isSel);
+
   }
   // 绘制滚动条
-  drawHomeScrollbar(startIndex);
-  // display.display(); // DISABLED
+
 }
 
 // 首页菜单：统一同步选择状态到全局，并更新基础绘制起始索引
@@ -3308,8 +2967,6 @@ void showWiFiDetails(const WiFiScanResult& wifi) {
             lastOkTime = currentTime;
         }
 
-        // display.clearDisplay(); // DISABLED
-        display.setTextSize(1);
 
         struct DetailLine {
             String label;
@@ -3332,27 +2989,13 @@ void showWiFiDetails(const WiFiScanResult& wifi) {
 
             if (currentLine == 4) { // 返回选项
                 if (detailsScroll == 1) {
-                    display.fillRoundRect(0, yPos-1, display.width(), LINE_HEIGHT, 3, WHITE);
-                    u8g2_for_adafruit_gfx.setFontMode(1);
-                    u8g2_for_adafruit_gfx.setForegroundColor(BLACK);
-                    u8g2_for_adafruit_gfx.setCursor(0, yPos+8);
-                    u8g2_for_adafruit_gfx.print("《 返回 》");
-                    u8g2_for_adafruit_gfx.setForegroundColor(WHITE);
                 } else {
-                    u8g2_for_adafruit_gfx.setFontMode(1);
-                    u8g2_for_adafruit_gfx.setForegroundColor(WHITE);
-                    u8g2_for_adafruit_gfx.setCursor(0, yPos+8);
-                    u8g2_for_adafruit_gfx.print("《 返回 》");
                 }
                 continue;
             }
 
             // 显示标签和值
             if (details[currentLine].isChinese) {
-                u8g2_for_adafruit_gfx.setFontMode(1);
-                u8g2_for_adafruit_gfx.setForegroundColor(WHITE);
-                u8g2_for_adafruit_gfx.setCursor(0, yPos+8);
-                u8g2_for_adafruit_gfx.print(details[currentLine].label);
 
                 // 统一从冒号后开始显示值，增加间距
                 const int VALUE_X = 40; // 减小间距，避免重叠
@@ -3383,14 +3026,8 @@ void showWiFiDetails(const WiFiScanResult& wifi) {
                     value = scrolledText.substring(0, containsChinese(value) ? 15 : 20);
                 }
 
-                u8g2_for_adafruit_gfx.setCursor(VALUE_X, yPos+8);
-                u8g2_for_adafruit_gfx.print(value);
             } else {
                 // 非中文标签
-                u8g2_for_adafruit_gfx.setFontMode(1);
-                u8g2_for_adafruit_gfx.setForegroundColor(WHITE);
-                u8g2_for_adafruit_gfx.setCursor(0, yPos+8);
-                u8g2_for_adafruit_gfx.print(details[currentLine].label);
 
                 // 统一从冒号后开始显示值
                 const int VALUE_X = 26;
@@ -3419,11 +3056,7 @@ void showWiFiDetails(const WiFiScanResult& wifi) {
                     }
 
                     if (containsChinese(value)) {
-                        u8g2_for_adafruit_gfx.setCursor(VALUE_X, yPos+8);
-                        u8g2_for_adafruit_gfx.print(value);
                     } else {
-                        display.setCursor(VALUE_X, yPos);
-                        display.print(value);
                     }
                 }
             }
@@ -3431,13 +3064,10 @@ void showWiFiDetails(const WiFiScanResult& wifi) {
 
         // 显示滚动指示器
         if (detailsScroll > 0) {
-            display.fillTriangle(120, 12, 123, 9, 126, 12, WHITE);
         }
         if (detailsScroll < 1) { // 修改为1
-            display.fillTriangle(120, 60, 123, 63, 126, 60, WHITE);
         }
 
-        // display.display(); // DISABLED
         delay(10);
     }
 }
@@ -3553,8 +3183,6 @@ void drawssid() {
       lastUpTime = currentTime;
     }
 
-    // display.clearDisplay(); // DISABLED
-    display.setTextSize(1);
 
     for(int i = 0; i < MAX_DISPLAY_ITEMS && i <= (int)scan_results.size(); i++) {
       int displayIndex = startIndex + i;
@@ -3566,23 +3194,9 @@ void drawssid() {
       if(displayIndex == 0) {
         int yPos = i * ITEM_HEIGHT + Y_OFFSET;
         if(isHighlighted) {
-          display.drawRoundRect(0, yPos-2, display.width(), ITEM_HEIGHT + 2, 2, SSD1306_WHITE);
-          display.drawRoundRect(1, yPos-1, display.width()-2, ITEM_HEIGHT, 2, SSD1306_WHITE); // 加粗描边
-          u8g2_for_adafruit_gfx.setFontMode(1);
-          u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
           const char* label = allSelected ? "> 取消全选 <" : "> 全选 <";
-          int w = u8g2_for_adafruit_gfx.getUTF8Width(label);
-          int x = (display.width() - w) / 2;
-          u8g2_for_adafruit_gfx.setCursor(x, yPos + BASELINE_CHINESE_OFFSET);
-          u8g2_for_adafruit_gfx.print(label);
         } else {
-          u8g2_for_adafruit_gfx.setFontMode(1);
-          u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
           const char* label = allSelected ? "> 取消全选 <" : "> 全选 <";
-          int w = u8g2_for_adafruit_gfx.getUTF8Width(label);
-          int x = (display.width() - w) / 2;
-          u8g2_for_adafruit_gfx.setCursor(x, yPos + BASELINE_CHINESE_OFFSET);
-          u8g2_for_adafruit_gfx.print(label);
         }
         continue;
       }
@@ -3630,20 +3244,14 @@ void drawssid() {
         // 统一高亮描边：中英文都画边框
         if(isHighlighted) {
           int rectY = i * ITEM_HEIGHT - 1 + Y_OFFSET;
-          display.drawRoundRect(0, rectY, display.width(), ITEM_HEIGHT + 2, 2, SSD1306_WHITE);
-          display.drawRoundRect(1, rectY+1, display.width()-2, ITEM_HEIGHT-0, 2, SSD1306_WHITE); // 加粗描边
         }
 
         // 左侧指示：选中显示"[*]", 未选中但高亮显示">", 其余不显示
         bool isSelected = isIndexSelected(wifiIndex);
         bool showIndicator = isSelected || (isHighlighted && !isSelected);
         if (showIndicator) {
-          display.setCursor(3, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
-          display.setTextColor(SSD1306_WHITE);
           if (isSelected) {
-            display.print("[*]");
           } else {
-            display.print('>');
           }
         }
 
@@ -3652,7 +3260,6 @@ void drawssid() {
           int maxW = SSID_RIGHT_LIMIT_X - textX;
           String renderText = ssid;
           if (isHighlighted) {
-            int textW = u8g2_for_adafruit_gfx.getUTF8Width(renderText.c_str());
             if (textW > maxW) {
               if (currentTime - lastScrollTime >= SCROLL_DELAY) {
                 scrollPosition = advanceUtf8Index(renderText, scrollPosition);
@@ -3669,29 +3276,17 @@ void drawssid() {
           }
 
           if(containsChinese(ssid)) {
-            u8g2_for_adafruit_gfx.setFontMode(1);
-            u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
             int textY = i * ITEM_HEIGHT + BASELINE_CHINESE_OFFSET + Y_OFFSET + (isHighlighted ? 1 : 0);
-            u8g2_for_adafruit_gfx.setCursor(textX, textY);
-            u8g2_for_adafruit_gfx.print(renderText);
           } else {
-            display.setCursor(textX, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
-            display.setTextColor(SSD1306_WHITE);
-            display.print(renderText);
           }
         }
       }
 
       // 显示信道类型
-      display.setTextColor(SSD1306_WHITE);
-      display.setCursor(110, i * ITEM_HEIGHT + BASELINE_ASCII_OFFSET + Y_OFFSET);
-      display.print(scan_results[wifiIndex].channel >= 36 ? "5G" : "24");
 
-      display.setTextColor(SSD1306_WHITE);
     }
 
     // 滚动条已移除
-    // display.display(); // DISABLED
   }
 }
 void drawscan() {
@@ -3709,17 +3304,7 @@ void drawDeepScan() {
 // 高级深度扫描：使用多种扫描策略
 void performAdvancedDeepScan() {
   while (true) {
-    // display.clearDisplay(); // DISABLED
-    display.setTextColor(SSD1306_WHITE);
-    display.setTextSize(1);
 
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    int titleW = u8g2_for_adafruit_gfx.getUTF8Width("深度扫描中...");
-    int titleX = (display.width() - titleW) / 2;
-    u8g2_for_adafruit_gfx.setCursor(titleX, 24);
-    u8g2_for_adafruit_gfx.print("深度扫描中...");
-    // display.display(); // DISABLED
 
     // 清空之前的结果
     scan_results.clear();
@@ -3772,14 +3357,6 @@ void performAdvancedDeepScan() {
     Serial.println("深度扫描完成，发现 " + String(scan_results.size()) + " 个网络");
 
     // 显示完成信息
-    // display.clearDisplay(); // DISABLED
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(5, 25);
-    u8g2_for_adafruit_gfx.print("完成");
-    u8g2_for_adafruit_gfx.setCursor(5, 40);
-    u8g2_for_adafruit_gfx.print("发现: " + String(scan_results.size()));
-    // display.display(); // DISABLED
     delay(500);
 
     menustate = 0;
@@ -3904,69 +3481,36 @@ void performHiddenNetworkScan(std::vector<WiFiScanResult>& allResults,
 
 // 更新扫描进度显示
 void updateScanProgress(int current, int total, const char* strategy) {
-  // display.clearDisplay(); // DISABLED
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
   // 显示标题
-  int titleW = u8g2_for_adafruit_gfx.getUTF8Width("深度扫描中...");
-  int titleX = (display.width() - titleW) / 2;
-  u8g2_for_adafruit_gfx.setCursor(titleX, 10);
-  u8g2_for_adafruit_gfx.print("深度扫描中...");
 
   // 显示进度
   String progress = "进度: " + String(current) + "/" + String(total);
-  int progressW = u8g2_for_adafruit_gfx.getUTF8Width(progress.c_str());
-  int progressX = (display.width() - progressW) / 2;
-  u8g2_for_adafruit_gfx.setCursor(progressX, 25);
-  u8g2_for_adafruit_gfx.print(progress);
 
   // 显示当前策略
-  int strategyW = u8g2_for_adafruit_gfx.getUTF8Width(strategy);
-  int strategyX = (display.width() - strategyW) / 2;
-  u8g2_for_adafruit_gfx.setCursor(strategyX, 40);
-  u8g2_for_adafruit_gfx.print(strategy);
 
   // 显示进度条
   int barWidth = 100;
   int barHeight = 4;
-  int barX = (display.width() - barWidth) / 2;
   int barY = 50;
 
   // 背景条
-  display.drawRect(barX, barY, barWidth, barHeight, SSD1306_WHITE);
 
   // 进度条
   int fillWidth = (barWidth * current) / total;
-  display.fillRect(barX, barY, fillWidth, barHeight, SSD1306_WHITE);
 
-  // display.display(); // DISABLED
 }
 
 // 更新扫描显示
 void updateScanDisplay(const char* scanType) {
-  // display.clearDisplay(); // DISABLED
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
-  int titleW = u8g2_for_adafruit_gfx.getUTF8Width("深度扫描中...");
-  int titleX = (display.width() - titleW) / 2;
-  u8g2_for_adafruit_gfx.setCursor(titleX, 15);
-  u8g2_for_adafruit_gfx.print("深度扫描中...");
 
-  int typeW = u8g2_for_adafruit_gfx.getUTF8Width(scanType);
-  int typeX = (display.width() - typeW) / 2;
-  u8g2_for_adafruit_gfx.setCursor(typeX, 35);
-  u8g2_for_adafruit_gfx.print(scanType);
 
   // 显示进度动画
   static int animFrame = 0;
   const char* frames[4] = {"|", "/", "-", "\\"};
-  u8g2_for_adafruit_gfx.setCursor(display.width() - 20, 50);
-  u8g2_for_adafruit_gfx.print(frames[animFrame % 4]);
   animFrame++;
 
-  // display.display(); // DISABLED
 }
 // ============ 非阻塞攻击处理函数 ============
 // 处理信道桶的状态机 - 增强版
@@ -4769,65 +4313,45 @@ void sendBeaconOnChannel(int channel, const char* ssid, int cloneCount, int send
 // 复用函数：绘制连接干扰攻击状态页面
 void drawLinkJammerStatusPage(const String& ssid, bool clearDisplay = true) {
   if (clearDisplay) {
-    // display.clearDisplay(); // DISABLED
   }
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
   // 标题行
-  oledDrawCenteredLine("[多信道干扰中]", 18);
+
 
   // SSID行
-  oledDrawCenteredLine(ssid.c_str(), 32);
+
 
   // 底部提示行
   const char* bottomHint = "尽可能靠近目标客户端";
-  int hintWidth = u8g2_for_adafruit_gfx.getUTF8Width(bottomHint);
-  int hintX = (display.width() - hintWidth) / 2;
-  u8g2_for_adafruit_gfx.setCursor(hintX, 46);
-  u8g2_for_adafruit_gfx.print(bottomHint);
 
   if (clearDisplay) {
-    // display.display(); // DISABLED
   }
 }
 
 // 复用函数：绘制信标广播篡改状态页面
 void drawBeaconTamperStatusPage(const String& status, bool clearDisplay = true) {
   if (clearDisplay) {
-    // display.clearDisplay(); // DISABLED
   }
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
   // 标题行
-  oledDrawCenteredLine("[广播黑洞运行中]", 18);
+
 
   // 状态行
-  oledDrawCenteredLine(status.c_str(), 32);
+
 
   // 底部提示行
   const char* bottomHint = "吞噬目标AP信标数据";
-  int hintWidth = u8g2_for_adafruit_gfx.getUTF8Width(bottomHint);
-  int hintX = (display.width() - hintWidth) / 2;
-  u8g2_for_adafruit_gfx.setCursor(hintX, 46);
-  u8g2_for_adafruit_gfx.print(bottomHint);
 
   if (clearDisplay) {
-    // display.display(); // DISABLED
   }
 }
 
 // ===== 请求发送：高效认证/关联请求泛洪 =====
 void drawRequestFloodStatus(const String& ssid, bool clearDisplay = true) {
   if (clearDisplay) {
-    // display.clearDisplay(); // DISABLED
   }
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-  oledDrawCenteredLine("[Dos攻击帧发送中]", 18);
-  oledDrawCenteredLine(ssid.c_str(), 32);
-  if (clearDisplay) // display.display(); // DISABLED
+
+
 }
 
 void RequestFlood() {
@@ -5258,13 +4782,8 @@ void Beacon() {
   Serial.println("攻击模式: 克隆已选AP(暴力)");
   Serial.println("攻击强度: 10");
 
-  // display.clearDisplay(); // DISABLED
-  display.setTextColor(SSD1306_WHITE);
-  display.setTextSize(1);
 
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-  oledDrawCenteredLine("正在克隆信标帧", 25);
+
 
   // LED控制：红灯闪烁
   startAttackLED();
@@ -5273,7 +4792,6 @@ void Beacon() {
   bool redState = true;
   const int blinkInterval = 800;
 
-  // OLED行区域：显示生成的SSID，单目标0.5s，多目标1s
   const int ssidLineY = 42;
   static unsigned long lastSSIDDrawMs = 0;
   bool singleTargetDrawn = false;
@@ -5300,10 +4818,7 @@ void Beacon() {
       // 取消则继续攻击，重新启动LED
       startAttackLED();
       // 重新绘制攻击状态页面，避免确认弹窗残留
-      // display.clearDisplay(); // DISABLED
-      u8g2_for_adafruit_gfx.setFontMode(1);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-      oledDrawCenteredLine("正在克隆信标帧", 25);
+
     }
 
     if (!SelectedVector.empty()) {
@@ -5321,12 +4836,12 @@ void Beacon() {
           if (SelectedVector.size() == 1) {
             if (!singleTargetDrawn) {
               String fakeName = createFakeSSID(ssid1);
-              oledDrawCenteredLine(fakeName.c_str(), ssidLineY);
+
               singleTargetDrawn = true;
             }
           } else {
             String fakeName = createFakeSSID(ssid1);
-            oledMaybeDrawCenteredLine(fakeName.c_str(), ssidLineY, lastSSIDDrawMs, intervalMs);
+
           }
         }
       }
@@ -5341,7 +4856,7 @@ void Beacon() {
         executeCrossBandBeaconAttack(ssid1, ch, false);
 
         String fakeName = createFakeSSID(ssid1);
-        oledMaybeDrawCenteredLine(fakeName.c_str(), ssidLineY, lastSSIDDrawMs, intervalMs);
+
       }
     }
   }
@@ -5352,13 +4867,8 @@ void StableBeacon() {
   Serial.println("攻击模式: 克隆已选AP(稳定)");
   Serial.println("攻击强度: 5 (稳定模式)");
 
-  // display.clearDisplay(); // DISABLED
-  display.setTextColor(SSD1306_WHITE);
-  display.setTextSize(1);
 
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-  oledDrawCenteredLine("正在克隆信标帧", 25);
+
 
   // LED控制：红灯闪烁
   startAttackLED();
@@ -5367,7 +4877,6 @@ void StableBeacon() {
   bool redState = true;
   const int blinkInterval = 800;
 
-  // OLED行区域：显示生成的SSID，单目标0.5s，多目标1s
   const int ssidLineY = 42;
   static unsigned long lastSSIDDrawMs = 0;
   bool singleTargetDrawn = false;
@@ -5394,10 +4903,7 @@ void StableBeacon() {
       // 取消则继续攻击，重新启动LED
       startAttackLED();
       // 重新绘制攻击状态页面，避免确认弹窗残留
-      // display.clearDisplay(); // DISABLED
-      u8g2_for_adafruit_gfx.setFontMode(1);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-      oledDrawCenteredLine("正在克隆信标帧", 25);
+
     }
 
     if (!SelectedVector.empty()) {
@@ -5414,12 +4920,12 @@ void StableBeacon() {
           if (SelectedVector.size() == 1) {
             if (!singleTargetDrawn) {
               String fakeName = createFakeSSID(ssid1);
-              oledDrawCenteredLine(fakeName.c_str(), ssidLineY);
+
               singleTargetDrawn = true;
             }
           } else {
             String fakeName = createFakeSSID(ssid1);
-            oledMaybeDrawCenteredLine(fakeName.c_str(), ssidLineY, lastSSIDDrawMs, intervalMs);
+
           }
         }
       }
@@ -5434,12 +4940,11 @@ void StableBeacon() {
         executeCrossBandBeaconAttack(ssid1, ch, true);
 
         String fakeName = createFakeSSID(ssid1);
-        oledMaybeDrawCenteredLine(fakeName.c_str(), ssidLineY, lastSSIDDrawMs, intervalMs);
+
       }
     }
   }
 }
-// OLED 频段选择菜单：综合 / 5G / 2.4G
 // 返回 true 表示确认并已写入 beaconBandMode；返回 false 表示取消（BACK）
 bool BeaconBandMenu() {
   int state = beaconBandMode; // 初始光标基于当前模式
@@ -5463,35 +4968,19 @@ bool BeaconBandMenu() {
       if (state < 2) state++;
     }
 
-    // display.clearDisplay(); // DISABLED
-    display.setTextSize(1);
 
     // 显示标题
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(32, 12);
-    u8g2_for_adafruit_gfx.print("[选择发包频段]");
 
     // 选项顺序：综合，5G，2.4G
     const char* items[] = {"混合(2.4G+5G)", "5G 频段", "2.4G 频段"};
     for (int i = 0; i < 3; i++) {
       int yPos = 20 + i * 16; // 从第20行开始，为标题留出空间
       if (i == state) {
-        display.fillRoundRect(0, yPos-2, display.width(), 14, 2, SSD1306_WHITE);
-        u8g2_for_adafruit_gfx.setFontMode(1);
-        u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_BLACK);
-        u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-        u8g2_for_adafruit_gfx.print(items[i]);
-        drawRightChevron(yPos-2, 14, true);
+
       } else {
-        u8g2_for_adafruit_gfx.setFontMode(1);
-        u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-        u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-        u8g2_for_adafruit_gfx.print(items[i]);
-        drawRightChevron(yPos-2, 14, false);
+
       }
     }
-    // display.display(); // DISABLED
     delay(50);
   }
 }
@@ -5512,13 +5001,8 @@ void RandomBeacon() {
   Serial.println("攻击模式: 随机信标攻击");
   Serial.println("攻击强度: 10");
 
-  // display.clearDisplay(); // DISABLED
-  display.setTextColor(SSD1306_WHITE);
-  display.setTextSize(1);
 
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-  oledDrawCenteredLine("随机信标攻击中", 25);
+
 
   // LED控制：红灯闪烁
   startAttackLED();
@@ -5527,7 +5011,6 @@ void RandomBeacon() {
   bool redState = true;
   const int blinkInterval = 800;
 
-  // OLED行区域：在"攻击中..."下一行显示SSID（尽量少刷新）
   const int ssidLineY = 42; // 行基线
   static unsigned long lastSSIDDrawMs = 0;
   const unsigned long randomSSIDIntervalMs = 500; // 0.5s 刷新
@@ -5581,10 +5064,7 @@ void RandomBeacon() {
       // 取消则继续攻击，重新启动LED
       startAttackLED();
       // 重新绘制攻击状态页面，避免确认弹窗残留
-      // display.clearDisplay(); // DISABLED
-      u8g2_for_adafruit_gfx.setFontMode(1);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-      oledDrawCenteredLine("随机信标攻击中", 25);
+
     }
 
     int randomIndex = random(0, targetChannels.size());
@@ -5614,8 +5094,7 @@ void RandomBeacon() {
       }
     }
 
-    // 刷新OLED中部SSID显示（每0.5秒一次，居中显示）
-    oledMaybeDrawCenteredLine(ssid_cstr2, ssidLineY, lastSSIDDrawMs, randomSSIDIntervalMs);
+
   }
 }
 int becaonstate = 0;
@@ -5707,8 +5186,6 @@ void BeaconMenu(){
       lastDownTime = currentTime;
     }
 
-    // display.clearDisplay(); // DISABLED
-    display.setTextSize(1);
 
     // 菜单项
     const char* menuItems[] = {
@@ -5722,22 +5199,12 @@ void BeaconMenu(){
     for (int i = 0; i < 4; i++) {
       int yPos = 2 + i * 16;
       if (i == becaonstate) {
-        display.fillRoundRect(0, yPos-2, display.width(), 14, 2, SSD1306_WHITE);
-        u8g2_for_adafruit_gfx.setFontMode(1);
-        u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_BLACK);
-        u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-        u8g2_for_adafruit_gfx.print(menuItems[i]);
-        drawRightChevron(yPos-2, 14, true);
+
       } else {
-        u8g2_for_adafruit_gfx.setFontMode(1);
-        u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-        u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-        u8g2_for_adafruit_gfx.print(menuItems[i]);
-        drawRightChevron(yPos-2, 14, false);
+
       }
     }
 
-    // display.display(); // DISABLED
     delay(50);
   }
 }
@@ -5944,8 +5411,6 @@ void DeauthMenu() {
       lastDownTime = currentTime;
     }
 
-    // display.clearDisplay(); // DISABLED
-    display.setTextSize(1);
 
     // 菜单项（新顺序）
     const char* menuItems[] = {
@@ -5964,22 +5429,12 @@ void DeauthMenu() {
       if(menuIndex >= 7) break;  // 防止越界
       int yPos = Y_OFFSET + i * ITEM_HEIGHT;
       if (i == deauthstate) {
-        display.fillRoundRect(0, yPos-2, display.width(), 14, 2, SSD1306_WHITE);
-        u8g2_for_adafruit_gfx.setFontMode(1);
-        u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_BLACK);
-        u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-        u8g2_for_adafruit_gfx.print(menuItems[menuIndex]);
-        drawRightChevron(yPos-2, 14, true);
+
       } else {
-        u8g2_for_adafruit_gfx.setFontMode(1);
-        u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-        u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-        u8g2_for_adafruit_gfx.print(menuItems[menuIndex]);
-        drawRightChevron(yPos-2, 14, false);
+
       }
     }
     // 滚动条已移除
-    // display.display(); // DISABLED
     delay(50);
   }
 }
@@ -6067,8 +5522,6 @@ void drawattack() {
     }
 
     // 显示菜单项
-     // display.clearDisplay(); // DISABLED
-    display.setTextSize(1);
 
     // 菜单项
     const char* menuItems[] = {
@@ -6084,22 +5537,12 @@ void drawattack() {
       if (menuIndex >= 4) break; // 防止越界
       int yPos = Y_OFFSET + i * ITEM_HEIGHT;
       if (i == attackstate) {
-        display.fillRoundRect(0, yPos-2, display.width(), 14, 2, SSD1306_WHITE);
-        u8g2_for_adafruit_gfx.setFontMode(1);
-        u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_BLACK);
-        u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-        u8g2_for_adafruit_gfx.print(menuItems[menuIndex]);
-        drawRightChevron(yPos-2, 14, true);
+
       } else {
-        u8g2_for_adafruit_gfx.setFontMode(1);
-        u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-        u8g2_for_adafruit_gfx.setCursor(5, yPos+10);
-        u8g2_for_adafruit_gfx.print(menuItems[menuIndex]);
-        drawRightChevron(yPos-2, 14, false);
+
       }
     }
 
-    // display.display(); // DISABLED
     delay(50);
   }
 }
@@ -6122,40 +5565,22 @@ void titleScreen(void) {
   }
 
   for (int j = 0; j < TITLE_FRAMES; j++) {
-    // display.clearDisplay(); // DISABLED
     int wifi_x = 54, wifi_y = 10;
-    display.drawBitmap(wifi_x, wifi_y, image_wifi_not_connected__copy__bits, 19, 16, WHITE);
 
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
     const char* leftBand = "2.4G";
     const char* rightBand = "5Ghz";
-    u8g2_for_adafruit_gfx.setFont(u8g2_font_ncenB10_tr);
-    u8g2_for_adafruit_gfx.setCursor(2, wifi_y + 12);
-    u8g2_for_adafruit_gfx.print(leftBand);
-    u8g2_for_adafruit_gfx.setCursor(128 - u8g2_for_adafruit_gfx.getUTF8Width(rightBand) - 2, wifi_y + 12);
-    u8g2_for_adafruit_gfx.print(rightBand);
 
-    u8g2_for_adafruit_gfx.setFont(u8g2_font_ncenB14_tr);
 
     bool shouldShow = (j % 3 < 2);
-    u8g2_for_adafruit_gfx.setForegroundColor(shouldShow ? SSD1306_WHITE : SSD1306_BLACK);
 
     const char* txt = b;
-    int txt_w = u8g2_for_adafruit_gfx.getUTF8Width(txt);
     int txt_x = (128 - txt_w) / 2;
     int txt_y = 48;
 
     if (shouldShow) {
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_BLACK);
-      u8g2_for_adafruit_gfx.setCursor(txt_x + 1, txt_y + 1);
-      u8g2_for_adafruit_gfx.print(txt);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
     }
 
-    u8g2_for_adafruit_gfx.setCursor(txt_x, txt_y);
-    u8g2_for_adafruit_gfx.print(txt);
 
     // 进度条（下方，宽度随动画进度变化）- 添加炫酷效果
     int bar_w = (int)(128.0 * (j + 1) / TITLE_FRAMES);
@@ -6163,61 +5588,35 @@ void titleScreen(void) {
     int bar_x = 0, bar_y = 60;
 
     // 进度条边框
-    display.drawRect(bar_x, bar_y, 128, bar_h, WHITE);
 
     // 进度条填充 - 添加渐变效果
     if (bar_w > 2) {
-      display.fillRect(bar_x + 1, bar_y + 1, bar_w - 2, bar_h - 2, WHITE);
 
       // 添加进度条内部高光效果
       if (bar_w > 4) {
-        display.drawLine(bar_x + 2, bar_y + 2, bar_x + bar_w - 3, bar_y + 2, BLACK);
       }
     }
-    // display.display(); // DISABLED
     delay(TITLE_DELAY_MS);
   }
-  // display.clearDisplay(); // DISABLED
   int wifi_x = 54, wifi_y = 10;
-  display.drawBitmap(wifi_x, wifi_y, image_wifi_not_connected__copy__bits, 19, 16, WHITE);
 
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
-  u8g2_for_adafruit_gfx.setFont(u8g2_font_ncenB10_tr);
   const char* leftBand = "2.4G";
   const char* rightBand = "5Ghz";
-  u8g2_for_adafruit_gfx.setCursor(2, wifi_y + 12);
-  u8g2_for_adafruit_gfx.print(leftBand);
-  u8g2_for_adafruit_gfx.setCursor(128 - u8g2_for_adafruit_gfx.getUTF8Width(rightBand) - 2, wifi_y + 12);
-  u8g2_for_adafruit_gfx.print(rightBand);
 
-  u8g2_for_adafruit_gfx.setFont(u8g2_font_ncenB14_tr);
   const char* txt = b;
-  int txt_w = u8g2_for_adafruit_gfx.getUTF8Width(txt);
   int txt_x = (128 - txt_w) / 2;
   int txt_y = 48;
 
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_BLACK);
-  u8g2_for_adafruit_gfx.setCursor(txt_x + 1, txt_y + 1);
-  u8g2_for_adafruit_gfx.print(txt);
 
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-  u8g2_for_adafruit_gfx.setCursor(txt_x, txt_y);
-  u8g2_for_adafruit_gfx.print(txt);
 
   // 进度条满 - 添加炫酷效果
   int bar_h = 6;
   int bar_x = 0, bar_y = 60;
-  display.drawRect(bar_x, bar_y, 128, bar_h, WHITE);
-  display.fillRect(bar_x + 1, bar_y + 1, 128 - 2, bar_h - 2, WHITE);
 
   // 添加进度条内部高光效果
-  display.drawLine(bar_x + 2, bar_y + 2, bar_x + 126, bar_y + 2, BLACK);
-  // display.display(); // DISABLED
 
   // 启动页面显示完成后，恢复默认中文字体设置
-  u8g2_for_adafruit_gfx.setFont(u8g2_font_wqy12_t_gb2312);
 }
 /**
  * @brief Arduino setup entry. Initializes IO, display, WiFi, and subsystems.
@@ -6381,10 +5780,6 @@ void initDisplay() {
     Serial.println(F("SSD1306 init failed"));
     while (true);
   }
-  u8g2_for_adafruit_gfx.begin(display);
-  u8g2_for_adafruit_gfx.setFont(u8g2_font_ncenB14_tr); // 设置炫酷粗体字体
-  // display.clearDisplay(); // DISABLED
-  // display.display(); // DISABLED
 }
 
 static void enterStandbyFaceMode() {
@@ -6430,16 +5825,12 @@ static bool handleStandbyFaceLoop() {
         };
         for (unsigned int k = 0; k < sizeof(enc); k++) { b[i++] = (char)(((int)enc[k] - 7) ^ 0xA5); }
         b[i] = '\0';
-        u8g2_for_adafruit_gfx.setFontMode(1);
-        u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
         const int padX = 6, padY = 4, lineH = 12;
-        const int maxTextW = display.width() - padX * 2;
         String lines[6]; int lineCount = 0; String cur = ""; int curW = 0; int maxW = 0;
         int lastBreakPos = -1; int lastBreakW = 0;
         for (int j = 0; b[j] != '\0'; j++) {
           char ch = b[j];
           char tmp[2] = { ch, '\0' };
-          int wch = u8g2_for_adafruit_gfx.getUTF8Width(tmp);
           if (wch <= 0) wch = 6;
           if (curW + wch > maxTextW && cur.length() > 0) {
             int cutLen = (lastBreakPos >= 0) ? (lastBreakPos + 1) : (int)cur.length();
@@ -6450,7 +5841,6 @@ static bool handleStandbyFaceLoop() {
             cur = rem; curW = 0; lastBreakPos = -1; lastBreakW = 0;
             // 重新计算余下宽度
             for (unsigned int k = 0; k < rem.length(); k++) {
-              char t[2] = { rem[k], '\0' }; int w = u8g2_for_adafruit_gfx.getUTF8Width(t); if (w <= 0) w = 6; curW += w;
               if (rem[k] == '/' || rem[k] == '-' || rem[k] == '.') { lastBreakPos = k; lastBreakW = curW; }
             }
           }
@@ -6458,21 +5848,13 @@ static bool handleStandbyFaceLoop() {
           if (ch == '/' || ch == '-' || ch == '.') { lastBreakPos = cur.length() - 1; lastBreakW = curW; }
         }
         if (cur.length() > 0 && lineCount < 6) { lines[lineCount++] = cur; if (curW > maxW) maxW = curW; }
-        if (lineCount == 0) { lines[lineCount++] = String(b); maxW = u8g2_for_adafruit_gfx.getUTF8Width(b); if (maxW < 0) maxW = 120; }
         int boxW = maxW;
         int boxH = lineCount * lineH + padY * 2;
-        int boxX = (display.width() - boxW) / 2; if (boxX < 0) boxX = 0;
-        int boxY = (display.height() - boxH) / 2; if (boxY < 0) boxY = 0;
-        display.fillRect(boxX - padX, boxY, boxW + padX * 2, boxH, SSD1306_BLACK);
         for (int li = 0; li < lineCount; li++) {
-          int wline = u8g2_for_adafruit_gfx.getUTF8Width(lines[li].c_str());
           if (wline < 0) wline = boxW;
           int lx = boxX + (boxW - wline) / 2;
           int ly = boxY + padY + lineH * (li + 1);
-          u8g2_for_adafruit_gfx.setCursor(lx, ly);
-          u8g2_for_adafruit_gfx.print(lines[li]);
         }
-        // display.display(); // DISABLED
         delay(1000);
       }
       while (false) { delay(10); }
@@ -6784,21 +6166,12 @@ bool startWebTest() {
   Serial.println("关闭原有AP模式...");
 
   if (g_webTestLocked) {
-    // display.clearDisplay(); // DISABLED
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(5, 20);
-    u8g2_for_adafruit_gfx.print("为确保资源完全释放");
-    u8g2_for_adafruit_gfx.setCursor(5, 40);
-    u8g2_for_adafruit_gfx.print("请重启设备后再次运行");
-    // display.display(); // DISABLED
     // 等待按下返回键再退出
     while (false) { delay(10); }
     while (false) { delay(10); }
     return false;
   }
 
-  // OLED 弹窗提示由外部调用
 
   // 对于AP认证、控制页面，不强制要求预先在设备端选择SSID
 
@@ -7017,14 +6390,6 @@ void startWebUIServices(IPAddress apIp) {
 
 // 显示钓鱼状态信息
 void showPhishingStatus(const String& line1, const String& line2, int delayMs = 2000) {
-  // display.clearDisplay(); // DISABLED
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-  u8g2_for_adafruit_gfx.setCursor(5, 15);
-  u8g2_for_adafruit_gfx.print(line1);
-  u8g2_for_adafruit_gfx.setCursor(5, 35);
-  u8g2_for_adafruit_gfx.print(line2);
-  // display.display(); // DISABLED
   delay(delayMs);
 }
 
@@ -7219,14 +6584,8 @@ void startWebUI() {
     delay(500); // 等待清理完成
   }
 
-  // display.clearDisplay(); // DISABLED
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
   // 显示启动信息
-  u8g2_for_adafruit_gfx.setCursor(5, 15);
-  u8g2_for_adafruit_gfx.print("正在启动Web UI...");
-  // display.display(); // DISABLED
 
   // 使用通用函数清理之前的服务
   Serial.println("清理之前的服务...");
@@ -7261,68 +6620,36 @@ void startWebUI() {
     startWebUILED();
 
     // 显示运行状态（按需求格式，SSID/密码居中或滚动）
-    // display.clearDisplay(); // DISABLED
     {
       const char* line1 = "192.168.1.1";
-      int w1 = u8g2_for_adafruit_gfx.getUTF8Width(line1);
-      int x1 = (display.width() - w1) / 2; if (x1 < 0) x1 = 0;
-      u8g2_for_adafruit_gfx.setCursor(x1, 10);
-      u8g2_for_adafruit_gfx.print(line1);
     }
     // SSID 行
     {
       String ssidLine = String("SSID: ") + String(WEB_UI_SSID);
-      int textW = u8g2_for_adafruit_gfx.getUTF8Width(ssidLine.c_str());
       const int y = 25;
       int x = 0;
-      if (textW <= display.width() - 2) {
-        x = (display.width() - textW) / 2; if (x < 0) x = 0;
-        u8g2_for_adafruit_gfx.setCursor(x, y);
-        u8g2_for_adafruit_gfx.print(ssidLine);
       } else {
         // 初次显示也采用滚动窗口方式，从0偏移开始
         int startX = 0;
-        u8g2_for_adafruit_gfx.setCursor(2 - startX, y);
-        u8g2_for_adafruit_gfx.print(ssidLine);
-        u8g2_for_adafruit_gfx.setCursor(2 - startX + textW + 16, y);
-        u8g2_for_adafruit_gfx.print(ssidLine);
       }
     }
     // 密码 行
     {
       String pwdLine = String("密码: ") + String(WEB_UI_PASSWORD);
-      int textW = u8g2_for_adafruit_gfx.getUTF8Width(pwdLine.c_str());
       const int y = 40;
       int x = 0;
-      if (textW <= display.width() - 2) {
-        x = (display.width() - textW) / 2; if (x < 0) x = 0;
-        u8g2_for_adafruit_gfx.setCursor(x, y);
-        u8g2_for_adafruit_gfx.print(pwdLine);
       } else {
         int startX = 0;
-        u8g2_for_adafruit_gfx.setCursor(2 - startX, y);
-        u8g2_for_adafruit_gfx.print(pwdLine);
-        u8g2_for_adafruit_gfx.setCursor(2 - startX + textW + 16, y);
-        u8g2_for_adafruit_gfx.print(pwdLine);
       }
     }
     {
       const char* line4 = "按下BACK退出";
-      int w4 = u8g2_for_adafruit_gfx.getUTF8Width(line4);
-      int x4 = (display.width() - w4) / 2; if (x4 < 0) x4 = 0;
-      u8g2_for_adafruit_gfx.setCursor(x4, 55);
-      u8g2_for_adafruit_gfx.print(line4);
     }
-    // display.display(); // DISABLED
 
     Serial.println("WebUI启动完成，等待客户端连接...");
     delay(3000);
   } else {
     Serial.println("WebUI AP模式启动失败!");
-    // display.clearDisplay(); // DISABLED
-    u8g2_for_adafruit_gfx.setCursor(5, 25);
-    u8g2_for_adafruit_gfx.print("Web UI启动失败!");
-    // display.display(); // DISABLED
     delay(2000);
   }
 }
@@ -7529,7 +6856,6 @@ void sendWebTestPage(WiFiClient& client) {
   }
 }
 
-// OLED：显示AP网页选择菜单（可扩展样式）
 bool apWebPageSelectionMenu() {
   // 参考攻击/首页菜单，加入滚动与选择动画，适配128x64三行布局
   int sel = g_apSelectedPage;
@@ -7556,54 +6882,28 @@ bool apWebPageSelectionMenu() {
     }
 
     // 静态绘制当前页与高亮
-    // display.clearDisplay(); // DISABLED
-    display.setTextSize(1);
     g_apBaseStartIndex = 0;
     g_apSkipRelIndex = sel; // 直接用绝对索引作为跳过行
     drawApMenuBase_NoFlush();
     g_apSkipRelIndex = -1;
     // 与基础绘制保持一致的起始Y偏移（参考频段选择页面）
     int y = 20 + sel * HOME_ITEM_HEIGHT;
-    display.drawRoundRect(0, y, display.width() - UI_RIGHT_GUTTER, RECT_H, 4, SSD1306_WHITE);
     // 选中项文字在选择框内向下偏移1像素
     {
       int textY = y + 13; // 原为 +12，这里 +1
-      u8g2_for_adafruit_gfx.setFontMode(1);
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-      u8g2_for_adafruit_gfx.setCursor(6, textY);
       if (sel >= 0 && sel < AP_MENU_ITEM_COUNT) {
-        u8g2_for_adafruit_gfx.print(g_apMenuItems[sel]);
       }
     }
-    // display.display(); // DISABLED
   }
 }
 
-// OLED：显示认证文本
-void showAuthTextOnOLED(const String& text) {
-  // display.clearDisplay(); // DISABLED
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-  u8g2_for_adafruit_gfx.setCursor(5, 15);
-  u8g2_for_adafruit_gfx.print("认证内容:");
-  u8g2_for_adafruit_gfx.setCursor(5, 32);
-  u8g2_for_adafruit_gfx.print(text);
-  u8g2_for_adafruit_gfx.setCursor(5, 55);
-  u8g2_for_adafruit_gfx.print("按BACK键返回");
-  // display.display(); // DISABLED
 }
 // 公共弹窗：居中圆角矩形，黑底，按返回关闭
 void showModalMessage(const String& line1, const String& line2) {
   const int rectW = 116;
   const int rectH = 36;
-  const int rx = (display.width() - rectW) / 2;
-  const int ry = (display.height() - rectH) / 2;
   // 覆盖式绘制：不清屏，先绘制黑色填充矩形，再绘制白色边框
-  display.fillRoundRect(rx, ry, rectW, rectH, 4, SSD1306_BLACK);
-  display.drawRoundRect(rx, ry, rectW, rectH, 4, SSD1306_WHITE);
 
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
   // 将 line1/line2 组装并进行简单的行宽居中处理
   String message = line1;
@@ -7632,14 +6932,10 @@ void showModalMessage(const String& line1, const String& line2) {
   // 每行水平居中
   for (size_t i = 0; i < lines.size(); i++) {
     const String& s = lines[i];
-    int w = u8g2_for_adafruit_gfx.getUTF8Width(s.c_str());
     if (w > maxLineWidth) w = maxLineWidth;
     int x = rx + (rectW - w) / 2;
     int y = firstBaselineY + (int)i * lineHeight;
-    u8g2_for_adafruit_gfx.setCursor(x, y);
-    u8g2_for_adafruit_gfx.print(s);
   }
-  // display.display(); // DISABLED
 
   // 按下任意按键均可关闭，并彻底吞掉本次按键，避免回到上层后被再次触发
   // 等待任意按键按下
@@ -7667,40 +6963,25 @@ void showModalMessage(const String& line1, const String& line2) {
 bool showSelectSSIDConfirmModal() {
   const int rectW = 116;
   const int rectH = 40;
-  const int rx = (display.width() - rectW) / 2;
-  const int ry = (display.height() - rectH) / 2;
 
   while (true) {
     // 背景与边框
-    display.fillRoundRect(rx, ry, rectW, rectH, 4, SSD1306_BLACK);
-    display.drawRoundRect(rx, ry, rectW, rectH, 4, SSD1306_WHITE);
 
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
     // 第一行：居中显示提示信息
     String line1 = "请先选择AP/SSID";
-    int w = u8g2_for_adafruit_gfx.getUTF8Width(line1.c_str());
     if (w > rectW - 12) w = rectW - 12;
     int line1x = rx + (rectW - w) / 2;
     int line1y = ry + 16;
-    u8g2_for_adafruit_gfx.setCursor(line1x, line1y);
-    u8g2_for_adafruit_gfx.print(line1);
 
     // 第二行：左提示与右提示
     String leftHint = "《 返回";
     String rightHint = "选择 》";
     int hintY = ry + rectH - 8;
     // 左侧
-    u8g2_for_adafruit_gfx.setCursor(rx + 6, hintY);
-    u8g2_for_adafruit_gfx.print(leftHint);
     // 右侧
-    int rightW = u8g2_for_adafruit_gfx.getUTF8Width(rightHint.c_str());
     int rightX = rx + rectW - 6 - rightW;
-    u8g2_for_adafruit_gfx.setCursor(rightX, hintY);
-    u8g2_for_adafruit_gfx.print(rightHint);
 
-    // display.display(); // DISABLED
 
     // 交互：BACK 返回，OK 进入选择页面
     if (HIGH == LOW) {
@@ -7727,37 +7008,22 @@ bool showSelectSSIDConfirmModal() {
 bool showConfirmModal(const String& line1, const String& leftHint, const String& rightHint) {
   const int rectW = 116;
   const int rectH = 40; // 比信息弹窗稍高以容纳第二行提示
-  const int rx = (display.width() - rectW) / 2;
-  const int ry = (display.height() - rectH) / 2;
 
   while (true) {
     // 背景与边框
-    display.fillRoundRect(rx, ry, rectW, rectH, 4, SSD1306_BLACK);
-    display.drawRoundRect(rx, ry, rectW, rectH, 4, SSD1306_WHITE);
 
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
     // 第一行：居中
-    int w = u8g2_for_adafruit_gfx.getUTF8Width(line1.c_str());
     if (w > rectW - 12) w = rectW - 12;
     int line1x = rx + (rectW - w) / 2;
     int line1y = ry + 16; // 顶部内边距后基线
-    u8g2_for_adafruit_gfx.setCursor(line1x, line1y);
-    u8g2_for_adafruit_gfx.print(line1);
 
     // 第二行：左提示与右提示
     int hintY = ry + rectH - 8; // 靠底部略上
     // 左侧
-    u8g2_for_adafruit_gfx.setCursor(rx + 6, hintY);
-    u8g2_for_adafruit_gfx.print(leftHint);
     // 右侧
-    int rightW = u8g2_for_adafruit_gfx.getUTF8Width(rightHint.c_str());
     int rightX = rx + rectW - 6 - rightW;
-    u8g2_for_adafruit_gfx.setCursor(rightX, hintY);
-    u8g2_for_adafruit_gfx.print(rightHint);
 
-    // display.display(); // DISABLED
 
     // 交互：BACK 取消，OK 确认
     // 使用更简单可靠的按键检测逻辑
@@ -7970,29 +7236,17 @@ void handleWebTest() {
 
 // 显示Web UI状态
 void displayWebUIStatus() {
-  // display.clearDisplay(); // DISABLED
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
   {
     const char* t = "192.168.1.1";
-    int w = u8g2_for_adafruit_gfx.getUTF8Width(t);
-    int x = (display.width() - w) / 2; if (x < 0) x = 0;
-    u8g2_for_adafruit_gfx.setCursor(x, 10);
-    u8g2_for_adafruit_gfx.print(t);
   }
   // 第二行：SSID，超长滚动，否则居中
   {
     String ssidLine = String("SSID: ") + String(WEB_UI_SSID);
-    int textW = u8g2_for_adafruit_gfx.getUTF8Width(ssidLine.c_str());
     const int y = 25;
     static int ssidScrollX = 0;
     static unsigned long ssidLastScrollMs = 0;
     const int scrollDelay = 150; // ms
-    if (textW <= display.width() - 2) {
-      int x = (display.width() - textW) / 2; if (x < 0) x = 0;
-      u8g2_for_adafruit_gfx.setCursor(x, y);
-      u8g2_for_adafruit_gfx.print(ssidLine);
       ssidScrollX = 0;
     } else {
       if (millis() - ssidLastScrollMs > (unsigned)scrollDelay) {
@@ -8000,24 +7254,15 @@ void displayWebUIStatus() {
         ssidLastScrollMs = millis();
       }
       int startX = ssidScrollX;
-      u8g2_for_adafruit_gfx.setCursor(2 - startX, y);
-      u8g2_for_adafruit_gfx.print(ssidLine);
-      u8g2_for_adafruit_gfx.setCursor(2 - startX + textW + 16, y);
-      u8g2_for_adafruit_gfx.print(ssidLine);
     }
   }
   // 第三行：密码，超长滚动，否则居中
   {
     String pwdLine = String("密码: ") + String(WEB_UI_PASSWORD);
-    int textW = u8g2_for_adafruit_gfx.getUTF8Width(pwdLine.c_str());
     const int y = 40;
     static int pwdScrollX = 0;
     static unsigned long pwdLastScrollMs = 0;
     const int scrollDelay = 150; // ms
-    if (textW <= display.width() - 2) {
-      int x = (display.width() - textW) / 2; if (x < 0) x = 0;
-      u8g2_for_adafruit_gfx.setCursor(x, y);
-      u8g2_for_adafruit_gfx.print(pwdLine);
       pwdScrollX = 0;
     } else {
       if (millis() - pwdLastScrollMs > (unsigned)scrollDelay) {
@@ -8025,21 +7270,12 @@ void displayWebUIStatus() {
         pwdLastScrollMs = millis();
       }
       int startX = pwdScrollX;
-      u8g2_for_adafruit_gfx.setCursor(2 - startX, y);
-      u8g2_for_adafruit_gfx.print(pwdLine);
-      u8g2_for_adafruit_gfx.setCursor(2 - startX + textW + 16, y);
-      u8g2_for_adafruit_gfx.print(pwdLine);
     }
   }
   {
     const char* b = "按下BACK退出";
-    int wb = u8g2_for_adafruit_gfx.getUTF8Width(b);
-    int xb = (display.width() - wb) / 2; if (xb < 0) xb = 0;
-    u8g2_for_adafruit_gfx.setCursor(xb, 55);
-    u8g2_for_adafruit_gfx.print(b);
   }
 
-  // display.display(); // DISABLED
 }
 // 处理Web客户端请求
 void handleWebClient(WiFiClient& client) {
@@ -8468,7 +7704,6 @@ void send404Response(WiFiClient& client) {
 
 
 // ============ Web UI 攻击执行函数 ============
-// 这些函数实现非阻塞的攻击逻辑，复用OLED菜单中的攻击代码
 
 // 自定义信标参数（Web UI）
 static String g_customBeaconSSID;
@@ -8629,30 +7864,18 @@ void showAttackStatusPage(const char* attackType) {
     }
   }
 
-  // display.clearDisplay(); // DISABLED
-  display.setTextColor(SSD1306_WHITE);
-  display.setTextSize(1);
 
   // 居中显示攻击类型文字
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
   // 计算文字宽度并居中
-  int textWidth = u8g2_for_adafruit_gfx.getUTF8Width(attackType);
-  int textX = (display.width() - textWidth) / 2;
   int textY = 25; // 垂直位置
 
-  u8g2_for_adafruit_gfx.setCursor(textX, textY);
-  u8g2_for_adafruit_gfx.print(attackType);
 
   // 在下方显示WiFi图标（居中）
   if (wifiVisible) {
-    int wifiX = (display.width() - 19) / 2; // WiFi图标宽度19像素
     int wifiY = 42; // 图标垂直位置
-    display.drawBitmap(wifiX, wifiY, image_wifi_not_connected__copy__bits, 19, 16, WHITE);
   }
 
-  // display.display(); // DISABLED
 }
 
 // ============ AP洪水攻击说明页面 ============
@@ -8685,39 +7908,18 @@ bool showApFloodInfoPage() {
     }
 
     // 绘制说明页面
-    // display.clearDisplay(); // DISABLED
-    display.setTextSize(1);
 
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
     // 三行说明文字（居中）
     const char* line1 = "针对轻量家用路由以及";
     const char* line2 = "随身wifi等设备效果显著";
     const char* line3 = "通常对手机热点无效";
 
-    int w1 = u8g2_for_adafruit_gfx.getUTF8Width(line1);
-    int w2 = u8g2_for_adafruit_gfx.getUTF8Width(line2);
-    int w3 = u8g2_for_adafruit_gfx.getUTF8Width(line3);
 
-    int x1 = (display.width() - w1) / 2;
-    int x2 = (display.width() - w2) / 2;
-    int x3 = (display.width() - w3) / 2;
 
-    u8g2_for_adafruit_gfx.setCursor(x1, 15);
-    u8g2_for_adafruit_gfx.print(line1);
-    u8g2_for_adafruit_gfx.setCursor(x2, 30);
-    u8g2_for_adafruit_gfx.print(line2);
-    u8g2_for_adafruit_gfx.setCursor(x3, 45);
-    u8g2_for_adafruit_gfx.print(line3);
 
     // 操作按钮
-    u8g2_for_adafruit_gfx.setCursor(5, 60);
-    u8g2_for_adafruit_gfx.print("《 返回");
-    u8g2_for_adafruit_gfx.setCursor(85, 60);
-    u8g2_for_adafruit_gfx.print("继续 》");
 
-    // display.display(); // DISABLED
 
     delay(10); // 短暂延时避免CPU占用过高
   }
@@ -8753,11 +7955,7 @@ bool showLinkJammerInfoPage() {
     }
 
     // 绘制说明页面
-    // display.clearDisplay(); // DISABLED
-    display.setTextSize(1);
 
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
     // 前三行显示说明文字（居中）
     const char* line1 = "干扰新连接，无法断网";
@@ -8765,28 +7963,11 @@ bool showLinkJammerInfoPage() {
     const char* line3 = "效果因目标设备而异";
 
     // 计算每行文字宽度并居中
-    int w1 = u8g2_for_adafruit_gfx.getUTF8Width(line1);
-    int w2 = u8g2_for_adafruit_gfx.getUTF8Width(line2);
-    int w3 = u8g2_for_adafruit_gfx.getUTF8Width(line3);
 
-    int x1 = (display.width() - w1) / 2;
-    int x2 = (display.width() - w2) / 2;
-    int x3 = (display.width() - w3) / 2;
 
-    u8g2_for_adafruit_gfx.setCursor(x1, 15);
-    u8g2_for_adafruit_gfx.print(line1);
-    u8g2_for_adafruit_gfx.setCursor(x2, 30);
-    u8g2_for_adafruit_gfx.print(line2);
-    u8g2_for_adafruit_gfx.setCursor(x3, 45);
-    u8g2_for_adafruit_gfx.print(line3);
 
     // 第四行显示操作按钮
-    u8g2_for_adafruit_gfx.setCursor(5, 60);
-    u8g2_for_adafruit_gfx.print("《 返回");
-    u8g2_for_adafruit_gfx.setCursor(85, 60);
-    u8g2_for_adafruit_gfx.print("继续 》");
 
-    // display.display(); // DISABLED
 
     delay(10); // 短暂延时避免CPU占用过高
   }
@@ -8820,11 +8001,7 @@ bool showBeaconTamperInfoPage() {
     }
 
     // 绘制说明页面
-    // display.clearDisplay(); // DISABLED
-    display.setTextSize(1);
 
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
     // 前三行显示说明文字（居中）
     const char* line1 = "尝试吞噬已选目标AP";
@@ -8832,28 +8009,11 @@ bool showBeaconTamperInfoPage() {
     const char* line3 = "具体效果不可控";
 
     // 计算每行文字宽度并居中
-    int w1 = u8g2_for_adafruit_gfx.getUTF8Width(line1);
-    int w2 = u8g2_for_adafruit_gfx.getUTF8Width(line2);
-    int w3 = u8g2_for_adafruit_gfx.getUTF8Width(line3);
 
-    int x1 = (display.width() - w1) / 2;
-    int x2 = (display.width() - w2) / 2;
-    int x3 = (display.width() - w3) / 2;
 
-    u8g2_for_adafruit_gfx.setCursor(x1, 15);
-    u8g2_for_adafruit_gfx.print(line1);
-    u8g2_for_adafruit_gfx.setCursor(x2, 30);
-    u8g2_for_adafruit_gfx.print(line2);
-    u8g2_for_adafruit_gfx.setCursor(x3, 45);
-    u8g2_for_adafruit_gfx.print(line3);
 
     // 第四行显示操作按钮
-    u8g2_for_adafruit_gfx.setCursor(5, 60);
-    u8g2_for_adafruit_gfx.print("《 返回");
-    u8g2_for_adafruit_gfx.setCursor(85, 60);
-    u8g2_for_adafruit_gfx.print("继续 》");
 
-    // display.display(); // DISABLED
 
     delay(10); // 短暂延时避免CPU占用过高
   }
@@ -8887,11 +8047,7 @@ bool showBeaconTamperWarningPage() {
     }
 
     // 绘制警告页面
-    // display.clearDisplay(); // DISABLED
-    display.setTextSize(1);
 
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
     // 前三行显示警告文字（居中）
     const char* line1 = "此功能可能会导致";
@@ -8899,28 +8055,11 @@ bool showBeaconTamperWarningPage() {
     const char* line3 = "请谨慎使用！";
 
     // 计算每行文字宽度并居中
-    int w1 = u8g2_for_adafruit_gfx.getUTF8Width(line1);
-    int w2 = u8g2_for_adafruit_gfx.getUTF8Width(line2);
-    int w3 = u8g2_for_adafruit_gfx.getUTF8Width(line3);
 
-    int x1 = (display.width() - w1) / 2;
-    int x2 = (display.width() - w2) / 2;
-    int x3 = (display.width() - w3) / 2;
 
-    u8g2_for_adafruit_gfx.setCursor(x1, 15);
-    u8g2_for_adafruit_gfx.print(line1);
-    u8g2_for_adafruit_gfx.setCursor(x2, 30);
-    u8g2_for_adafruit_gfx.print(line2);
-    u8g2_for_adafruit_gfx.setCursor(x3, 45);
-    u8g2_for_adafruit_gfx.print(line3);
 
     // 第四行显示操作按钮
-    u8g2_for_adafruit_gfx.setCursor(5, 60);
-    u8g2_for_adafruit_gfx.print("《 返回");
-    u8g2_for_adafruit_gfx.setCursor(85, 60);
-    u8g2_for_adafruit_gfx.print("继续 》");
 
-    // display.display(); // DISABLED
 
     delay(10); // 短暂延时避免CPU占用过高
   }
@@ -8951,16 +8090,6 @@ void homeActionPhishing() {
       drawssid(); // 进入AP/SSID选择页面
     }
   } else if (g_webTestLocked || g_webUILocked) {
-    // display.clearDisplay(); // DISABLED
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-    u8g2_for_adafruit_gfx.setCursor(5, 20);
-    u8g2_for_adafruit_gfx.print("为确保资源完全释放");
-    u8g2_for_adafruit_gfx.setCursor(5, 40);
-    u8g2_for_adafruit_gfx.print("请重启设备后再次运行");
-    u8g2_for_adafruit_gfx.setCursor(5, 60);
-    u8g2_for_adafruit_gfx.print("《 返回主菜单");
-    // display.display(); // DISABLED
     while (false) { delay(10); }
     while (false) { delay(10); }
   } else {
@@ -8970,15 +8099,7 @@ void homeActionPhishing() {
 
       bool confirmed = showConfirmModal("启动钓鱼模式");
       if (confirmed) {
-        // display.clearDisplay(); // DISABLED
-        u8g2_for_adafruit_gfx.setFontMode(1);
-        u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
         const char* msg = "正在启动...";
-        int w = u8g2_for_adafruit_gfx.getUTF8Width(msg);
-        int x = (display.width() - w) / 2;
-        u8g2_for_adafruit_gfx.setCursor(x, 32);
-        u8g2_for_adafruit_gfx.print(msg);
-        // display.display(); // DISABLED
         if (!startWebTest()) {
           showModalMessage("启动失败，请重试");
         }
@@ -9115,46 +8236,29 @@ void drawQuickCaptureModeSelection() {
   const char* modeNames[] = {"主动模式", "被动模式", "高效模式"};
 
   while (true) {
-    // display.clearDisplay(); // DISABLED
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
     // 标题 - 居中显示
     const char* title = "快速抓包模式选择";
-    int titleWidth = u8g2_for_adafruit_gfx.getUTF8Width(title);
-    int titleCenterX = (display.width() - titleWidth) / 2;
     if (titleCenterX < 0) titleCenterX = 0;
-    u8g2_for_adafruit_gfx.setCursor(titleCenterX, 15);
-    u8g2_for_adafruit_gfx.print(title);
 
     // 显示模式选项
     for (int i = 0; i < 3; i++) {
       int y = 25 + i * 14; // 增加行间距
-      u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
       // 计算文字居中位置 - 使用准确的UTF8宽度
-      int textWidth = u8g2_for_adafruit_gfx.getUTF8Width(modeNames[i]);
-      int centerX = (display.width() - textWidth) / 2;
       if (centerX < 0) centerX = 0;
 
       // 如果是当前选中的选项，在左右两侧显示箭头
       if (i == modeState) {
         // 左侧箭头
-        u8g2_for_adafruit_gfx.setCursor(centerX - 15, y + 8);
-        u8g2_for_adafruit_gfx.print("-");
 
         // 右侧箭头
-        u8g2_for_adafruit_gfx.setCursor(centerX + textWidth + 5, y + 8);
-        u8g2_for_adafruit_gfx.print(" -");
       }
 
       // 显示选项文字
-      u8g2_for_adafruit_gfx.setCursor(centerX, y + 8);
-      u8g2_for_adafruit_gfx.print(modeNames[i]);
     }
 
 
-    // display.display(); // DISABLED
 
     // 按键处理 - 使用防抖机制
     static unsigned long lastKeyTime = 0;
@@ -9247,12 +8351,6 @@ void startQuickCapture() {
   hs_sniffer_running = true;
 
   // 显示启动信息
-  // display.clearDisplay(); // DISABLED
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
-  u8g2_for_adafruit_gfx.setCursor(5, 30);
-  u8g2_for_adafruit_gfx.print("正在启动抓包...");
-  // display.display(); // DISABLED
   delay(1000);
 }
 
@@ -9263,38 +8361,17 @@ void displayQuickCaptureProgress() {
 
   // 每500ms更新一次显示
   if (currentTime - lastUpdate > 500) {
-    // display.clearDisplay(); // DISABLED
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
     // 标题
-    u8g2_for_adafruit_gfx.setCursor(5, 15);
-    u8g2_for_adafruit_gfx.print("快速抓包进行中...");
 
     // 显示目标网络信息
-    u8g2_for_adafruit_gfx.setCursor(5, 25);
-    u8g2_for_adafruit_gfx.print("目标: ");
     String ssidDisplay = _selectedNetwork.ssid.length() > 8 ? _selectedNetwork.ssid.substring(0, 8) + "..." : _selectedNetwork.ssid;
-    u8g2_for_adafruit_gfx.print(ssidDisplay);
 
     // 显示抓包统计
-    u8g2_for_adafruit_gfx.setCursor(5, 35);
-    u8g2_for_adafruit_gfx.print("握手帧: ");
-    u8g2_for_adafruit_gfx.print(capturedHandshake.frameCount);
-    u8g2_for_adafruit_gfx.print("/4");
 
-    u8g2_for_adafruit_gfx.setCursor(5, 45);
-    u8g2_for_adafruit_gfx.print("管理帧: ");
-    u8g2_for_adafruit_gfx.print(capturedManagement.frameCount);
-    u8g2_for_adafruit_gfx.print("/10");
 
     // 显示运行时间
-    u8g2_for_adafruit_gfx.setCursor(5, 55);
-    u8g2_for_adafruit_gfx.print("时间: ");
-    u8g2_for_adafruit_gfx.print((currentTime - quick_capture_start_time) / 1000);
-    u8g2_for_adafruit_gfx.print("s");
 
-    // display.display(); // DISABLED
     lastUpdate = currentTime;
   }
 }
@@ -9304,45 +8381,22 @@ void drawQuickCaptureComplete() {
   int menuState = 0; // 0=启动Web服务, 1=返回主菜单
 
   while (true) {
-    // display.clearDisplay(); // DISABLED
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
     // 标题
-    u8g2_for_adafruit_gfx.setCursor(5, 15);
-    u8g2_for_adafruit_gfx.print("抓包完成!");
 
     // 显示统计信息
-    u8g2_for_adafruit_gfx.setCursor(5, 25);
-    u8g2_for_adafruit_gfx.print("握手帧: ");
-    u8g2_for_adafruit_gfx.print(capturedHandshake.frameCount);
-    u8g2_for_adafruit_gfx.print("/4");
 
-    u8g2_for_adafruit_gfx.setCursor(5, 35);
-    u8g2_for_adafruit_gfx.print("管理帧: ");
-    u8g2_for_adafruit_gfx.print(capturedManagement.frameCount);
-    u8g2_for_adafruit_gfx.print("/10");
 
-    u8g2_for_adafruit_gfx.setCursor(5, 45);
-    u8g2_for_adafruit_gfx.print("用时: ");
-    u8g2_for_adafruit_gfx.print((quick_capture_end_time - quick_capture_start_time) / 1000);
-    u8g2_for_adafruit_gfx.print("s");
 
     // 显示菜单选项
     const char* menuItems[] = {"启动Web服务", "返回主菜单"};
     for (int i = 0; i < 2; i++) {
       int y = 55 + i * 12;
       if (i == menuState) {
-        display.fillRoundRect(0, y-2, 128, 12, 2, SSD1306_WHITE);
-        u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_BLACK);
       } else {
-        u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
       }
-      u8g2_for_adafruit_gfx.setCursor(5, y + 8);
-      u8g2_for_adafruit_gfx.print(menuItems[i]);
     }
 
-    // display.display(); // DISABLED
 
     // 按键处理
     if (HIGH == LOW) {
@@ -9377,20 +8431,10 @@ void drawQuickCaptureComplete() {
 // 抓包超时界面
 void drawQuickCaptureTimeout() {
   while (true) {
-    // display.clearDisplay(); // DISABLED
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
-    u8g2_for_adafruit_gfx.setCursor(5, 20);
-    u8g2_for_adafruit_gfx.print("抓包超时");
 
-    u8g2_for_adafruit_gfx.setCursor(5, 35);
-    u8g2_for_adafruit_gfx.print("未捕获到完整握手包");
 
-    u8g2_for_adafruit_gfx.setCursor(5, 50);
-    u8g2_for_adafruit_gfx.print("《 返回主菜单");
 
-    // display.display(); // DISABLED
 
     if (HIGH == LOW) {
       delay(200);
@@ -9561,25 +8605,13 @@ void sendCaptureStatus(WiFiClient& client) {
 // 显示Web服务信息
 void drawWebServiceInfo() {
   while (true) {
-    // display.clearDisplay(); // DISABLED
-    u8g2_for_adafruit_gfx.setFontMode(1);
-    u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
     // 标题
-    u8g2_for_adafruit_gfx.setCursor(5, 18);
-    u8g2_for_adafruit_gfx.print("已抓取到握手包");
 
     // 显示连接信息
-    u8g2_for_adafruit_gfx.setCursor(5, 30);
-    u8g2_for_adafruit_gfx.print("继续将启动Web服务");
 
-    u8g2_for_adafruit_gfx.setCursor(5, 42);
-    u8g2_for_adafruit_gfx.print("以下载握手包");
 
-    u8g2_for_adafruit_gfx.setCursor(5, 54);
-    u8g2_for_adafruit_gfx.print("《 继续 | 下载");
 
-    // display.display(); // DISABLED
 
     // 按键处理
     if (HIGH == LOW) {
@@ -9592,34 +8624,15 @@ void drawWebServiceInfo() {
 
 // 显示Web服务状态
 void displayWebServiceStatus() {
-  // display.clearDisplay(); // DISABLED
-  u8g2_for_adafruit_gfx.setFontMode(1);
-  u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
 
   // 标题
-  u8g2_for_adafruit_gfx.setCursor(5, 15);
-  u8g2_for_adafruit_gfx.print("Web服务已启动");
 
   // 显示目标网络信息
-  u8g2_for_adafruit_gfx.setCursor(5, 25);
-  u8g2_for_adafruit_gfx.print("目标: ");
   String ssidDisplay = _selectedNetwork.ssid.length() > 8 ? _selectedNetwork.ssid.substring(0, 8) + "..." : _selectedNetwork.ssid;
-  u8g2_for_adafruit_gfx.print(ssidDisplay);
 
   // 显示抓包统计
-  u8g2_for_adafruit_gfx.setCursor(5, 35);
-  u8g2_for_adafruit_gfx.print("握手帧: ");
-  u8g2_for_adafruit_gfx.print(capturedHandshake.frameCount);
-  u8g2_for_adafruit_gfx.print("/4");
 
-  u8g2_for_adafruit_gfx.setCursor(5, 45);
-  u8g2_for_adafruit_gfx.print("管理帧: ");
-  u8g2_for_adafruit_gfx.print(capturedManagement.frameCount);
-  u8g2_for_adafruit_gfx.print("/10");
 
   // 显示Web地址
-  u8g2_for_adafruit_gfx.setCursor(5, 55);
-  u8g2_for_adafruit_gfx.print("Web: 192.168.1.1");
 
-  // display.display(); // DISABLED
 }

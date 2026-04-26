@@ -1,4 +1,3 @@
-#include "mock_display.h"
 #include "wifi_cust_tx.h"
 
 /*
@@ -182,10 +181,3 @@ void wifi_tx_broadcast_disassoc(void* bssid, uint16_t reason, int burstCount, in
     if (interDelayUs > 0) delayMicroseconds(interDelayUs);
   }
 }
-
-
-u8g2_font_ncenB14_tr u8g2_font_ncenB14_tr;
-u8g2_font_ncenB10_tr u8g2_font_ncenB10_tr;
-u8g2_font_wqy12_t_gb2312 u8g2_font_wqy12_t_gb2312;
-DummyDisplay display;
-DummyU8g2 u8g2_for_adafruit_gfx;
