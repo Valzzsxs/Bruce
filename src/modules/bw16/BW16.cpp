@@ -147,14 +147,19 @@ bool BW16::otaUpdate(File &file) {
     sendCommand("OTA_START");
 
     // Wait for the BW16 to reboot or enter OTA and start sending 'C'
+    // This allows the user to manually press "Burn" + "RST" buttons if the sketch isn't running
     bool ready = false;
     unsigned long startWait = millis();
-    while (millis() - startWait < 5000) {
+    while (millis() - startWait < 15000) { // Wait up to 15s for the user
         if (_serial.available()) {
             if (_serial.read() == 'C') {
                 ready = true;
                 break;
             }
+        }
+
+        if (millis() - startWait < 15000) {
+            progressHandler(millis() - startWait, 15000, "Waiting for BW16 'C' (Burn Mode)...");
         }
     }
 
