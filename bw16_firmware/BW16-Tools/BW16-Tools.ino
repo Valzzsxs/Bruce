@@ -37,9 +37,7 @@ typedef struct {
 } WiFiScanResult;
 
 
-// ==========================================
-// BRUCE UART INTEGRATION - BY JULES
-// ==========================================
+
 #define BRUCE_CMD_PREFIX "BRUCE:"
 #define BRUCE_RESP_PREFIX "BRUCE_RESP:"
 
@@ -201,6 +199,7 @@ public:
     void print(String) {}
     void print(const char*) {}
     void print(int) {}
+    void print(unsigned int) {}
     void print(unsigned long) {}
     void print(char) {}
     void drawRoundRect(int,int,int,int,int,int) {}
@@ -227,6 +226,7 @@ public:
     void print(String) {}
     void print(const char*) {}
     void print(int) {}
+    void print(unsigned int) {}
     void print(unsigned long) {}
     int getUTF8Width(const char*) { return 10; }
 };
@@ -4996,7 +4996,7 @@ void drawRequestFloodStatus(const String& ssid, bool clearDisplay = true) {
   u8g2_for_adafruit_gfx.setForegroundColor(SSD1306_WHITE);
   oledDrawCenteredLine("[Dos攻击帧发送中]", 18);
   oledDrawCenteredLine(ssid.c_str(), 32);
-  if (clearDisplay) // display.display(); // DISABLED
+  if (clearDisplay) { /* display disabled */ }
 }
 
 void RequestFlood() {
@@ -6393,6 +6393,10 @@ void titleScreen(void) {
  *
  * Sets up LEDs/buttons, screen, networking, DNS/web, and initial state.
  */
+// ==========================================
+// BRUCE UART INTEGRATION - BY JULES
+// ==========================================
+
 void setup() {
   pinMode(LED_R, OUTPUT);
   pinMode(LED_G, OUTPUT);
@@ -6461,6 +6465,8 @@ void initDisplay() {
 }
 
 static void enterStandbyFaceMode() {
+  return;
+
   if (g_standbyFaceActive) return;
   g_standbyFaceActive = true;
   if (!g_face) {
@@ -6475,6 +6481,8 @@ static void enterStandbyFaceMode() {
 }
 
 static void playRandomEmotion() {
+  return;
+
   if (!g_face) return;
   int idx = random(0, (int)eEmotions::EMOTIONS_COUNT);
   // Face removed
