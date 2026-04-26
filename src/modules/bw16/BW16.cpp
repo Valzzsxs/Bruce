@@ -1,4 +1,5 @@
 #include "BW16.h"
+#include <core/display.h>
 #include <globals.h>
 
 BW16::BW16() {
@@ -124,8 +125,179 @@ void BW16::bleScan() {
     sendCommand("BLE_SCAN");
 }
 
-void BW16::otaUpdate() {
+// CRC16-CCITT for YMODEM
+static uint16_t bw16_crc16(const uint8_t *data, uint16_t size) {
+    uint16_t crc = 0;
+    for (uint16_t i = 0; i < size; ++i) {
+        crc ^= (uint16_t)data[i] << 8;
+        for (uint8_t j = 0; j < 8; ++j) {
+            if (crc & 0x8000)
+                crc = (crc << 1) ^ 0x1021;
+            else
+                crc <<= 1;
+        }
+    }
+    return crc;
+}
+
+bool BW16::otaUpdate(File &file) {
+    if (!file || file.isDirectory()) return false;
+
+    // Send OTA_START to put the BW16 into OTA mode
     sendCommand("OTA_START");
+
+    // Wait for the BW16 to reboot or enter OTA and start sending 'C'
+    bool ready = false;
+    unsigned long startWait = millis();
+    while (millis() - startWait < 5000) {
+        if (_serial.available()) {
+            if (_serial.read() == 'C') {
+                ready = true;
+                break;
+            }
+        }
+    }
+
+    if (!ready) {
+        log_e("BW16 did not respond with 'C' for YMODEM");
+        return false;
+    }
+
+    // YMODEM Block 0 - Filename and size
+    uint8_t block0[133] = {0};
+    block0[0] = 0x01; // SOH
+    block0[1] = 0x00; // Block 0
+    block0[2] = 0xFF; // ~Block 0
+
+    String filename = file.name();
+    // In some FS, file.name() includes the leading slash. Remove it for YMODEM
+    if (filename.startsWith("/")) {
+        filename = filename.substring(1);
+    }
+    String fileSizeStr = String(file.size());
+
+    int idx = 3;
+    for (int i = 0; i < filename.length() && idx < 131; i++) {
+        block0[idx++] = filename[i];
+    }
+    block0[idx++] = 0x00; // NULL separator
+    for (int i = 0; i < fileSizeStr.length() && idx < 131; i++) {
+        block0[idx++] = fileSizeStr[i];
+    }
+    block0[idx++] = 0x00;
+
+    uint16_t crc = bw16_crc16(&block0[3], 128);
+    block0[131] = (crc >> 8) & 0xFF;
+    block0[132] = crc & 0xFF;
+
+    // Send block 0
+    _serial.write(block0, 133);
+
+    // Wait for ACK and then 'C'
+    bool ack = false;
+    startWait = millis();
+    while (millis() - startWait < 3000) {
+        if (_serial.available()) {
+            char c = _serial.read();
+            if (c == 0x06) { // ACK
+                ack = true;
+            } else if (ack && c == 'C') {
+                break; // ready for data blocks
+            }
+        }
+    }
+
+    if (!ack) {
+        log_e("BW16 did not ACK block 0");
+        return false;
+    }
+
+    // Send file data
+    size_t totalBytes = file.size();
+    size_t sentBytes = 0;
+    uint8_t blockNum = 1;
+    uint8_t dataBlock[1029] = {0};
+
+    while (sentBytes < totalBytes) {
+        size_t toRead = totalBytes - sentBytes;
+        bool use1K = toRead > 128;
+        size_t packetSize = use1K ? 1024 : 128;
+
+        dataBlock[0] = use1K ? 0x02 : 0x01; // STX or SOH
+        dataBlock[1] = blockNum;
+        dataBlock[2] = 255 - blockNum;
+
+        size_t readLen = file.read(&dataBlock[3], packetSize);
+        // Pad the rest of the block with 0x1A (CTRL-Z) if needed
+        for (size_t i = readLen; i < packetSize; i++) {
+            dataBlock[3 + i] = 0x1A;
+        }
+
+        crc = bw16_crc16(&dataBlock[3], packetSize);
+        dataBlock[3 + packetSize] = (crc >> 8) & 0xFF;
+        dataBlock[4 + packetSize] = crc & 0xFF;
+
+        _serial.write(dataBlock, 5 + packetSize);
+
+        // Wait for ACK
+        ack = false;
+        startWait = millis();
+        while (millis() - startWait < 3000) {
+            if (_serial.available()) {
+                if (_serial.read() == 0x06) { // ACK
+                    ack = true;
+                    break;
+                }
+            }
+        }
+
+        if (!ack) {
+            log_e("BW16 did not ACK block %d", blockNum);
+            return false;
+        }
+
+        sentBytes += readLen;
+        blockNum++;
+
+        // Update UI
+        progressHandler(sentBytes, totalBytes, "Flashing...");
+    }
+
+    // End of Transmission
+    _serial.write(0x04); // EOT
+
+    // Usually receiver NAKs first EOT, then we send a second EOT
+    startWait = millis();
+    while (millis() - startWait < 1000) {
+        if (_serial.available()) {
+            char c = _serial.read();
+            if (c == 0x15) { // NAK
+                _serial.write(0x04); // Second EOT
+            } else if (c == 0x06) { // ACK
+                break;
+            }
+        }
+    }
+
+    // Send empty Block 0 to end YMODEM session
+    uint8_t endBlock[133] = {0};
+    endBlock[0] = 0x01; // SOH
+    endBlock[1] = 0x00; // Block 0
+    endBlock[2] = 0xFF; // ~Block 0
+    crc = bw16_crc16(&endBlock[3], 128);
+    endBlock[131] = (crc >> 8) & 0xFF;
+    endBlock[132] = crc & 0xFF;
+
+    _serial.write(endBlock, 133);
+
+    startWait = millis();
+    while (millis() - startWait < 1000) {
+        if (_serial.available()) {
+            if (_serial.read() == 0x06) break; // ACK
+        }
+    }
+
+    return true;
 }
 
 void BW16::parseLine(String line) {
