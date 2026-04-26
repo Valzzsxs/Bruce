@@ -125,206 +125,113 @@ void BW16::bleScan() {
     sendCommand("BLE_SCAN");
 }
 
-// CRC16-CCITT for YMODEM
-static uint16_t bw16_crc16(const uint8_t *data, uint16_t size) {
-    uint16_t crc = 0;
-    for (uint16_t i = 0; i < size; ++i) {
-        crc ^= (uint16_t)data[i] << 8;
-        for (uint8_t j = 0; j < 8; ++j) {
-            if (crc & 0x8000)
-                crc = (crc << 1) ^ 0x1021;
-            else
-                crc <<= 1;
-        }
-    }
-    return crc;
-}
+#include <WiFiClient.h>
+#include <WiFi.h>
 
 bool BW16::otaUpdate(File &file) {
     if (!file || file.isDirectory()) return false;
 
     // Send OTA_START to put the BW16 into OTA mode
+    // The BW16 should spin up an AP named "BW16-OTA" with IP 192.168.4.1
     sendCommand("OTA_START");
 
-    // Wait for the BW16 to reboot or enter OTA and start sending 'C'
-    // This allows the user to manually press "Burn" + "RST" buttons if the sketch isn't running
-    bool ready = false;
-    unsigned long startWait = millis();
-    unsigned long lastProgress = 0;
-    while (millis() - startWait < 15000) { // Wait up to 15s for the user
-        if (_serial.available()) {
-            if (_serial.read() == 'C') {
-                ready = true;
-                break;
-            }
-        }
+    displayInfo("Connecting to BW16...");
 
-        if (millis() - lastProgress > 100) { // Update UI every 100ms to avoid overwhelming display
-            progressHandler(millis() - startWait, 15000, "Waiting for BW16 'C' (Burn Mode)...");
-            lastProgress = millis();
+    // Wait for the AP to be available and connect to it
+    WiFi.mode(WIFI_STA);
+    WiFi.disconnect();
+
+    // Give BW16 some time to reboot and start AP
+    delay(3000);
+
+    WiFi.begin("BW16-OTA", "12345678");
+
+    unsigned long startWait = millis();
+    while (WiFi.status() != WL_CONNECTED && millis() - startWait < 15000) {
+        progressHandler(millis() - startWait, 15000, "Connecting to BW16 AP...");
+        delay(100);
+    }
+
+    if (WiFi.status() != WL_CONNECTED) {
+        log_e("Failed to connect to BW16 AP");
+        WiFi.disconnect();
+        return false;
+    }
+
+    displayInfo("Connected. Flashing...");
+
+    WiFiClient client;
+    if (!client.connect("192.168.4.1", 8082)) {
+        log_e("Failed to connect to AnchorOTA server");
+        WiFi.disconnect();
+        return false;
+    }
+
+    // Calculate checksum of the file
+    uint32_t checksum = 0;
+    uint32_t length = file.size();
+
+    // Read file to calculate checksum (modulo 32-bit int)
+    uint8_t checksumBuffer[1024];
+    while (file.available()) {
+        size_t bytesRead = file.read(checksumBuffer, sizeof(checksumBuffer));
+        for (size_t i = 0; i < bytesRead; i++) {
+            checksum += checksumBuffer[i];
         }
         delay(1); // Yield to prevent WDT
     }
 
-    if (!ready) {
-        log_e("BW16 did not respond with 'C' for YMODEM");
-        return false;
-    }
+    // Reset file pointer
+    file.seek(0);
 
-    // YMODEM Block 0 - Filename and size
-    uint8_t *block0 = (uint8_t *)calloc(133, sizeof(uint8_t));
-    if (!block0) {
-        log_e("Failed to allocate block0");
-        return false;
-    }
+    // Send 12-byte header: Checksum (4 bytes, little endian), Empty (4 bytes), Length (4 bytes, little endian)
+    uint8_t header[12] = {0};
 
-    block0[0] = 0x01; // SOH
-    block0[1] = 0x00; // Block 0
-    block0[2] = 0xFF; // ~Block 0
+    // Checksum
+    header[0] = checksum & 0xFF;
+    header[1] = (checksum >> 8) & 0xFF;
+    header[2] = (checksum >> 16) & 0xFF;
+    header[3] = (checksum >> 24) & 0xFF;
 
-    String filename = file.name();
-    // In some FS, file.name() includes the leading slash. Remove it for YMODEM
-    if (filename.startsWith("/")) {
-        filename = filename.substring(1);
-    }
-    String fileSizeStr = String(file.size());
+    // Empty (already 0)
 
-    int idx = 3;
-    for (int i = 0; i < filename.length() && idx < 131; i++) {
-        block0[idx++] = filename[i];
-    }
-    block0[idx++] = 0x00; // NULL separator
-    for (int i = 0; i < fileSizeStr.length() && idx < 131; i++) {
-        block0[idx++] = fileSizeStr[i];
-    }
-    block0[idx++] = 0x00;
+    // Length
+    header[8] = length & 0xFF;
+    header[9] = (length >> 8) & 0xFF;
+    header[10] = (length >> 16) & 0xFF;
+    header[11] = (length >> 24) & 0xFF;
 
-    uint16_t crc = bw16_crc16(&block0[3], 128);
-    block0[131] = (crc >> 8) & 0xFF;
-    block0[132] = crc & 0xFF;
-
-    // Send block 0
-    _serial.write(block0, 133);
-
-    // Wait for ACK and then 'C'
-    bool ack = false;
-    startWait = millis();
-    while (millis() - startWait < 3000) {
-        if (_serial.available()) {
-            char c = _serial.read();
-            if (c == 0x06) { // ACK
-                ack = true;
-            } else if (ack && c == 'C') {
-                break; // ready for data blocks
-            }
-        }
-        delay(1); // Yield
-    }
-
-    if (!ack) {
-        log_e("BW16 did not ACK block 0");
-        free(block0);
-        return false;
-    }
+    client.write(header, 12);
 
     // Send file data
-    size_t totalBytes = file.size();
     size_t sentBytes = 0;
-    uint8_t blockNum = 1;
+    uint8_t buffer[1024];
+    unsigned long lastProgress = 0;
 
-    uint8_t *dataBlock = (uint8_t *)calloc(1029, sizeof(uint8_t));
-    if (!dataBlock) {
-        log_e("Failed to allocate dataBlock");
-        free(block0);
-        return false;
-    }
+    while (file.available()) {
+        size_t toRead = file.read(buffer, sizeof(buffer));
+        size_t written = 0;
 
-    while (sentBytes < totalBytes) {
-        size_t toRead = totalBytes - sentBytes;
-        bool use1K = toRead > 128;
-        size_t packetSize = use1K ? 1024 : 128;
-
-        dataBlock[0] = use1K ? 0x02 : 0x01; // STX or SOH
-        dataBlock[1] = blockNum;
-        dataBlock[2] = 255 - blockNum;
-
-        size_t readLen = file.read(&dataBlock[3], packetSize);
-        // Pad the rest of the block with 0x1A (CTRL-Z) if needed
-        for (size_t i = readLen; i < packetSize; i++) {
-            dataBlock[3 + i] = 0x1A;
-        }
-
-        crc = bw16_crc16(&dataBlock[3], packetSize);
-        dataBlock[3 + packetSize] = (crc >> 8) & 0xFF;
-        dataBlock[4 + packetSize] = crc & 0xFF;
-
-        _serial.write(dataBlock, 5 + packetSize);
-
-        // Wait for ACK
-        ack = false;
-        startWait = millis();
-        while (millis() - startWait < 3000) {
-            if (_serial.available()) {
-                if (_serial.read() == 0x06) { // ACK
-                    ack = true;
-                    break;
-                }
-            }
-            delay(1); // Yield
-        }
-
-        if (!ack) {
-            log_e("BW16 did not ACK block %d", blockNum);
-            free(block0);
-            free(dataBlock);
-            return false;
-        }
-
-        sentBytes += readLen;
-        blockNum++;
-
-        // Update UI
-        progressHandler(sentBytes, totalBytes, "Flashing...");
-    }
-
-    // End of Transmission
-    _serial.write(0x04); // EOT
-
-    // Usually receiver NAKs first EOT, then we send a second EOT
-    startWait = millis();
-    while (millis() - startWait < 1000) {
-        if (_serial.available()) {
-            char c = _serial.read();
-            if (c == 0x15) { // NAK
-                _serial.write(0x04); // Second EOT
-            } else if (c == 0x06) { // ACK
-                break;
+        while (written < toRead) {
+            size_t res = client.write(&buffer[written], toRead - written);
+            if (res > 0) {
+                written += res;
+            } else {
+                delay(1); // Give network stack some time if buffer is full
             }
         }
-        delay(1); // Yield
-    }
+        sentBytes += toRead;
 
-    // Send empty Block 0 to end YMODEM session
-    memset(block0, 0, 133);
-    block0[0] = 0x01; // SOH
-    block0[1] = 0x00; // Block 0
-    block0[2] = 0xFF; // ~Block 0
-    crc = bw16_crc16(&block0[3], 128);
-    block0[131] = (crc >> 8) & 0xFF;
-    block0[132] = crc & 0xFF;
-
-    _serial.write(block0, 133);
-
-    startWait = millis();
-    while (millis() - startWait < 1000) {
-        if (_serial.available()) {
-            if (_serial.read() == 0x06) break; // ACK
+        if (millis() - lastProgress > 100) {
+            progressHandler(sentBytes, length, "Flashing BW16...");
+            lastProgress = millis();
         }
-        delay(1); // Yield
+        delay(1);
     }
 
-    free(block0);
-    free(dataBlock);
+    delay(1000);
+    client.stop();
+    WiFi.disconnect();
 
     return true;
 }

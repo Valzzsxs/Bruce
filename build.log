@@ -104,9 +104,9 @@ Compiling .pio/build/lilygo-t-display-ttgo/src/modules/bw16/BW16.cpp.o
 Linking .pio/build/lilygo-t-display-ttgo/firmware.elf
 Memory region         Used Size  Region Size  %age Used
      iram0_0_seg:      110532 B       128 KB     84.33%
-     iram0_2_seg:     2625736 B    3342304 B     78.56%
+     iram0_2_seg:     2625484 B    3342304 B     78.55%
      dram0_0_seg:       97788 B     124580 B     78.49%
-     drom0_0_seg:      877772 B    4194272 B     20.93%
+     drom0_0_seg:      877828 B    4194272 B     20.93%
     rtc_iram_seg:           0 B       8176 B      0.00%
     rtc_data_seg:           0 B       8176 B      0.00%
 rtc_fast_reserved_seg:          16 B         16 B    100.00%
@@ -117,10 +117,10 @@ rtc_slow_reserved_seg:          24 B         24 B    100.00%
 ┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
 ┃ Memory Type/Section ┃ Used [bytes] ┃ Used [%] ┃ Remain [bytes] ┃ Total [bytes] ┃
 ┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━┩
-│ Flash Code          │      2625736 │          │                │               │
-│    .text            │      2625736 │          │                │               │
-│ Flash Data          │       854272 │          │                │               │
-│    .rodata          │       853984 │          │                │               │
+│ Flash Code          │      2625484 │          │                │               │
+│    .text            │      2625484 │          │                │               │
+│ Flash Data          │       854328 │          │                │               │
+│    .rodata          │       854040 │          │                │               │
 │    .appdesc         │          288 │          │                │               │
 │ IRAM                │       110531 │    84.33 │          20541 │        131072 │
 │    .text            │       109503 │    83.54 │                │               │
@@ -131,32 +131,32 @@ rtc_slow_reserved_seg:          24 B         24 B    100.00%
 │ RTC SLOW            │            1 │     0.01 │           7679 │          7680 │
 │    .data            │            1 │     0.01 │                │               │
 └─────────────────────┴──────────────┴──────────┴────────────────┴───────────────┘
-Total image size: 3626108 bytes (.bin may be padded larger)
+Total image size: 3625912 bytes (.bin may be padded larger)
 Note: The reported total sizes may be smaller than those in the technical reference manual due to reserved memory and application configuration. The total flash size available for the application is not included by default, as it cannot be reliably determined due to the presence of other data like the bootloader, partition table, and application partition size.
 Retrieving maximum program size .pio/build/lilygo-t-display-ttgo/firmware.elf
 Checking size .pio/build/lilygo-t-display-ttgo/firmware.elf
 Advanced Memory Usage is available via "PlatformIO Home > Project Inspect"
 RAM:   [===       ]  29.8% (used 97784 bytes from 327680 bytes)
-Flash: [========  ]  77.9% (used 3625819 bytes from 4653056 bytes)
+Flash: [========  ]  77.9% (used 3625623 bytes from 4653056 bytes)
 Building .pio/build/lilygo-t-display-ttgo/firmware.bin
 esptool v5.1.0
 Creating ESP32 image...
 Merged 3 ELF sections.
 Successfully created ESP32 image.
 _merge_bins_callback([".pio/build/lilygo-t-display-ttgo/firmware.bin"], [".pio/build/lilygo-t-display-ttgo/firmware.elf"])
-BRUCE: [===============     ] 77.9% (used 0x375570 bytes of 0x470000 of OTA partition)
+BRUCE: [===============     ] 77.9% (used 0x3754B0 bytes of 0x470000 of OTA partition)
 [merge_bin] Merging binaries:
   "/home/jules/.platformio/penv/bin/python" -m platformio pkg exec -p "tool-esptoolpy" -- esptool.py --chip esp32 merge-bin --output "/app/Bruce-lilygo-t-display-ttgo.bin" 0x1000 "/app/.pio/build/lilygo-t-display-ttgo/bootloader.bin" 0x8000 "/app/.pio/build/lilygo-t-display-ttgo/partitions.bin" 0x10000 "/app/.pio/build/lilygo-t-display-ttgo/firmware.bin"
 "/home/jules/.platformio/penv/bin/python" -m platformio pkg exec -p "tool-esptoolpy" -- esptool.py --chip esp32 merge-bin --output "/app/Bruce-lilygo-t-display-ttgo.bin" 0x1000 "/app/.pio/build/lilygo-t-display-ttgo/bootloader.bin" 0x8000 "/app/.pio/build/lilygo-t-display-ttgo/partitions.bin" 0x10000 "/app/.pio/build/lilygo-t-display-ttgo/firmware.bin"
 Using tool-esptoolpy@5.1.0 package
 Warning: DEPRECATED: 'esptool.py' is deprecated. Please use 'esptool' instead. The '.py' suffix will be removed in a future major release.
 esptool v5.1.0
-Wrote 0x385570 bytes to file '/app/Bruce-lilygo-t-display-ttgo.bin', ready to flash to offset 0x0.
-[merge_bin] Success -> /app/Bruce-lilygo-t-display-ttgo.bin (3691888 bytes)
+Wrote 0x3854b0 bytes to file '/app/Bruce-lilygo-t-display-ttgo.bin', ready to flash to offset 0x0.
+[merge_bin] Success -> /app/Bruce-lilygo-t-display-ttgo.bin (3691696 bytes)
 [Final bin] Valid bin to upload
-======================== [SUCCESS] Took 157.16 seconds ========================
+======================== [SUCCESS] Took 141.79 seconds ========================
 
 Environment            Status    Duration
 ---------------------  --------  ------------
-lilygo-t-display-ttgo  SUCCESS   00:02:37.160
-========================= 1 succeeded in 00:02:37.160 =========================
+lilygo-t-display-ttgo  SUCCESS   00:02:21.791
+========================= 1 succeeded in 00:02:21.791 =========================
