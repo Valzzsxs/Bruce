@@ -1,4 +1,5 @@
 #include "BW16.h"
+#include <core/display.h>
 #include <globals.h>
 
 BW16::BW16() {
@@ -124,8 +125,115 @@ void BW16::bleScan() {
     sendCommand("BLE_SCAN");
 }
 
-void BW16::otaUpdate() {
+#include <WiFiClient.h>
+#include <WiFi.h>
+
+bool BW16::otaUpdate(File &file) {
+    if (!file || file.isDirectory()) return false;
+
+    // Send OTA_START to put the BW16 into OTA mode
+    // The BW16 should spin up an AP named "BW16-OTA" with IP 192.168.4.1
     sendCommand("OTA_START");
+
+    displayInfo("Connecting to BW16...");
+
+    // Wait for the AP to be available and connect to it
+    WiFi.mode(WIFI_STA);
+    WiFi.disconnect();
+
+    // Give BW16 some time to reboot and start AP
+    delay(3000);
+
+    WiFi.begin("BW16-OTA", "12345678");
+
+    unsigned long startWait = millis();
+    while (WiFi.status() != WL_CONNECTED && millis() - startWait < 15000) {
+        progressHandler(millis() - startWait, 15000, "Connecting to BW16 AP...");
+        delay(100);
+    }
+
+    if (WiFi.status() != WL_CONNECTED) {
+        log_e("Failed to connect to BW16 AP");
+        WiFi.disconnect();
+        return false;
+    }
+
+    displayInfo("Connected. Flashing...");
+
+    WiFiClient client;
+    if (!client.connect("192.168.4.1", 8082)) {
+        log_e("Failed to connect to AnchorOTA server");
+        WiFi.disconnect();
+        return false;
+    }
+
+    // Calculate checksum of the file
+    uint32_t checksum = 0;
+    uint32_t length = file.size();
+
+    // Read file to calculate checksum (modulo 32-bit int)
+    uint8_t checksumBuffer[1024];
+    while (file.available()) {
+        size_t bytesRead = file.read(checksumBuffer, sizeof(checksumBuffer));
+        for (size_t i = 0; i < bytesRead; i++) {
+            checksum += checksumBuffer[i];
+        }
+        delay(1); // Yield to prevent WDT
+    }
+
+    // Reset file pointer
+    file.seek(0);
+
+    // Send 12-byte header: Checksum (4 bytes, little endian), Empty (4 bytes), Length (4 bytes, little endian)
+    uint8_t header[12] = {0};
+
+    // Checksum
+    header[0] = checksum & 0xFF;
+    header[1] = (checksum >> 8) & 0xFF;
+    header[2] = (checksum >> 16) & 0xFF;
+    header[3] = (checksum >> 24) & 0xFF;
+
+    // Empty (already 0)
+
+    // Length
+    header[8] = length & 0xFF;
+    header[9] = (length >> 8) & 0xFF;
+    header[10] = (length >> 16) & 0xFF;
+    header[11] = (length >> 24) & 0xFF;
+
+    client.write(header, 12);
+
+    // Send file data
+    size_t sentBytes = 0;
+    uint8_t buffer[1024];
+    unsigned long lastProgress = 0;
+
+    while (file.available()) {
+        size_t toRead = file.read(buffer, sizeof(buffer));
+        size_t written = 0;
+
+        while (written < toRead) {
+            size_t res = client.write(&buffer[written], toRead - written);
+            if (res > 0) {
+                written += res;
+            } else {
+                delay(1); // Give network stack some time if buffer is full
+            }
+        }
+        sentBytes += toRead;
+
+        if (millis() - lastProgress > 100) {
+            progressHandler(sentBytes, length, "Flashing BW16...");
+            lastProgress = millis();
+        }
+        delay(1);
+    }
+
+    delay(1000);
+    client.stop();
+    WiFi.disconnect();
+
+    return true;
 }
 
 void BW16::parseLine(String line) {

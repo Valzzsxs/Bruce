@@ -1,6 +1,7 @@
 #ifndef __BW16_H__
 #define __BW16_H__
 
+#include <FS.h>
 #include <globals.h>
 #include <vector>
 
@@ -40,7 +41,7 @@ public:
     void hiddenDecloaker();
     void bleSpam(String name);
     void bleScan();
-    void otaUpdate();
+    bool otaUpdate(File &file);
 
     std::vector<BW16ScanResult> getResults() { return _scanResults; }
     String getLastMessage() { return _lastMessage; }
