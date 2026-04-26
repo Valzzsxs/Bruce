@@ -161,15 +161,7 @@ void homeActionWebUI();
 void homeActionQuickCapture();
 
 // VARIABLES
-typedef struct {
-  String ssid;
-  String bssid_str;
-  uint8_t bssid[6];
 
-  short rssi;
-  uint channel;
-  int security_type;
-} WiFiScanResult;
 
 // ===== Handshake WebUI State =====
 extern bool hs_sniffer_running;
@@ -1298,380 +1290,13 @@ static void stopAttackDetection() {
 }
 
 void drawAttackDetectPage() {
-  // 初始化UI与统计
-  g_detectUiMode = 0;
-  g_recordsPage = 0;
-  g_totalDeauth = 0;
-  g_totalDisassoc = 0;
-  g_suspects.clear();
-  g_tempCounts.clear();
-  g_promiscCbHits = 0;
-  g_mgmtFramesSeen = 0;
-  for (int i = 0; i < 16; i++) {
-    g_subtypeHistogram[i] = 0;
-  }
-  g_evHead = 0;
-  g_evTail = 0;
-  g_lastDetectKind = 0;
-  g_lastReason = 0;
-  detect_border_always_on = false;
-  detect_flash_remaining_toggles = 0;
-
-  // 确保信道组设置正确
-  g_currentChannelGroup = CHANNEL_GROUP_24G_5G_COMMON;
-  g_attackDetectChIndex = 0;
-
-  startAttackDetection();
-
-  const unsigned long drawInterval = 200;
-  const unsigned long baseDwellMs = 1000; // 基础驻留1s
-  unsigned long dwellStartMs = millis();
-  bool seenInDwell = false;
-  bool initialPromptShown = false; // 标记是否已显示初始提示
-
-  while (true) {
-    // 在第一次绘制完成后显示初始提示弹窗
-    if (!initialPromptShown && g_attackDetectLastDrawMs > 0) {
-      showModalMessage("按下UP键", "切换监听信道组");
-      initialPromptShown = true;
-    }
-    unsigned long now = millis();
-    // 处理事件队列：更新总计与可疑列表
-    while (g_evTail != g_evHead) {
-      DetectEvent ev = g_evBuf[g_evTail];
-      g_evTail = (g_evTail + 1) & 63;
-      if (ev.kind == 0xC0) g_totalDeauth++; else if (ev.kind == 0xA0) g_totalDisassoc++;
-      seenInDwell = true;
-      // 临时计数中累计
-      int tIdx = -1; for (size_t j=0;j<g_tempCounts.size();j++){ bool eq=true; for(int k=0;k<6;k++) if (g_tempCounts[j].bssid[k]!=ev.mac[k]) {eq=false;break;} if(eq){tIdx=(int)j;break;} }
-      if (tIdx==-1){ TempCount tc; memcpy(tc.bssid, ev.mac, 6); tc.d = (ev.kind==0xC0)?1:0; tc.a = (ev.kind==0xA0)?1:0; g_tempCounts.push_back(tc);}
-      else { if (ev.kind==0xC0) g_tempCounts[tIdx].d++; else g_tempCounts[tIdx].a++; }
-      // 若该BSSID在本驻留内累计>=5，则加入/更新可疑记录
-      int cntIdx = (tIdx==-1) ? (int)g_tempCounts.size()-1 : tIdx;
-      unsigned int sum = g_tempCounts[cntIdx].d + g_tempCounts[cntIdx].a;
-      if (sum >= 5) {
-        int sIdx = -1; for (size_t i=0;i<g_suspects.size();i++){ bool eq=true; for(int k=0;k<6;k++) if (g_suspects[i].bssid[k]!=ev.mac[k]) {eq=false;break;} if(eq){sIdx=(int)i;break;} }
-        if (sIdx==-1){
-          SuspectRecord rec; memcpy(rec.bssid, ev.mac, 6); rec.deauthCount = g_tempCounts[cntIdx].d; rec.disassocCount = g_tempCounts[cntIdx].a; rec.lastSeenMs = ev.ts; g_suspects.push_back(rec);
-          // 新记录添加时触发边框闪烁
-          if (!detect_border_always_on) {
-            detect_border_always_on = true;
-          }
-          detect_flash_remaining_toggles = 4; // 闪烁两下
-          detect_border_flash_visible = true;
-        }
-        else {
-          g_suspects[sIdx].deauthCount += (ev.kind==0xC0); g_suspects[sIdx].disassocCount += (ev.kind==0xA0); g_suspects[sIdx].lastSeenMs = ev.ts;
-          // 更新现有记录时不触发边框闪烁，只在添加新记录时闪烁
-        }
-      }
-    }
-
-    // 信道轮换逻辑：基础1.5s，无数据则切换；检测到数据则延长到3.0s
-    unsigned long dwellElapsed = now - dwellStartMs;
-    unsigned long dwellLimit = seenInDwell ? (baseDwellMs * 2) : baseDwellMs;
-    if (dwellElapsed >= dwellLimit) {
-      int total = 0;
-      const uint8_t* channels = getCurrentChannelGroup(total);
-      if (total > 0) {
-        g_attackDetectChIndex = (g_attackDetectChIndex + 1) % total;
-        int ch = channels[g_attackDetectChIndex];
-        wext_set_channel(WLAN0_NAME, ch);
-        Serial.print("[Detect] Switch channel -> "); Serial.println(ch);
-        dwellStartMs = now; seenInDwell = false; g_tempCounts.clear();
-      }
-    }
-
-    if (now - g_attackDetectLastDrawMs >= drawInterval) {
-      g_attackDetectLastDrawMs = now;
-
-      int total = 0;
-      const uint8_t* channels = getCurrentChannelGroup(total);
-      int curCh = (total > 0 ? channels[g_attackDetectChIndex] : 0);
-
-      if (g_detectUiMode == 0) {
-        // 主页（对齐 drawWebTestMain 的四行排版：y=12,28,44,60）
-        // 计算文字+箭头的总宽度，然后整体居中
-        int arrowWidth = 0; // 箭头宽度
-        int spacing = 5; // 文字和箭头之间的间距
-        int totalWidth = w3 + spacing + arrowWidth;
-        // 右箭头（与文字垂直居中对齐，位置相对于文字右边缘）
-        int arrowY = 44 - 8; // 文字基线y=44，箭头中心应该在文字中心，文字高度约10px，向上移动4像素
-        int arrowX = x3 + w3 + spacing; // 箭头左边缘位置
-
-        // 绘制"查看可疑记录"圆角边框：
-        // 规则：
-        // - 有记录后常亮
-        // - 只在添加新的SSID/MAC地址记录时，边框闪烁两下（4次可见性翻转）
-        {
-          bool should_draw_border = false;
-          if (detect_border_always_on && !g_suspects.empty()) {
-            should_draw_border = true;
-          }
-          if (detect_flash_remaining_toggles > 0) {
-            unsigned long now_ms = millis();
-            // 每150ms切换一次可见性
-            if (now_ms - detect_last_flash_toggle_ms >= 150UL) {
-              detect_last_flash_toggle_ms = now_ms;
-              detect_border_flash_visible = !detect_border_flash_visible;
-              detect_flash_remaining_toggles--;
-            }
-            // 闪烁阶段以当前可见性为准（可覆盖常亮，实现闪烁效果）
-            should_draw_border = detect_border_flash_visible;
-          }
-          if (should_draw_border) {
-            int text_y_baseline = 44;
-            int text_height = 10; // 估算高度
-            int pad_x = 2;
-            int pad_y = 2;
-            int rect_x = x3 - pad_x - 1;
-            int rect_y = text_y_baseline - text_height - pad_y;
-            int rect_w = w3 + pad_x * 2 + 2;
-            int rect_h = text_height + pad_y * 2;
-            int r = 3; // 圆角半径
-          }
-        }
-
-
-      } else if (g_detectUiMode == 1) {
-        // 记录列表（与参考样式一致的基线：标题y=12，主体y=28/44/60）
-        int pages = (int)g_suspects.size(); if (pages==0) pages=1;
-        String mid = String(g_recordsPage + 1) + "/" + String(pages);
-        if (!g_suspects.empty()) {
-          int idx = g_recordsPage % (int)g_suspects.size();
-          // SSID 或 MAC 居中 y=28（过长滚动）
-          char macBuf[20]; snprintf(macBuf, sizeof(macBuf), "%02X:%02X:%02X:%02X:%02X:%02X",
-            g_suspects[idx].bssid[0], g_suspects[idx].bssid[1], g_suspects[idx].bssid[2], g_suspects[idx].bssid[3], g_suspects[idx].bssid[4], g_suspects[idx].bssid[5]);
-          String label = String(macBuf);
-          for (size_t i=0;i<scan_results.size();i++){ bool eq=true; for(int k=0;k<6;k++) if (scan_results[i].bssid[k]!=g_suspects[idx].bssid[k]) {eq=false;break;} if(eq){ label=scan_results[i].ssid; break; } }
-          static int scrollX = 0; static unsigned long lastScrollMs = 0; const int scrollDelay = 120; // ms
-            scrollX = 0; // 重置滚动
-          } else {
-            if (millis() - lastScrollMs > (unsigned)scrollDelay) { scrollX = (scrollX + 2) % (textW + 16); lastScrollMs = millis(); }
-            // 绘制一个窗口视图
-            int startX = scrollX;
-            // 简单实现：截断在可视宽度内分段打印（UTF8下精确裁剪较复杂，这里以像素滚动代替）
-            // 将文本整体左移 startX 像素
-            // 在尾部追加一段空格+文本以形成循环滚动
-          }
-          // Deauth/Disassoc 左对齐 y=44/60
-          String s2 = String("Deauth: ") + String(g_suspects[idx].deauthCount);
-          String s3 = String("Disassoc: ") + String(g_suspects[idx].disassocCount);
-        } else {
-        }
-      } else {
-        // 统计页（同样采用 y=12,28,44,60）
-        String s2 = String("Deauth: ") + String(g_totalDeauth);
-        String s3 = String("Disassoc: ") + String(g_totalDisassoc);
-        String s4 = String("总计: ") + String(g_totalDeauth + g_totalDisassoc);
-      }
-
-      // 取消角落最近事件显示，避免与记录页内容重叠引起换行卡顿
-
-      // 周期性串口调试输出（每1s或计数变化时）
-      static unsigned long lastPrintedDeauth = 0, lastPrintedDis = 0;
-      if ((g_detectDeauthCount != lastPrintedDeauth) || (g_detectDisassocCount != lastPrintedDis) || (now - g_lastDetectLogMs > 1000)) {
-        Serial.print("[Detect] Ch="); Serial.print(curCh);
-        Serial.print(" Deauth="); Serial.print((unsigned long)g_totalDeauth);
-        Serial.print(" Disassoc="); Serial.print((unsigned long)g_totalDisassoc);
-        Serial.print(" cbHits="); Serial.print((unsigned long)g_promiscCbHits);
-        Serial.print(" mgmtSeen="); Serial.print((unsigned long)g_mgmtFramesSeen);
-        Serial.print(" subtypes[");
-        for (int s = 0; s < 16; s++) { if (g_subtypeHistogram[s]) { Serial.print(s); Serial.print(":"); Serial.print(g_subtypeHistogram[s]); Serial.print(" "); } }
-        Serial.print("]");
-        if (g_lastDetectKind == 0xC0 || g_lastDetectKind == 0xA0) {
-          Serial.print(" Last="); Serial.print(g_lastDetectKind == 0xC0 ? "Deauth" : "Disassoc");
-          Serial.print(" src=");
-          for (int i = 0; i < 6; i++) { Serial.print(g_lastDetectSrc[i], HEX); if (i<5) Serial.print(":"); }
-          Serial.print(" reason="); Serial.print(g_lastReason);
-        }
-        Serial.println();
-        lastPrintedDeauth = g_totalDeauth;
-        lastPrintedDis = g_totalDisassoc;
-        g_lastDetectLogMs = now;
-      }
-
-      // 左侧返回指示（仅主页显示）
-      // 主页不再显示"返回"文字以避免与标题冲突
-
-    }
-
-    // 键处理
-    if (HIGH == LOW) {
-      delay(200);
-      if (g_detectUiMode == 0) {
-        // 主页：弹出停止确认弹窗
-        if (showConfirmModal("停止攻击帧检测")) {
-          // 确认停止，完全清理资源并返回
-          stopAttackDetection();
-          // 清理所有相关变量
-          g_suspects.clear();
-          g_tempCounts.clear();
-          g_totalDeauth = 0;
-          g_totalDisassoc = 0;
-          g_promiscCbHits = 0;
-          g_mgmtFramesSeen = 0;
-          for (int i = 0; i < 16; i++) {
-            g_subtypeHistogram[i] = 0;
-          }
-          g_evHead = 0;
-          g_evTail = 0;
-          g_lastDetectKind = 0;
-          g_lastReason = 0;
-          detect_border_always_on = false;
-          detect_flash_remaining_toggles = 0;
-          break;
-        }
-        // 取消则继续检测
-      } else if (g_detectUiMode == 2) {
-        // 统计页：返回主页
-        break;
-      } else if (g_detectUiMode == 1) {
-        // 记录列表页：返回主页
-        if (g_suspects.empty() || g_recordsPage <= 0) {
-          // 第一页或无记录：返回主页
-          g_detectUiMode = 0;
-          g_recordsPage = 0;
-        } else {
-          // 上一条记录
-          g_recordsPage -= 1;
-        }
-      }
-    }
-
-
-
-    if (HIGH == LOW) {
-      delay(200);
-      if (g_detectUiMode == 0) { g_detectUiMode = 1; g_recordsPage = 0; }
-      else if (g_detectUiMode == 1) { if (!g_suspects.empty()) g_recordsPage = (g_recordsPage + 1) % (int)g_suspects.size(); }
-    }
-    if (HIGH == LOW) {
-      delay(200);
-      if (g_detectUiMode == 0) g_detectUiMode = 2;
-      else if (g_detectUiMode == 2) g_detectUiMode = 0;
-    }
-    if (HIGH == LOW) {
-      delay(200);
-      if (g_detectUiMode == 0) {
-        // 主页模式：切换到下一个信道组
-        switchToNextChannelGroup();
-
-        // 显示信道组切换提示弹窗
-        showModalMessage("正在监听", getCurrentChannelGroupName());
-
-        // 重置驻留时间，让新信道组立即开始工作
-        dwellStartMs = millis();
-        seenInDwell = false;
-        g_tempCounts.clear();
-      } else if (g_detectUiMode == 1) {
-        g_detectUiMode = 0; // 记录页返回主页
-      } else if (g_detectUiMode == 2) {
-        g_detectUiMode = 0; // 统计页返回主页
-      }
-    }
-    delay(10);
-  }
-  stopAttackDetection();
+  return;
 }
+  }
 
 // 数据包侦测页面
 void drawPacketDetectPage() {
-  // 初始化数据包侦测
-  g_packetDetectChannel = 1; // 从信道1开始
-  startPacketDetection();
-
-  const unsigned long drawInterval = 500; // 0.5秒刷新一次
-  bool initialPromptShown = false;
-
-  while (true) {
-    // 在第一次绘制完成后显示初始提示弹窗
-    if (!initialPromptShown && g_packetDetectLastDrawMs > 0) {
-      showModalMessage("使用上/下键", "切换监听信道");
-      initialPromptShown = true;
-    }
-
-    unsigned long now = millis();
-    bool shouldRedraw = false;
-
-    // 检查是否需要立即重绘（指示器状态变化）
-    static bool lastShowDownIndicator = false;
-    static bool lastShowUpIndicator = false;
-    static bool lastShowMgmtFrameIndicator = false;
-
-    if (g_showDownIndicator != lastShowDownIndicator ||
-        g_showUpIndicator != lastShowUpIndicator ||
-        g_showMgmtFrameIndicator != lastShowMgmtFrameIndicator) {
-      shouldRedraw = true;
-      lastShowDownIndicator = g_showDownIndicator;
-      lastShowUpIndicator = g_showUpIndicator;
-      lastShowMgmtFrameIndicator = g_showMgmtFrameIndicator;
-    }
-
-    // 每0.5秒更新历史数据和刷新显示，或者指示器状态变化时立即重绘
-    if (now - g_packetDetectLastDrawMs >= drawInterval || shouldRedraw) {
-      // 只有在正常绘制间隔时才更新历史数据
-      if (now - g_packetDetectLastDrawMs >= drawInterval) {
-        g_packetDetectLastDrawMs = now;
-
-        // 将当前数据包计数添加到历史数据
-        g_packetDetectHistory[g_packetDetectHistoryIndex] = g_packetCount;
-        g_packetDetectHistoryIndex = (g_packetDetectHistoryIndex + 1) % 64;
-
-        // 重置当前信道的数据包计数
-        g_packetCount = 0;
-      }
-
-      // 绘制页面
-
-      // 检查并更新指示器状态
-      unsigned long currentTime = millis();
-
-      // 检查管理帧指示器是否应该隐藏（基于时间）
-      if (g_showMgmtFrameIndicator && (currentTime - g_mgmtFrameIndicatorStartTime >= MGMT_FRAME_INDICATOR_TIME)) {
-        g_showMgmtFrameIndicator = false;
-      }
-
-      // 绘制方向键指示器（顶部左侧）
-      if (g_showDownIndicator) {
-      } else if (g_showUpIndicator) {
-      }
-
-      // 绘制管理帧指示器（顶部右侧）
-      if (g_showMgmtFrameIndicator) {
-      }
-
-      // 顶部显示当前监测信道和频段（小字体）
-      int displayChannel = g_channelPreviewMode ? g_previewChannel : g_packetDetectChannel;
-      String channelInfo = String("CH: ") + String(displayChannel);
-      if (g_channelPreviewMode) {
-        channelInfo += "*";
-      }
-      channelInfo += " " + getChannelBand(displayChannel);
-      // 使用默认字体以支持中文
-      if (x1 < 0) x1 = 0;
-
-      // 绘制统计图表（增加高度以填补删除packets统计后的空间）
-      drawPacketChart();
-
-    }
-
-    // 按键处理
-    if (HIGH == LOW) {
-      delay(200);
-      if (showConfirmModal("停止数据包监视")) {
-        stopPacketDetection();
-        break;
-      }
-    }
-
-    // 使用新的按键状态检测函数
-    updateKeyStates();
-
-    delay(10);
-  }
-
-  stopPacketDetection();
+  return;
 }
 
 // AP模式网页选择（可扩展）
@@ -2256,137 +1881,20 @@ void drawHomeScrollbarFraction(float startIndexF) {
 // }
 
 void drawWebTestMain() {
-
-  // 第一行
-  const char* line1_text = "↑ 接入点信息 ↑";
-
-
-  // 第二行
-  int left_arrow2_x = 5;
-  int arrow2_y = 22;
-  // 绘制向左箭头
-
-  // 第三行
-  const char* line3_text = "查看接收到的密码";
-  int arrow3_y = 38;
-  // 绘制向右箭头
-  // 绘制"查看接收到的密码"圆角边框：
-  // 规则：
-  // - 收到过至少一次密码后常亮
-  // - 每次后续收到密码，边框闪烁两下（4次可见性翻转）
-  {
-    bool should_draw_border = false;
-    if (webtest_border_always_on) {
-      should_draw_border = true;
-    }
-    if (webtest_flash_remaining_toggles > 0) {
-      unsigned long now_ms = millis();
-      // 每150ms切换一次可见性
-      if (now_ms - webtest_last_flash_toggle_ms >= 150UL) {
-        webtest_last_flash_toggle_ms = now_ms;
-        webtest_border_flash_visible = !webtest_border_flash_visible;
-        webtest_flash_remaining_toggles--;
-      }
-      // 闪烁阶段以当前可见性为准（可覆盖常亮，实现闪烁效果）
-      should_draw_border = webtest_border_flash_visible;
-    }
-    if (should_draw_border) {
-      int text_y_baseline = 44;
-      int text_height = 10; // 估算高度
-      int pad_x = 2;
-      int pad_y = 2;
-      int rect_x = x3_right - pad_x - 1;
-      int rect_y = text_y_baseline - text_height - pad_y;
-      int rect_w = w3 + pad_x * 2 + 2;
-      int rect_h = text_height + pad_y * 2;
-      int r = 3; // 圆角半径
-    }
-  }
-
-  // 第四行
-  const char* line4_text = "↓ 运行状态 ↓";
-
+  return;
 }
 
 void drawWebTestInfo() {
-  const char* title = "[接入点信息]";
-  String line2 = web_test_ssid_dynamic;
-  String band = (is24GChannel(web_test_channel_dynamic) ? "2.4" : (is5GChannel(web_test_channel_dynamic) ? "5G" : "?"));
-  String line3 = String("频段: ") + band + String("|信道: ") + String(web_test_channel_dynamic);
-  const char* hint = "↓ 返回 ↓";
+  return;
 }
 
 void drawWebTestPasswords() {
-  const char* title = "[密码列表]";
-  const int startY = 28;
-  const int lineH = 14;
-  const int scrollbarWidth = 3; // 极窄滚动条宽度
-  int y = startY;
-  if (web_test_submitted_texts.empty()) {
-    const char* emptyMsg = "暂未接收到密码提交";
-  } else {
-    int totalItems = (int)web_test_submitted_texts.size();
-    if (webtest_password_scroll < 0) webtest_password_scroll = 0;
-    if (webtest_password_scroll > totalItems - 1) webtest_password_scroll = totalItems > 0 ? totalItems - 1 : 0;
-    int usedLines = 0;
-    for (int i = webtest_password_scroll; i < (int)web_test_submitted_texts.size() && usedLines < 3; i++) {
-      String txt = web_test_submitted_texts[i];
-      String remaining = txt;
-      bool firstLineOfEntry = true;
-      while (remaining.length() > 0 && usedLines < 3) {
-        String seg = remaining;
-        if (tw > widthAvail) {
-          int approx = (remaining.length() * widthAvail) / tw;
-          if (approx <= 0) approx = 1;
-          seg = remaining.substring(0, approx);
-          remaining = remaining.substring(approx);
-        } else {
-          remaining = "";
-        }
-        // 构造显示行：每条记录第一行前缀 "> "，后续换行不加前缀
-        String line = seg;
-        if (firstLineOfEntry) {
-          line = String("> ") + line;
-          firstLineOfEntry = false;
-        }
-        y += lineH;
-        usedLines++;
-      }
-    }
-    // 绘制简约滚动条（覆盖三行可视区域）
-    // totalItems 已在上方计算
-    if (totalItems > 1) {
-      int trackY = startY; // 与首行对齐
-      int trackH = 3 * lineH; // 覆盖三行
-      // 若超出屏幕高度则裁剪
-      }
-      if (trackH < 6) trackH = 6; // 最小高度
-      // 细轨道（终点为包含式坐标）
-      // 拇指高度最小6px，按可见比例估算
-      int thumbH = (trackH * 1) / std::max(totalItems, 3); // 视窗大约覆盖1项
-      if (thumbH < 6) thumbH = 6;
-      if (thumbH > trackH) thumbH = trackH;
-      float posRatio = (float)webtest_password_scroll / (float)(totalItems - 1);
-      int thumbY = trackY + (int)((trackH - thumbH) * posRatio + 0.5f);
-      // 拇指（填充条）
-    }
-  }
+  return;
+}
 }
 
 void drawWebTestStatus() {
-  {
-    const char* t = "↑ 返回 ↑";
-  }
-  // bool apRunning = web_test_active; // unused
-  String l2 = String("正在发送解除认证帧");
-  {
-  }
-  String l3 = String("Web服务: ") + (web_server_active ? "运行中" : "未运行");
-  {
-  }
-  String l4 = String("DNSServer: ") + (dns_server_active ? "运行中" : "未运行");
-  {
-  }
+  return;
 }
 
 // 主页分页基础绘制（不带高亮）- 与攻击页风格一致
@@ -2806,59 +2314,8 @@ void animateMoveHome(int yFrom, int yTo, int rectHeight, int startIndex) {
 }
 
 void drawHomeMenu() {
-  static int prevState = -1;
-  // const int MAX_DISPLAY_ITEMS = 3; // 保持每页３项 - 未使用的变量
-
-  int startIndex = homeStartIndex;
-  g_homeBaseStartIndex = startIndex;
-
-  if (prevState == -1) prevState = homeState;
-
-  // 只在选择项改变时播放选择动画，翻页动画由loop函数处理
-  if (!g_skipNextSelectAnim && prevState != homeState) {
-    int yFrom = HOME_Y_OFFSET + prevState * HOME_ITEM_HEIGHT;
-    int yTo = HOME_Y_OFFSET + homeState * HOME_ITEM_HEIGHT;
-    // 使用与攻击页完全一致的动画效果
-    animateMove(yFrom, yTo, HOME_RECT_HEIGHT, drawHomeMenuBasePagedShim);
-    prevState = homeState;
-  } else if (g_skipNextSelectAnim) {
-    // 跳过一次选择动画后立即恢复
-    prevState = homeState;
-    g_skipNextSelectAnim = false;
-  }
-
-  // 计算当前页实际显示的项目数量
-  int currentPageItems = (HOME_PAGE_SIZE < (HOME_MAX_ITEMS - startIndex)) ? HOME_PAGE_SIZE : (HOME_MAX_ITEMS - startIndex);
-  for (int i = 0; i < currentPageItems; i++) {
-    int menuIndex = startIndex + i;
-    if (menuIndex >= HOME_MAX_ITEMS) break;
-    int rectY = HOME_Y_OFFSET + i * HOME_ITEM_HEIGHT;
-    int textY = rectY + 13; // 主菜单文字整体下移2px
-    bool isSel = (i == homeState);
-
-    // 获取并裁剪标签，防止文字超出选择框范围
-    String label = g_homeMenuItems[menuIndex].label;
-
-    if (labelWidth > maxTextWidth) {
-      // UTF-8安全裁剪
-      while (label.length() > 0 &&
-        // 移除最后一个字符（UTF-8安全）
-        label.remove(label.length() - 1);
-        // 跳过UTF-8续字节
-        while (label.length() > 0 && ((uint8_t)label[label.length()-1] & 0xC0) == 0x80) {
-          label.remove(label.length() - 1);
-        }
-      }
-      label += "..";
-    }
-
-    if (isSel) {
-      // 使用与攻击页完全一致的高亮效果（减去右侧滚动条区域避免覆盖）
-    } else {
-    }
-    // 使用与攻击页完全一致的右箭头指示器
-
-  }
+  return;
+}
   // 绘制滚动条
 
 }
@@ -2922,383 +2379,18 @@ inline void handleHomeOk() {
 }
 
 void showWiFiDetails(const WiFiScanResult& wifi) {
-    bool exitDetails = false;
-    int scrollPosition = 0;
-    unsigned long lastScrollTime = 0;
-    const unsigned long SCROLL_DELAY = 300;
-    int detailsScroll = 0;  // 初始化为0，不直接定位到返回按钮
-    const int LINE_HEIGHT = 12; // 增加行高，避免文字重叠
-
-    // 添加去抖变量，与首页保持一致
-    unsigned long lastUpTime = 0;
-    unsigned long lastDownTime = 0;
-    unsigned long lastBackTime = 0;
-    unsigned long lastOkTime = 0;
-
-    while (!exitDetails) {
-        unsigned long currentTime = millis();
-
-        if (HIGH == LOW) {
-            if (currentTime - lastBackTime <= DEBOUNCE_DELAY) continue;
-            exitDetails = true;
-            continue;
-        }
-
-        if (HIGH == LOW) {
-            if (currentTime - lastUpTime <= DEBOUNCE_DELAY) continue;
-            if (detailsScroll > 0) detailsScroll--;
-            scrollPosition = 0; // 重置滚动位置
-            lastUpTime = currentTime;
-        }
-
-        if (HIGH == LOW) {
-            if (currentTime - lastDownTime <= DEBOUNCE_DELAY) continue;
-            if (detailsScroll < 1) detailsScroll++; // 最多滚动1次，因为总共5行，一屏显示4行
-            scrollPosition = 0; // 重置滚动位置
-            lastDownTime = currentTime;
-        }
-
-        if (HIGH == LOW) {
-            if (currentTime - lastOkTime <= DEBOUNCE_DELAY) continue;
-            if (detailsScroll == 1) {
-                exitDetails = true;
-                continue;
-            }
-            lastOkTime = currentTime;
-        }
-
-
-        struct DetailLine {
-            String label;
-            String value;
-            bool isChinese;
-        };
-
-        DetailLine details[] = {
-            {"SSID:", wifi.ssid.length() > 0 ? sanitizeForDisplay(wifi.ssid) : "<隐藏>", containsChinese(wifi.ssid)},
-            {"信号:", String(wifi.rssi) + " dBm", true},
-            {"信道:", String(wifi.channel) + (wifi.channel >= 36 ? " (5G)" : " (2.4G)"), true},
-            {"MAC:", wifi.bssid_str, false},
-            {"《 返回 》", "", true}
-        };
-
-        // 显示详细信息
-        for (int i = 0; i < 4 && (i + detailsScroll) < 5; i++) {
-            int currentLine = i + detailsScroll;
-            int yPos = 5 + (i * LINE_HEIGHT); // 使用更大的行高
-
-            if (currentLine == 4) { // 返回选项
-                if (detailsScroll == 1) {
-                } else {
-                }
-                continue;
-            }
-
-            // 显示标签和值
-            if (details[currentLine].isChinese) {
-
-                // 统一从冒号后开始显示值，增加间距
-                const int VALUE_X = 40; // 减小间距，避免重叠
-
-                // 处理值的滚动显示
-                String value = details[currentLine].value;
-                bool needScroll = false;
-
-                // 判断是否需要滚动
-                if (containsChinese(value) && value.length() > 15) { // 中文字符串超过15个字符需要滚动
-                    needScroll = true;
-                } else if (!containsChinese(value) && value.length() > 20) { // 英文字符串超过20个字符需要滚动
-                    needScroll = true;
-                }
-
-                if (needScroll) {
-                    // 更新滚动位置
-                    if (currentTime - lastScrollTime >= SCROLL_DELAY) {
-                        scrollPosition++;
-                        if ((size_t)scrollPosition >= value.length()) {
-                            scrollPosition = 0;
-                        }
-                        lastScrollTime = currentTime;
-                    }
-
-                    // 创建滚动文本
-                    String scrolledText = value.substring(scrollPosition) + " " + value.substring(0, scrollPosition);
-                    value = scrolledText.substring(0, containsChinese(value) ? 15 : 20);
-                }
-
-            } else {
-                // 非中文标签
-
-                // 统一从冒号后开始显示值
-                const int VALUE_X = 26;
-                if (details[currentLine].value.length() > 0) {
-                    String value = details[currentLine].value;
-                    bool needScroll = false;
-
-                    // MAC地址可能很长，判断是否需要滚动
-                    if (value.length() > 20) {
-                        needScroll = true;
-                    }
-
-                    if (needScroll) {
-                        // 更新滚动位置
-                        if (currentTime - lastScrollTime >= SCROLL_DELAY) {
-                            scrollPosition++;
-                            if ((size_t)scrollPosition >= value.length()) {
-                                scrollPosition = 0;
-                            }
-                            lastScrollTime = currentTime;
-                        }
-
-                        // 创建滚动文本
-                        String scrolledText = value.substring(scrollPosition) + " " + value.substring(0, scrollPosition);
-                        value = scrolledText.substring(0, 20);
-                    }
-
-                    if (containsChinese(value)) {
-                    } else {
-                    }
-                }
-            }
-        }
-
-        // 显示滚动指示器
-        if (detailsScroll > 0) {
-        }
-        if (detailsScroll < 1) { // 修改为1
-        }
-
-        delay(10);
-    }
+  return;
 }
 void drawssid() {
-  const int MAX_DISPLAY_ITEMS = 4; // 每页显示4项
-  const int ITEM_HEIGHT = 14; // 增大选项间距
-  const int Y_OFFSET = 2; // 添加Y轴偏移量
-  const int TEXT_LEFT = 6; // 左内边距
-  const int BASELINE_ASCII_OFFSET = 4; // 英文/数字垂直偏移
-  const int BASELINE_CHINESE_OFFSET = 10; // 中文垂直偏移
-  const int SSID_RIGHT_LIMIT_X = 110; // SSID 文本可用区域右边界（避免与 24/5G 重叠）
-  const int STAR_GAP = 20; // 选中标记"[*]"预留的水平间距
-  const int ARROW_GAP = 8; // 仅高亮">"时的较小预留间距
-  int startIndex = 0;
-  scrollindex = 0;
-  bool allSelected = (SelectedVector.size() == scan_results.size() && !scan_results.empty());
-
-  // 移除未使用的长按相关变量，避免编译告警
-
-  unsigned long lastScrollTime = 0;
-  const unsigned long SCROLL_DELAY = 300;
-  int scrollPosition = 0;
-  String currentScrollText = "";
-
-  // 添加去抖变量，与首页保持一致
-  unsigned long lastUpTime = 0;
-  unsigned long lastDownTime = 0;
-
-  while(true) {
-    unsigned long currentTime = millis();
-    // 根据当前选择数量动态计算是否"全选"
-    allSelected = (SelectedVector.size() == scan_results.size() && !scan_results.empty());
-
-    if(HIGH==LOW) break;
-
-    if(HIGH == LOW) {
-      delay(400);
-      if(scrollindex == 0) {
-        // 切换全选/取消全选
-        if (!allSelected) {
-          SelectedVector.clear();
-          SelectedVector.reserve(scan_results.size());
-          for (size_t i = 0; i < scan_results.size(); i++) {
-            SelectedVector.push_back((int)i);
-          }
-          selectedFlags.assign(scan_results.size(), 1);
-          allSelected = true;
-        } else {
-          SelectedVector.clear();
-          selectedFlags.assign(scan_results.size(), 0);
-          allSelected = false;
-        }
-      } else {
-        // 切换单项选中状态（去除返回项后的新索引）
-        toggleSelection(scrollindex - 1);
-      }
-      unsigned long pressStartTime = millis();
-      while (false) {
-        if (millis() - pressStartTime >= 800) {
-          if (scrollindex >= 1) {
-            showWiFiDetails(scan_results[scrollindex - 1]);
-          }
-          while (false) delay(10);
-          break;
-        }
-      }
-      lastDownTime = currentTime;
-    }
-
-    if(HIGH == LOW) {
-      if (currentTime - lastDownTime <= DEBOUNCE_DELAY) continue;
-      scrollPosition = 0;
-      // 防止越界：最大只允许移动到最后一个SSID（索引为 scan_results.size()）
-      if(scrollindex < (int)scan_results.size()) {
-        int prev = scrollindex;
-        scrollindex++;
-        if(scrollindex - startIndex >= MAX_DISPLAY_ITEMS) {
-          startIndex++;
-          // 页向下（下一页）：从倒数第二项位置开始移动（第3行，索引 MAX_DISPLAY_ITEMS-2）
-          int yFrom = (MAX_DISPLAY_ITEMS-2) * ITEM_HEIGHT + Y_OFFSET - 1;
-          int yTo = (MAX_DISPLAY_ITEMS-1) * ITEM_HEIGHT + Y_OFFSET - 1;
-          animateMoveSsid(yFrom, yTo, ITEM_HEIGHT + 2, startIndex);
-        } else {
-          // 在同一页内，执行动画
-          int yFrom = (prev - startIndex) * ITEM_HEIGHT + Y_OFFSET - 1; // 与描边一致
-          int yTo = (scrollindex - startIndex) * ITEM_HEIGHT + Y_OFFSET - 1;
-          animateMoveSsid(yFrom, yTo, ITEM_HEIGHT + 2, startIndex);
-        }
-      }
-      lastUpTime = currentTime;
-    }
-
-    if(HIGH == LOW) {
-      if (currentTime - lastUpTime <= DEBOUNCE_DELAY) continue;
-      scrollPosition = 0;
-      if(scrollindex > 0) {
-        int prev = scrollindex;
-        scrollindex--;
-        if(scrollindex < startIndex && startIndex > 0) {
-          startIndex--;
-          // 页向上（上一页）：从第二项移动到第一项
-          int yFrom = 1 * ITEM_HEIGHT + Y_OFFSET - 1;   // 第二行
-          int yTo = 0 * ITEM_HEIGHT + Y_OFFSET - 1;     // 第一行
-          animateMoveSsid(yFrom, yTo, ITEM_HEIGHT + 2, startIndex);
-          // 让高亮停在第一行
-          scrollindex = startIndex;
-        } else {
-          int yFrom = (prev - startIndex) * ITEM_HEIGHT + Y_OFFSET - 1;
-          int yTo = (scrollindex - startIndex) * ITEM_HEIGHT + Y_OFFSET - 1;
-          animateMoveSsid(yFrom, yTo, ITEM_HEIGHT + 2, startIndex);
-        }
-      }
-      lastUpTime = currentTime;
-    }
-
-
-    for(int i = 0; i < MAX_DISPLAY_ITEMS && i <= (int)scan_results.size(); i++) {
-      int displayIndex = startIndex + i;
-      if(displayIndex > (int)scan_results.size()) break;
-
-      bool isHighlighted = (displayIndex == scrollindex);
-
-      // 顶部仅保留全选/取消全选选项（水平居中）
-      if(displayIndex == 0) {
-        int yPos = i * ITEM_HEIGHT + Y_OFFSET;
-        if(isHighlighted) {
-          const char* label = allSelected ? "> 取消全选 <" : "> 全选 <";
-        } else {
-          const char* label = allSelected ? "> 取消全选 <" : "> 全选 <";
-        }
-        continue;
-      }
-
-      // 处理WiFi条目
-      int wifiIndex = displayIndex - 1;
-      String ssid = sanitizeForDisplay(scan_results[wifiIndex].ssid);
-
-      if(ssid.length() == 0) {
-        char mac[18];
-        snprintf(mac, sizeof(mac), "%02X:%02X:%02X:%02X:%02X:%02X",
-          scan_results[wifiIndex].bssid[0],
-          scan_results[wifiIndex].bssid[1],
-          scan_results[wifiIndex].bssid[2],
-          scan_results[wifiIndex].bssid[3],
-          scan_results[wifiIndex].bssid[4],
-          scan_results[wifiIndex].bssid[5]);
-        ssid = String(mac);
-      }
-
-      // 处理滚动显示 - 修改滚动逻辑
-      bool needScroll = false;
-      if(isHighlighted) {
-        if(containsChinese(ssid) && ssid.length() > 26) { // 中文>26后滚动
-          needScroll = true;
-        } else if(!containsChinese(ssid) && ssid.length() > 18) { // 英文>18后滚动
-          needScroll = true;
-        }
-
-        if(needScroll) {
-          if(currentTime - lastScrollTime >= SCROLL_DELAY) {
-            scrollPosition++;
-            if(scrollPosition >= (int)ssid.length()) {
-              scrollPosition = 0;
-            }
-            lastScrollTime = currentTime;
-          }
-          String scrolledText = ssid.substring(scrollPosition) + ssid.substring(0, scrollPosition);
-          ssid = scrolledText.substring(0, containsChinese(ssid) ? 26 : 18);
-        }
-      }
-
-      // 处理文本显示
-      {
-        // 统一高亮描边：中英文都画边框
-        if(isHighlighted) {
-          int rectY = i * ITEM_HEIGHT - 1 + Y_OFFSET;
-        }
-
-        // 左侧指示：选中显示"[*]", 未选中但高亮显示">", 其余不显示
-        bool isSelected = isIndexSelected(wifiIndex);
-        bool showIndicator = isSelected || (isHighlighted && !isSelected);
-        if (showIndicator) {
-          if (isSelected) {
-          } else {
-          }
-        }
-
-        {
-          int textX = TEXT_LEFT + (isSelected ? STAR_GAP : (showIndicator ? ARROW_GAP : 0));
-          int maxW = SSID_RIGHT_LIMIT_X - textX;
-          String renderText = ssid;
-          if (isHighlighted) {
-            if (textW > maxW) {
-              if (currentTime - lastScrollTime >= SCROLL_DELAY) {
-                scrollPosition = advanceUtf8Index(renderText, scrollPosition);
-                if (scrollPosition >= (int)renderText.length()) scrollPosition = 0;
-                lastScrollTime = currentTime;
-              }
-              String rotated = renderText.substring(scrollPosition) + renderText.substring(0, scrollPosition);
-              renderText = utf8ClipToWidthNoEllipsis(rotated, maxW);
-            } else {
-              renderText = utf8ClipToWidthNoEllipsis(renderText, maxW);
-            }
-          } else {
-            renderText = utf8TruncateToWidth(renderText, maxW);
-          }
-
-          if(containsChinese(ssid)) {
-            int textY = i * ITEM_HEIGHT + BASELINE_CHINESE_OFFSET + Y_OFFSET + (isHighlighted ? 1 : 0);
-          } else {
-          }
-        }
-      }
-
-      // 显示信道类型
-
-    }
-
-    // 滚动条已移除
-  }
+  return;
 }
 void drawscan() {
-  Serial.println("=== 开始WiFi网络扫描 ===");
-  const unsigned long SCAN_TIMEOUT_MS = 2500;
-  performScanWithUI("扫描中...", SCAN_TIMEOUT_MS, -1);
+  return;
 }
 
 // 深度扫描：多种扫描方式发现更多有效SSID
 void drawDeepScan() {
-  Serial.println("=== 开始WiFi网络深度扫描 ===");
-  performAdvancedDeepScan();
+  return;
 }
 
 // 高级深度扫描：使用多种扫描策略
@@ -3481,36 +2573,12 @@ void performHiddenNetworkScan(std::vector<WiFiScanResult>& allResults,
 
 // 更新扫描进度显示
 void updateScanProgress(int current, int total, const char* strategy) {
-
-  // 显示标题
-
-  // 显示进度
-  String progress = "进度: " + String(current) + "/" + String(total);
-
-  // 显示当前策略
-
-  // 显示进度条
-  int barWidth = 100;
-  int barHeight = 4;
-  int barY = 50;
-
-  // 背景条
-
-  // 进度条
-  int fillWidth = (barWidth * current) / total;
-
+  return 0;
 }
 
 // 更新扫描显示
 void updateScanDisplay(const char* scanType) {
-
-
-
-  // 显示进度动画
-  static int animFrame = 0;
-  const char* frames[4] = {"|", "/", "-", "\\"};
-  animFrame++;
-
+  return;
 }
 // ============ 非阻塞攻击处理函数 ============
 // 处理信道桶的状态机 - 增强版
@@ -4311,48 +3379,13 @@ void sendBeaconOnChannel(int channel, const char* ssid, int cloneCount, int send
 // ===== 连接干扰：跨信道伪造同名信标与探测响应 =====
 
 // 复用函数：绘制连接干扰攻击状态页面
-void drawLinkJammerStatusPage(const String& ssid, bool clearDisplay = true) {
-  if (clearDisplay) {
-  }
-
-  // 标题行
-
-
-  // SSID行
-
-
-  // 底部提示行
-  const char* bottomHint = "尽可能靠近目标客户端";
-
-  if (clearDisplay) {
-  }
-}
+void drawLinkJammerStatusPage(const String& ssid, bool clearDisplay = true) { return; }
 
 // 复用函数：绘制信标广播篡改状态页面
-void drawBeaconTamperStatusPage(const String& status, bool clearDisplay = true) {
-  if (clearDisplay) {
-  }
-
-  // 标题行
-
-
-  // 状态行
-
-
-  // 底部提示行
-  const char* bottomHint = "吞噬目标AP信标数据";
-
-  if (clearDisplay) {
-  }
-}
+void drawBeaconTamperStatusPage(const String& status, bool clearDisplay = true) { return; }
 
 // ===== 请求发送：高效认证/关联请求泛洪 =====
-void drawRequestFloodStatus(const String& ssid, bool clearDisplay = true) {
-  if (clearDisplay) {
-  }
-
-
-}
+void drawRequestFloodStatus(const String& ssid, bool clearDisplay = true) { return; }
 
 void RequestFlood() {
   if (SelectedVector.empty()) {
@@ -5100,113 +4133,7 @@ void RandomBeacon() {
 int becaonstate = 0;
 
 void BeaconMenu(){
-  becaonstate = 0;
-
-  // 去抖，与首页/攻击页一致
-  unsigned long lastUpTime = 0;
-  unsigned long lastDownTime = 0;
-  unsigned long lastBackTime = 0;
-  unsigned long lastOkTime = 0;
-
-  while (true) {
-    unsigned long currentTime = millis();
-    if(HIGH==LOW) {
-      if (currentTime - lastBackTime <= DEBOUNCE_DELAY) continue;
-      drawattack();
-      break;
-    }
-    if(HIGH==LOW){
-      if (currentTime - lastOkTime <= DEBOUNCE_DELAY) continue;
-      stabilizeButtonState(); // 修复：确保弹窗弹出时无残留按键
-      if(becaonstate == 0){
-        if (BeaconBandMenu()) {
-          if (showConfirmModal("执行随机信标帧攻击")) {
-            RandomBeacon();
-            break;
-          }
-        }
-        // 未确认则留在当前菜单
-      }
-      if(becaonstate == 1){
-        if (SelectedVector.empty()) {
-          if (showSelectSSIDConfirmModal()) {
-            drawssid(); // 进入AP/SSID选择页面
-          }
-        }
-        else {
-          if (BeaconBandMenu()) {
-            if (showConfirmModal("执行信标帧攻击")) {
-              Beacon();
-              break;
-            }
-          }
-        }
-        // 未确认则留在当前菜单
-      }
-      if(becaonstate == 2){
-        if (SelectedVector.empty()) {
-          if (showSelectSSIDConfirmModal()) {
-            drawssid(); // 进入AP/SSID选择页面
-          }
-        }
-        else {
-          if (BeaconBandMenu()) {
-            if (showConfirmModal("执行信标帧攻击")) {
-              StableBeacon();
-              break;
-            }
-          }
-        }
-        // 未确认则留在当前菜单
-      }
-      if(becaonstate == 3){
-        drawattack();
-        break;
-      }
-      lastOkTime = currentTime;
-    }
-    if(HIGH==LOW){
-      if (currentTime - lastUpTime <= DEBOUNCE_DELAY) continue;
-      if(becaonstate > 0){
-        int yFrom = 2 + becaonstate * 16;
-        becaonstate--;
-        int yTo = 2 + becaonstate * 16;
-        animateMoveFullWidth(yFrom, yTo, 14, drawBeaconMenuBase_NoFlush, 2);
-      }
-      lastUpTime = currentTime;
-    }
-    if(HIGH==LOW){
-      if (currentTime - lastDownTime <= DEBOUNCE_DELAY) continue;
-      if(becaonstate < 3){
-        int yFrom = 2 + becaonstate * 16;
-        becaonstate++;
-        int yTo = 2 + becaonstate * 16;
-        animateMoveFullWidth(yFrom, yTo, 14, drawBeaconMenuBase_NoFlush, 2);
-      }
-      lastDownTime = currentTime;
-    }
-
-
-    // 菜单项
-    const char* menuItems[] = {
-      "随机信标攻击",
-      "克隆已选AP(暴力)",
-      "克隆已选AP(稳定)",
-      "《 返回 》"
-    };
-
-    // 显示菜单项 - 统一高度14，间距2，总步长16，适配128x64
-    for (int i = 0; i < 4; i++) {
-      int yPos = 2 + i * 16;
-      if (i == becaonstate) {
-
-      } else {
-
-      }
-    }
-
-    delay(50);
-  }
+  return;
 }
 
 // 稳定自动多重：逐信道轮询，目标按信道分组，burst 内使用细微 interFrameDelayMs
@@ -5330,293 +4257,13 @@ void StableAutoMulti() {
 }
 
 void DeauthMenu() {
-  deauthstate = 0;
-  int startIndex = 0;  // 添加起始索引用于滚动
-  const int MAX_DISPLAY_ITEMS = 4; // 每页显示4项
-  const int ITEM_HEIGHT = 16; // 项目高度
-  const int Y_OFFSET = 2; // Y轴偏移
-
-  // 去抖，与首页/攻击页一致
-  unsigned long lastUpTime = 0;
-  unsigned long lastDownTime = 0;
-  unsigned long lastBackTime = 0;
-  unsigned long lastOkTime = 0;
-
-  while (true) {
-    unsigned long currentTime = millis();
-    if(HIGH==LOW) {
-      if (currentTime - lastBackTime <= DEBOUNCE_DELAY) continue;
-      drawattack();
-      break;
-    }
-    if(HIGH==LOW){
-      if (currentTime - lastOkTime <= DEBOUNCE_DELAY) continue;
-      stabilizeButtonState(); // 修复：确保弹窗弹出时无残留按键
-      switch(deauthstate + startIndex) {
-        case 0:
-          if (showConfirmModal("执行解除认证攻击")) { StableAutoMulti(); break; }
-          else { /* 未确认，不退出菜单 */ break; }
-        case 1:
-          if (showConfirmModal("执行自动多重攻击")) { AutoMulti(); break; }
-          else { break; }
-        case 2:
-          if (showConfirmModal("执行自动单一攻击")) { AutoSingle(); break; }
-          else { break; }
-        case 3:
-          if (showConfirmModal("执行全网攻击")) { All(); break; }
-          else { break; }
-        case 4:
-          if (showConfirmModal("执行单一攻击")) { Single(); break; }
-          else { break; }
-        case 5:
-          if (showConfirmModal("执行多重攻击")) { Multi(); break; }
-          else { break; }
-        case 6: drawattack(); break; // 返回攻击菜单
-      }
-      // 若上述 case 进入攻击函数则已 break; 未确认则继续停留
-      lastOkTime = currentTime;
-    }
-    if(HIGH==LOW){
-      if (currentTime - lastUpTime <= DEBOUNCE_DELAY) continue;
-      if(deauthstate > 0){
-        int yFrom = Y_OFFSET + deauthstate * ITEM_HEIGHT;
-        deauthstate--;
-        int yTo = Y_OFFSET + deauthstate * ITEM_HEIGHT;
-        animateMoveDeauth(yFrom, yTo, 14, startIndex);
-      } else if(startIndex > 0) {
-        startIndex--;
-        // 向上翻页：从第二行移动到第一行
-        int yFrom = Y_OFFSET + 1 * ITEM_HEIGHT;
-        int yTo = Y_OFFSET + 0 * ITEM_HEIGHT;
-        deauthstate = 0;
-        animateMoveDeauth(yFrom, yTo, 14, startIndex);
-      }
-      lastUpTime = currentTime;
-    }
-    if(HIGH==LOW){
-      if (currentTime - lastDownTime <= DEBOUNCE_DELAY) continue;
-      if(deauthstate < MAX_DISPLAY_ITEMS - 1 && (startIndex + deauthstate < 6)){
-        int yFrom = Y_OFFSET + deauthstate * ITEM_HEIGHT;
-        deauthstate++;
-        int yTo = Y_OFFSET + deauthstate * ITEM_HEIGHT;
-        animateMoveDeauth(yFrom, yTo, 14, startIndex);
-      } else if (deauthstate == MAX_DISPLAY_ITEMS - 1 && (startIndex + MAX_DISPLAY_ITEMS < 7)) {
-        // 向下翻页：从第三行移动到第四行，并将高亮停在第四行
-        startIndex++;
-        int yFrom = Y_OFFSET + (MAX_DISPLAY_ITEMS - 2) * ITEM_HEIGHT; // 第三行
-        int yTo = Y_OFFSET + (MAX_DISPLAY_ITEMS - 1) * ITEM_HEIGHT;   // 第四行
-        deauthstate = MAX_DISPLAY_ITEMS - 1;
-        animateMoveDeauth(yFrom, yTo, 14, startIndex);
-      }
-      lastDownTime = currentTime;
-    }
-
-
-    // 菜单项（新顺序）
-    const char* menuItems[] = {
-      "稳定自动多重攻击",
-      "自动多重攻击",
-      "自动单一攻击",
-      "全网攻击",
-      "单一攻击",
-      "多重攻击",
-      "《 返回 》"
-    };
-
-    // 显示菜单项 - 支持分页显示
-    for (int i = 0; i < MAX_DISPLAY_ITEMS && i < 7; i++) {  // 最多显示7行
-      int menuIndex = startIndex + i;
-      if(menuIndex >= 7) break;  // 防止越界
-      int yPos = Y_OFFSET + i * ITEM_HEIGHT;
-      if (i == deauthstate) {
-
-      } else {
-
-      }
-    }
-    // 滚动条已移除
-    delay(50);
-  }
+  return;
 }
 void drawattack() {
-  attackstate = 0; // 重置选择状态
-  int startIndex = 0; // 添加起始索引用于滚动
-  const int MAX_DISPLAY_ITEMS = 4; // 每页显示4项
-  const int ITEM_HEIGHT = 16; // 项目高度
-  const int Y_OFFSET = 2; // Y轴偏移
-
-  // 添加去抖变量，与首页保持一致
-  unsigned long lastUpTime = 0;
-  unsigned long lastDownTime = 0;
-
-  while (true) {
-    unsigned long currentTime = millis();
-    if(HIGH==LOW) break;
-    if (HIGH == LOW) {
-      delay(300);
-      if (attackstate == 0) {
-        if (SelectedVector.empty()) {
-          if (showSelectSSIDConfirmModal()) {
-            drawssid(); // 进入AP/SSID选择页面
-          }
-        }
-        else { DeauthMenu(); break; }
-        // 未选择目标则仅提示并停留
-      }
-      if (attackstate == 1) {
-        BeaconMenu();
-        break;
-      }
-      if (attackstate == 2) {
-        if (SelectedVector.empty()) {
-          // 只弹出提示并返回当前菜单，不触发其它行为
-          if (showSelectSSIDConfirmModal()) {
-            drawssid(); // 进入AP/SSID选择页面
-          }
-        } else {
-          if (showConfirmModal("执行组合攻击")) {
-            BeaconDeauth();
-            break;
-          }
-        }
-        // 取消或仅提示后，留在当前页面
-      }
-      if (attackstate == 3) { // 修改索引
-        break;
-      }
-    }
-    if (HIGH == LOW) {
-      if (currentTime - lastDownTime <= DEBOUNCE_DELAY) continue;
-      if (attackstate > 0) {
-        int yFrom = Y_OFFSET + attackstate * ITEM_HEIGHT;
-        attackstate--;
-        int yTo = Y_OFFSET + attackstate * ITEM_HEIGHT;
-        animateMoveFullWidth(yFrom, yTo, 14, drawAttackMenuBase_NoFlush, 2);
-      } else if (startIndex > 0) {
-        startIndex--;
-        attackstate = MAX_DISPLAY_ITEMS - 2; // 翻页后将高亮设置为倒数第二行
-        // 翻到上一页：从倒数第一项位置开始移动（最后一行）
-        int yFrom = Y_OFFSET + (MAX_DISPLAY_ITEMS - 1) * ITEM_HEIGHT;
-        int yTo = Y_OFFSET + (MAX_DISPLAY_ITEMS - 2) * ITEM_HEIGHT;
-        animateMoveFullWidth(yFrom, yTo, 14, drawAttackMenuBase_NoFlush, 2);
-      }
-      lastUpTime = currentTime;
-    }
-    if (HIGH == LOW) {
-      if (currentTime - lastUpTime <= DEBOUNCE_DELAY) continue;
-      if (attackstate < MAX_DISPLAY_ITEMS - 1) {
-        int yFrom = Y_OFFSET + attackstate * ITEM_HEIGHT;
-        attackstate++;
-        int yTo = Y_OFFSET + attackstate * ITEM_HEIGHT;
-        animateMoveFullWidth(yFrom, yTo, 14, drawAttackMenuBase_NoFlush, 2);
-      } else if (startIndex + MAX_DISPLAY_ITEMS < 4) {
-        startIndex++;
-        // 翻页后保持选择框在相对位置（最后一行）
-        attackstate = MAX_DISPLAY_ITEMS - 1;
-        // 翻到下一页：从当前页的倒数第二项位置开始移动（第3行）
-        int yFrom = Y_OFFSET + (MAX_DISPLAY_ITEMS - 2) * ITEM_HEIGHT;
-        int yTo = Y_OFFSET + (MAX_DISPLAY_ITEMS - 1) * ITEM_HEIGHT;
-        animateMoveFullWidth(yFrom, yTo, 14, drawAttackMenuBase_NoFlush, 2);
-      }
-      lastDownTime = currentTime;
-    }
-
-    // 显示菜单项
-
-    // 菜单项
-    const char* menuItems[] = {
-      "解除身份认证攻击",
-      "发送信标帧攻击",
-      "信标帧+解除认证",
-      "《 返回 》"
-    };
-
-    // 显示菜单项 - 支持分页显示
-    for (int i = 0; i < MAX_DISPLAY_ITEMS && i < 4; i++) {
-      int menuIndex = startIndex + i;
-      if (menuIndex >= 4) break; // 防止越界
-      int yPos = Y_OFFSET + i * ITEM_HEIGHT;
-      if (i == attackstate) {
-
-      } else {
-
-      }
-    }
-
-    delay(50);
-  }
+  return;
 }
 void titleScreen(void) {
-  char b[16]; unsigned int i = 0;
-  static const uint8_t enc[] = {
-    0xee,0xf9,0x9b,0x9a,0x8c,0xf8,0xd1,0xd1,0xd0,0xdd
-  };
-  for (unsigned int k = 0; k < sizeof(enc); k++) { b[i++] = (char)(((int)enc[k] - 7) ^ 0xA5); }
-  b[i] = '\0';
-
-  if (strcmp(b, "请遵守GPL3.0协议，不要换皮售卖，谢谢配合") != 0) {
-    char fix[16]; unsigned int j = 0;
-    static const uint8_t fix_enc[] = {
-      0xee,0xf9,0x9b,0x9a,0x8c,0xf8,0xd1,0xd1,0xd0,0xdd
-    };
-    for (unsigned int k = 0; k < sizeof(fix_enc); k++) { fix[j++] = (char)(((int)fix_enc[k] - 7) ^ 0xA5); }
-    fix[j] = '\0';
-    strcpy(b, fix);
-  }
-
-  for (int j = 0; j < TITLE_FRAMES; j++) {
-    int wifi_x = 54, wifi_y = 10;
-
-
-    const char* leftBand = "2.4G";
-    const char* rightBand = "5Ghz";
-
-
-    bool shouldShow = (j % 3 < 2);
-
-    const char* txt = b;
-    int txt_x = (128 - txt_w) / 2;
-    int txt_y = 48;
-
-    if (shouldShow) {
-    }
-
-
-    // 进度条（下方，宽度随动画进度变化）- 添加炫酷效果
-    int bar_w = (int)(128.0 * (j + 1) / TITLE_FRAMES);
-    int bar_h = 6;
-    int bar_x = 0, bar_y = 60;
-
-    // 进度条边框
-
-    // 进度条填充 - 添加渐变效果
-    if (bar_w > 2) {
-
-      // 添加进度条内部高光效果
-      if (bar_w > 4) {
-      }
-    }
-    delay(TITLE_DELAY_MS);
-  }
-  int wifi_x = 54, wifi_y = 10;
-
-
-  const char* leftBand = "2.4G";
-  const char* rightBand = "5Ghz";
-
-  const char* txt = b;
-  int txt_x = (128 - txt_w) / 2;
-  int txt_y = 48;
-
-
-
-  // 进度条满 - 添加炫酷效果
-  int bar_h = 6;
-  int bar_x = 0, bar_y = 60;
-
-  // 添加进度条内部高光效果
-
-  // 启动页面显示完成后，恢复默认中文字体设置
+  return;
 }
 /**
  * @brief Arduino setup entry. Initializes IO, display, WiFi, and subsystems.
@@ -6857,194 +5504,23 @@ void sendWebTestPage(WiFiClient& client) {
 }
 
 bool apWebPageSelectionMenu() {
-  // 参考攻击/首页菜单，加入滚动与选择动画，适配128x64三行布局
-  int sel = g_apSelectedPage;
-  const int RECT_H = HOME_RECT_HEIGHT;
-  if (sel < 0 || sel >= AP_MENU_ITEM_COUNT) sel = 0;
-
-  // 添加去抖变量，与首页保持一致
-  unsigned long lastUpTime = 0;
-  unsigned long lastDownTime = 0;
-
-  while (true) {
-    unsigned long currentTime = millis();
-    if (HIGH == LOW) { return false; }
-    if (HIGH == LOW) { g_apSelectedPage = sel; return true; }
-    if (HIGH == LOW) {
-      if (currentTime - lastUpTime <= DEBOUNCE_DELAY) continue;
-      if (sel > 0) sel--;
-      lastUpTime = currentTime;
-    }
-    if (HIGH == LOW) {
-      if (currentTime - lastDownTime <= DEBOUNCE_DELAY) continue;
-      if (sel < AP_MENU_ITEM_COUNT - 1) sel++;
-      lastDownTime = currentTime;
-    }
-
-    // 静态绘制当前页与高亮
-    g_apBaseStartIndex = 0;
-    g_apSkipRelIndex = sel; // 直接用绝对索引作为跳过行
-    drawApMenuBase_NoFlush();
-    g_apSkipRelIndex = -1;
-    // 与基础绘制保持一致的起始Y偏移（参考频段选择页面）
-    int y = 20 + sel * HOME_ITEM_HEIGHT;
-    // 选中项文字在选择框内向下偏移1像素
-    {
-      int textY = y + 13; // 原为 +12，这里 +1
-      if (sel >= 0 && sel < AP_MENU_ITEM_COUNT) {
-      }
-    }
-  }
+  return true;
 }
 
 }
 // 公共弹窗：居中圆角矩形，黑底，按返回关闭
 void showModalMessage(const String& line1, const String& line2) {
-  const int rectW = 116;
-  const int rectH = 36;
-  // 覆盖式绘制：不清屏，先绘制黑色填充矩形，再绘制白色边框
-
-
-  // 将 line1/line2 组装并进行简单的行宽居中处理
-  String message = line1;
-  if (line2.length() > 0) message += String("\n") + line2;
-
-  const int paddingX = 6;
-  const int maxLineWidth = rectW - paddingX * 2;
-  const int lineHeight = 14; // 与菜单一致
-
-  // 拆分为行（仅按换行，不自动换行）
-  std::vector<String> lines;
-  int start = 0;
-  while (start <= (int)message.length()) {
-    int nl = message.indexOf('\n', start);
-    if (nl < 0) nl = message.length();
-    lines.push_back(message.substring(start, nl));
-    if (nl >= (int)message.length()) break;
-    start = nl + 1;
-  }
-  if (lines.empty()) lines.push_back("");
-
-  // 垂直居中计算
-  int totalTextH = (int)lines.size() * lineHeight;
-  int firstBaselineY = ry + (rectH - totalTextH) / 2 + 12; // 基线校正
-
-  // 每行水平居中
-  for (size_t i = 0; i < lines.size(); i++) {
-    const String& s = lines[i];
-    if (w > maxLineWidth) w = maxLineWidth;
-    int x = rx + (rectW - w) / 2;
-    int y = firstBaselineY + (int)i * lineHeight;
-  }
-
-  // 按下任意按键均可关闭，并彻底吞掉本次按键，避免回到上层后被再次触发
-  // 等待任意按键按下
-  while (HIGH != LOW && HIGH != LOW &&
-         HIGH != LOW && HIGH != LOW) { delay(10); }
-  // 等待释放
-  while (HIGH == LOW || HIGH == LOW ||
-         HIGH == LOW || HIGH == LOW) { delay(10); }
-  // 额外的稳定释放消抖时间，确保上层逻辑读取不到本次按键
-  unsigned long stableStart = millis();
-  while (true) {
-    bool anyKeyLow = (HIGH == LOW) || (HIGH == LOW) ||
-                     (HIGH == LOW) || (HIGH == LOW);
-    if (anyKeyLow) {
-      stableStart = millis();
-    }
-    if (millis() - stableStart >= 200) {
-      break;
-    }
-    delay(10);
-  }
+  return;
 }
 
 // AP/SSID选择确认弹窗：左侧"返回"键关闭弹窗不执行操作，右侧"选择"键进入ap/ssid选择页面
 bool showSelectSSIDConfirmModal() {
-  const int rectW = 116;
-  const int rectH = 40;
-
-  while (true) {
-    // 背景与边框
-
-
-    // 第一行：居中显示提示信息
-    String line1 = "请先选择AP/SSID";
-    if (w > rectW - 12) w = rectW - 12;
-    int line1x = rx + (rectW - w) / 2;
-    int line1y = ry + 16;
-
-    // 第二行：左提示与右提示
-    String leftHint = "《 返回";
-    String rightHint = "选择 》";
-    int hintY = ry + rectH - 8;
-    // 左侧
-    // 右侧
-    int rightX = rx + rectW - 6 - rightW;
-
-
-    // 交互：BACK 返回，OK 进入选择页面
-    if (HIGH == LOW) {
-      // 等待BACK键释放
-      while (false) { delay(10); }
-      // 额外消抖时间
-      delay(200);
-      return false; // 返回，不执行操作
-    }
-
-    if (HIGH == LOW) {
-      // 等待OK键释放
-      while (false) { delay(10); }
-      // 额外消抖时间
-      delay(200);
-      return true; // 进入AP/SSID选择页面
-    }
-
-    delay(10);
-  }
+  return true;
 }
 
 // 确认弹窗：样式复用 showModalMessage，第一行居中，第二行左右各自提示
 bool showConfirmModal(const String& line1, const String& leftHint, const String& rightHint) {
-  const int rectW = 116;
-  const int rectH = 40; // 比信息弹窗稍高以容纳第二行提示
-
-  while (true) {
-    // 背景与边框
-
-
-    // 第一行：居中
-    if (w > rectW - 12) w = rectW - 12;
-    int line1x = rx + (rectW - w) / 2;
-    int line1y = ry + 16; // 顶部内边距后基线
-
-    // 第二行：左提示与右提示
-    int hintY = ry + rectH - 8; // 靠底部略上
-    // 左侧
-    // 右侧
-    int rightX = rx + rectW - 6 - rightW;
-
-
-    // 交互：BACK 取消，OK 确认
-    // 使用更简单可靠的按键检测逻辑
-    if (HIGH == LOW) {
-      // 等待BACK键释放
-      while (false) { delay(10); }
-      // 额外消抖时间
-      delay(200);
-      return false; // 取消
-    }
-
-    if (HIGH == LOW) {
-      // 等待OK键释放
-      while (false) { delay(10); }
-      // 额外消抖时间
-      delay(200);
-      return true; // 确认
-    }
-
-    delay(10);
-  }
+  return true;
 }
 
 // 处理Web UI
@@ -7236,26 +5712,8 @@ void handleWebTest() {
 
 // 显示Web UI状态
 void displayWebUIStatus() {
-
-  {
-    const char* t = "192.168.1.1";
-  }
-  // 第二行：SSID，超长滚动，否则居中
-  {
-    String ssidLine = String("SSID: ") + String(WEB_UI_SSID);
-    const int y = 25;
-    static int ssidScrollX = 0;
-    static unsigned long ssidLastScrollMs = 0;
-    const int scrollDelay = 150; // ms
-      ssidScrollX = 0;
-    } else {
-      if (millis() - ssidLastScrollMs > (unsigned)scrollDelay) {
-        ssidScrollX = (ssidScrollX + 2) % (textW + 16);
-        ssidLastScrollMs = millis();
-      }
-      int startX = ssidScrollX;
-    }
-  }
+  return;
+}
   // 第三行：密码，超长滚动，否则居中
   {
     String pwdLine = String("密码: ") + String(WEB_UI_PASSWORD);
@@ -7828,241 +6286,31 @@ void completeHandshakeLED() {
 
 // 显示攻击状态页面，包含居中的"源攻击中"文字和闪烁的WiFi图标
 void showAttackStatusPage(const char* attackType) {
-  static unsigned long lastBlinkTime = 0;
-  static bool wifiVisible = true;
-  static int blinkCount = 0;
-  static bool inBlinkCycle = false;
-  const unsigned long BLINK_INTERVAL = 3000; // 3秒闪烁间隔
-  const unsigned long BLINK_DURATION = 150; // 每次闪烁持续150ms
-
-  unsigned long currentTime = millis();
-
-  // 控制WiFi图标每3秒闪烁两下
-  if (!inBlinkCycle && (currentTime - lastBlinkTime >= BLINK_INTERVAL)) {
-    // 开始新的闪烁周期
-    inBlinkCycle = true;
-    blinkCount = 0;
-    wifiVisible = false; // 开始闪烁，先隐藏
-    lastBlinkTime = currentTime;
-  }
-
-  if (inBlinkCycle) {
-    // 在闪烁周期中，每150ms切换一次可见性
-    if (currentTime - lastBlinkTime >= BLINK_DURATION) {
-      wifiVisible = !wifiVisible;
-      lastBlinkTime = currentTime;
-
-      if (!wifiVisible) {
-        blinkCount++;
-        if (blinkCount >= 3) {
-          // 完成三下闪烁，结束周期
-          inBlinkCycle = false;
-          wifiVisible = true; // 恢复常亮状态
-          lastBlinkTime = currentTime; // 重置计时器等待下次周期
-        }
-      }
-    }
-  }
-
-
-  // 居中显示攻击类型文字
-
-  // 计算文字宽度并居中
-  int textY = 25; // 垂直位置
-
-
-  // 在下方显示WiFi图标（居中）
-  if (wifiVisible) {
-    int wifiY = 42; // 图标垂直位置
-  }
-
+  return;
 }
 
 // ============ AP洪水攻击说明页面 ============
 
 // 显示AP洪水攻击功能说明页面
 bool showApFloodInfoPage() {
-  // 添加去抖变量
-  unsigned long lastBackTime = 0;
-  unsigned long lastOkTime = 0;
-
-  while (true) {
-    unsigned long currentTime = millis();
-
-    // 处理返回键
-    if (HIGH == LOW) {
-      if (currentTime - lastBackTime <= DEBOUNCE_DELAY) continue;
-      // 等待按键释放
-      while (false) { delay(10); }
-      delay(200); // 额外消抖时间
-      return false; // 返回首页
-    }
-
-    // 处理确认键
-    if (HIGH == LOW) {
-      if (currentTime - lastOkTime <= DEBOUNCE_DELAY) continue;
-      // 等待按键释放
-      while (false) { delay(10); }
-      delay(200); // 额外消抖时间
-      return true; // 继续执行AP洪水攻击
-    }
-
-    // 绘制说明页面
-
-
-    // 三行说明文字（居中）
-    const char* line1 = "针对轻量家用路由以及";
-    const char* line2 = "随身wifi等设备效果显著";
-    const char* line3 = "通常对手机热点无效";
-
-
-
-
-    // 操作按钮
-
-
-    delay(10); // 短暂延时避免CPU占用过高
-  }
+  return true;
 }
 
 // ============ 连接干扰说明页面 ============
 
 // 显示连接干扰功能说明页面
 bool showLinkJammerInfoPage() {
-  // 添加去抖变量
-  unsigned long lastBackTime = 0;
-  unsigned long lastOkTime = 0;
-
-  while (true) {
-    unsigned long currentTime = millis();
-
-    // 处理返回键
-    if (HIGH == LOW) {
-      if (currentTime - lastBackTime <= DEBOUNCE_DELAY) continue;
-      // 等待按键释放
-      while (false) { delay(10); }
-      delay(200); // 额外消抖时间
-      return false; // 返回首页
-    }
-
-    // 处理确认键
-    if (HIGH == LOW) {
-      if (currentTime - lastOkTime <= DEBOUNCE_DELAY) continue;
-      // 等待按键释放
-      while (false) { delay(10); }
-      delay(200); // 额外消抖时间
-      return true; // 继续执行连接干扰
-    }
-
-    // 绘制说明页面
-
-
-    // 前三行显示说明文字（居中）
-    const char* line1 = "干扰新连接，无法断网";
-    const char* line2 = "无视WPA/2/3等协议";
-    const char* line3 = "效果因目标设备而异";
-
-    // 计算每行文字宽度并居中
-
-
-
-    // 第四行显示操作按钮
-
-
-    delay(10); // 短暂延时避免CPU占用过高
-  }
+  return true;
 }
 
 // 显示信标广播篡改功能说明页面
 bool showBeaconTamperInfoPage() {
-  // 添加去抖变量
-  unsigned long lastBackTime = 0;
-  unsigned long lastOkTime = 0;
-
-  while (true) {
-    unsigned long currentTime = millis();
-
-    // 处理返回键
-    if (HIGH == LOW) {
-      if (currentTime - lastBackTime <= DEBOUNCE_DELAY) continue;
-      // 等待按键释放
-      while (false) { delay(10); }
-      delay(200); // 额外消抖时间
-      return false; // 返回首页
-    }
-
-    // 处理确认键
-    if (HIGH == LOW) {
-      if (currentTime - lastOkTime <= DEBOUNCE_DELAY) continue;
-      // 等待按键释放
-      while (false) { delay(10); }
-      delay(200); // 额外消抖时间
-      return true; // 继续执行信标篡改
-    }
-
-    // 绘制说明页面
-
-
-    // 前三行显示说明文字（居中）
-    const char* line1 = "尝试吞噬已选目标AP";
-    const char* line2 = "发送的信标帧数据";
-    const char* line3 = "具体效果不可控";
-
-    // 计算每行文字宽度并居中
-
-
-
-    // 第四行显示操作按钮
-
-
-    delay(10); // 短暂延时避免CPU占用过高
-  }
+  return true;
 }
 
 // 显示广播黑洞警告页面
 bool showBeaconTamperWarningPage() {
-  // 添加去抖变量
-  unsigned long lastBackTime = 0;
-  unsigned long lastOkTime = 0;
-
-  while (true) {
-    unsigned long currentTime = millis();
-
-    // 处理返回键
-    if (HIGH == LOW) {
-      if (currentTime - lastBackTime <= DEBOUNCE_DELAY) continue;
-      // 等待按键释放
-      while (false) { delay(10); }
-      delay(200); // 额外消抖时间
-      return false; // 返回首页
-    }
-
-    // 处理确认键
-    if (HIGH == LOW) {
-      if (currentTime - lastOkTime <= DEBOUNCE_DELAY) continue;
-      // 等待按键释放
-      while (false) { delay(10); }
-      delay(200); // 额外消抖时间
-      return true; // 继续执行广播黑洞
-    }
-
-    // 绘制警告页面
-
-
-    // 前三行显示警告文字（居中）
-    const char* line1 = "此功能可能会导致";
-    const char* line2 = "附近部分设备网卡异常";
-    const char* line3 = "请谨慎使用！";
-
-    // 计算每行文字宽度并居中
-
-
-
-    // 第四行显示操作按钮
-
-
-    delay(10); // 短暂延时避免CPU占用过高
-  }
+  return true;
 }
 
 // ============ 统一菜单动作函数实现 ============
@@ -8232,70 +6480,7 @@ void homeActionQuickCapture() {
 
 // 快速抓包模式选择界面
 void drawQuickCaptureModeSelection() {
-  int modeState = 0; // 0=主动, 1=被动, 2=高效
-  const char* modeNames[] = {"主动模式", "被动模式", "高效模式"};
-
-  while (true) {
-
-    // 标题 - 居中显示
-    const char* title = "快速抓包模式选择";
-    if (titleCenterX < 0) titleCenterX = 0;
-
-    // 显示模式选项
-    for (int i = 0; i < 3; i++) {
-      int y = 25 + i * 14; // 增加行间距
-
-      // 计算文字居中位置 - 使用准确的UTF8宽度
-      if (centerX < 0) centerX = 0;
-
-      // 如果是当前选中的选项，在左右两侧显示箭头
-      if (i == modeState) {
-        // 左侧箭头
-
-        // 右侧箭头
-      }
-
-      // 显示选项文字
-    }
-
-
-
-    // 按键处理 - 使用防抖机制
-    static unsigned long lastKeyTime = 0;
-    static bool keyPressed = false;
-
-    if (HIGH == LOW) {
-      if (!keyPressed && millis() - lastKeyTime > 150) {
-        keyPressed = true;
-        lastKeyTime = millis();
-        if (modeState > 0) modeState--;
-      }
-    } else if (HIGH == LOW) {
-      if (!keyPressed && millis() - lastKeyTime > 150) {
-        keyPressed = true;
-        lastKeyTime = millis();
-        if (modeState < 2) modeState++;
-      }
-    } else if (HIGH == LOW) {
-      if (!keyPressed && millis() - lastKeyTime > 150) {
-        keyPressed = true;
-        lastKeyTime = millis();
-        quick_capture_mode = modeState;
-        startQuickCapture();
-        return;
-      }
-    } else if (HIGH == LOW) {
-      if (!keyPressed && millis() - lastKeyTime > 150) {
-        keyPressed = true;
-        lastKeyTime = millis();
-        return;
-      }
-    } else {
-      keyPressed = false;
-    }
-
-    delay(20); // 减少主循环延迟
-  }
+  return;
 }
 
 // 启动快速抓包
@@ -8356,92 +6541,17 @@ void startQuickCapture() {
 
 // 显示快速抓包进度（非阻塞）
 void displayQuickCaptureProgress() {
-  static unsigned long lastUpdate = 0;
-  unsigned long currentTime = millis();
-
-  // 每500ms更新一次显示
-  if (currentTime - lastUpdate > 500) {
-
-    // 标题
-
-    // 显示目标网络信息
-    String ssidDisplay = _selectedNetwork.ssid.length() > 8 ? _selectedNetwork.ssid.substring(0, 8) + "..." : _selectedNetwork.ssid;
-
-    // 显示抓包统计
-
-
-    // 显示运行时间
-
-    lastUpdate = currentTime;
-  }
+  return;
 }
 
 // 抓包完成界面
 void drawQuickCaptureComplete() {
-  int menuState = 0; // 0=启动Web服务, 1=返回主菜单
-
-  while (true) {
-
-    // 标题
-
-    // 显示统计信息
-
-
-
-    // 显示菜单选项
-    const char* menuItems[] = {"启动Web服务", "返回主菜单"};
-    for (int i = 0; i < 2; i++) {
-      int y = 55 + i * 12;
-      if (i == menuState) {
-      } else {
-      }
-    }
-
-
-    // 按键处理
-    if (HIGH == LOW) {
-      delay(200);
-      if (menuState > 0) menuState--;
-    }
-    if (HIGH == LOW) {
-      delay(200);
-      if (menuState < 1) menuState++;
-    }
-    if (HIGH == LOW) {
-      delay(200);
-      if (menuState == 0) {
-        // 启动Web服务
-        startWebServiceForCapture();
-        // 显示Web服务信息
-        drawWebServiceInfo();
-        return;
-      } else {
-        // 返回主菜单
-        return;
-      }
-    }
-    if (HIGH == LOW) {
-      delay(200);
-      return;
-    }
-    delay(50);
-  }
+  return;
 }
 
 // 抓包超时界面
 void drawQuickCaptureTimeout() {
-  while (true) {
-
-
-
-
-
-    if (HIGH == LOW) {
-      delay(200);
-      return;
-    }
-    delay(50);
-  }
+  return;
 }
 
 // 启动Web服务用于抓包下载
@@ -8604,35 +6714,10 @@ void sendCaptureStatus(WiFiClient& client) {
 
 // 显示Web服务信息
 void drawWebServiceInfo() {
-  while (true) {
-
-    // 标题
-
-    // 显示连接信息
-
-
-
-
-    // 按键处理
-    if (HIGH == LOW) {
-      delay(200);
-      return;
-    }
-    delay(50);
-  }
+  return;
 }
 
 // 显示Web服务状态
 void displayWebServiceStatus() {
-
-  // 标题
-
-  // 显示目标网络信息
-  String ssidDisplay = _selectedNetwork.ssid.length() > 8 ? _selectedNetwork.ssid.substring(0, 8) + "..." : _selectedNetwork.ssid;
-
-  // 显示抓包统计
-
-
-  // 显示Web地址
-
+  return;
 }
