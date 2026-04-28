@@ -92,8 +92,8 @@ static const uint8_t LP_TX = 11;
 // Setup for ILI9341 320x240 (no touch)
 
 #define ILI9341_DRIVER 1
-#define TFT_HEIGHT 320
-#define TFT_WIDTH 240
+#define TFT_HEIGHT 240
+#define TFT_WIDTH 320
 
 /* ---------------------   */
 // Common TFT definitions
