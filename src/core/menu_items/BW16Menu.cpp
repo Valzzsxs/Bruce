@@ -1,6 +1,8 @@
 #include "BW16Menu.h"
+#include <FS.h>
 #include <core/display.h>
 #include <core/mykeyboard.h>
+#include <core/sd_functions.h>
 #include <core/utils.h>
 
 void BW16Menu::drawIcon(float scale) {
@@ -89,9 +91,33 @@ void BW16Menu::optionsMenu() {
                 delay(1000);
             }, false, bw16_tick, this},
             {"BW16 OTA Update", [this]() {
-                bw16.otaUpdate();
-                displaySuccess("OTA Mode");
-                delay(500);
+                FS *fs = &LittleFS;
+                setupSdCard();
+                if (sdcardMounted) {
+                    std::vector<Option> fsOptions = {
+                        {"SD Card", [&]() { fs = &SD; }},
+                        {"LittleFS", [&]() { fs = &LittleFS; }},
+                    };
+                    int ret = loopOptions(fsOptions);
+                    if (ret == -1) return;
+                }
+                String filename = loopSD(*fs, true, "BIN");
+                if (filename == "") return;
+
+                File file = fs->open(filename, FILE_READ);
+                if (!file) {
+                    displayError("Failed to open file");
+                    delay(1000);
+                    return;
+                }
+
+                displayInfo("Starting OTA...");
+                if (bw16.otaUpdate(file)) {
+                    displaySuccess("OTA Success");
+                } else {
+                    displayError("OTA Failed");
+                }
+                delay(1000);
             }, false, bw16_tick, this},
             {"Settings", [this]() {
                 while(1) {
