@@ -42,9 +42,15 @@ void BW16Menu::optionsMenu() {
                 displaySuccess("Feature WIP");
                 delay(500);
             }, false, bw16_tick, this},
+
             {"Hidden SSID Decloaker", [this]() {
                 bw16.hiddenDecloaker();
                 displaySuccess("Decloaking...");
+                delay(500);
+            }, false, bw16_tick, this},
+            {"Karma Attack", [this]() {
+                bw16.karmaAttack();
+                displaySuccess("Karma Started");
                 delay(500);
             }, false, bw16_tick, this},
             {"Deauth Detection (IDS)", [this]() {
@@ -247,6 +253,12 @@ void BW16Menu::showActionMenu(int index) {
             {"Deauth Stop", [this, index]() {
                 bw16.deauthStop(index);
                 displaySuccess("Deauth Stopped");
+                delay(500);
+            }, false, bw16_tick, this},
+
+            {"Auth Flood", [this, index]() {
+                bw16.authFlood(index);
+                displaySuccess("Auth Flood Sent");
                 delay(500);
             }, false, bw16_tick, this},
 
