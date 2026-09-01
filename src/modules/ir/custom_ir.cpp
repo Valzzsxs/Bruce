@@ -342,7 +342,7 @@ void sendNECextCommand(String address, String command, bool hideDefaultUI) {
     uint16_t lsbAddress = reverseBits(newAddress, 16);
     uint16_t lsbCommand = reverseBits(newCommand, 16);
 
-    uint32_t data = ((uint32_t)lsbAddress << 16) | lsbCommand;
+    uint32_t data = ((uint32_t)lsbCommand << 16) | lsbAddress;
     irsend.sendNEC(data, 32); // Sends MSB first
 
     if (bruceConfigPins.irTxRepeats > 0) {
